@@ -12,6 +12,7 @@ import {
 import JellyfinIcon from '/@/renderer/features/servers/assets/jellyfin.png';
 import NavidromeIcon from '/@/renderer/features/servers/assets/navidrome.png';
 import SubsonicIcon from '/@/renderer/features/servers/assets/opensubsonic.png';
+import PlexIcon from '/@/renderer/features/servers/assets/plex.png';
 import { IgnoreCorsSslSwitches } from '/@/renderer/features/servers/components/ignore-cors-ssl-switches';
 import { useAuthStoreActions, useServerList } from '/@/renderer/store';
 import { Checkbox } from '/@/shared/components/checkbox/checkbox';
@@ -80,7 +81,7 @@ const SERVER_TYPES: Record<ServerType, ServerDetails> = {
         name: 'Navidrome',
     },
     [ServerType.PLEX]: {
-        icon: JellyfinIcon, // Placeholder - use Jellyfin icon for now
+        icon: PlexIcon,
         name: 'Plex',
     },
     [ServerType.SUBSONIC]: {
@@ -127,7 +128,7 @@ export const AddServerForm = ({ onCancel }: AddServerFormProps) => {
         },
     });
 
-    const isPlex = form.values.type === 'plex';
+    const isPlex = form.values.type === ServerType.PLEX;
     const isSubmitDisabled =
         !form.values.name ||
         !form.values.url ||
@@ -247,7 +248,10 @@ export const AddServerForm = ({ onCancel }: AddServerFormProps) => {
                             >
                                 <Text fw={700}>{server.name}</Text>
                                 <Text>
-                                    {SERVER_TYPES[server.type].name} server at {server.url}
+                                    {t('form.addServer.discoveredServer', {
+                                        serverType: SERVER_TYPES[server.type].name,
+                                        serverUrl: server.url,
+                                    })}
                                 </Text>
                             </div>
                         </Group>
@@ -309,8 +313,14 @@ export const AddServerForm = ({ onCancel }: AddServerFormProps) => {
                     )}
                     {form.values.type === ServerType.PLEX ? (
                         <PasswordInput
-                            label="Plex Token"
-                            description="在 Plex 设置 > 账户中获取 X-Plex-Token"
+                            description={t('form.addServer.input', {
+                                context: 'tokenDescription',
+                                postProcess: 'sentenceCase',
+                            })}
+                            label={t('form.addServer.input', {
+                                context: 'token',
+                                postProcess: 'titleCase',
+                            })}
                             required
                             {...form.getInputProps('token')}
                         />
@@ -333,7 +343,6 @@ export const AddServerForm = ({ onCancel }: AddServerFormProps) => {
                             />
                         </>
                     )}
-                    <Text size="xs">当前服务器类型: {form.values.type}</Text>
                     {localSettings && form.values.type === ServerType.NAVIDROME && (
                         <Checkbox
                             label={t('form.addServer.input', {

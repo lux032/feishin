@@ -1,21 +1,19 @@
-import { z } from 'zod';
-
+import i18n from '/@/i18n/i18n';
 import { pxApiClient } from '/@/renderer/api/plex/plex-api';
 import { getServerUrl } from '/@/renderer/utils/normalize-server-url';
 import { pxNormalize } from '/@/shared/api/plex/plex-normalize';
-import { plexType, PX_TRACK_RATING_FAVORITE } from '/@/shared/api/plex/plex-types';
+import { PlexArtist, PlexTrack, PX_TRACK_RATING_FAVORITE } from '/@/shared/api/plex/plex-types';
 import {
     AlbumListSort,
-    AlbumArtistListSort,
-    albumArtistListSortMap,
     albumListSortMap,
-    Folder,
-    genreListSortMap,
+    ArtistListSort,
+    artistListSortMap,
     ImageArgs,
     ImageRequest,
     InternalControllerEndpoint,
     LibraryItem,
-    playlistListSortMap,
+    LyricsResponse,
+    ServerListItemWithCredential,
     ServerType,
     SongListSort,
     songListSortMap,
@@ -23,15 +21,23 @@ import {
     sortOrderMap,
 } from '/@/shared/types/domain-types';
 
+type PlexArtistMetadataResponse = {
+    MediaContainer?: {
+        Directory?: PlexArtist[];
+    };
+};
+
+type PlexSongMetadataResponse = {
+    MediaContainer?: {
+        Track?: PlexTrack[];
+    };
+};
+
 const getPlexImageRequest = ({
     apiClientProps: { server },
     baseUrl,
     query,
-}: {
-    apiClientProps: { server: any };
-    baseUrl?: string;
-    query: { id: string; size?: number };
-}): ImageRequest | null => {
+}: ImageArgs): ImageRequest | null => {
     const { id, size } = query;
 
     if (!server) {
@@ -64,6 +70,10 @@ const getLibraryId = (musicFolderId?: string | string[]): string | undefined => 
     return musicFolderId;
 };
 
+const getPlexServerUrl = (server: ServerListItemWithCredential | null) => getServerUrl(server) || '';
+
+const getPlexToken = (server: ServerListItemWithCredential | null) => server?.credential || '';
+
 const getPlexAlbumSort = (sortBy?: AlbumListSort, sortOrder?: SortOrder) => {
     const plexSortOrder = sortOrder ? sortOrderMap.plex[sortOrder] : undefined;
 
@@ -78,10 +88,6 @@ const getPlexAlbumSort = (sortBy?: AlbumListSort, sortOrder?: SortOrder) => {
     const mappedSort = sortBy ? albumListSortMap.plex[sortBy] : undefined;
     if (!mappedSort) {
         return undefined;
-    }
-
-    if (mappedSort === 'random') {
-        return mappedSort;
     }
 
     return `${mappedSort}:${plexSortOrder || sortOrderMap.plex[SortOrder.ASC]}`;
@@ -99,15 +105,22 @@ const getPlexSongSort = (sortBy?: SongListSort, sortOrder?: SortOrder) => {
         return undefined;
     }
 
-    if (mappedSort === 'random') {
-        return mappedSort;
+    return `${mappedSort}:${plexSortOrder || sortOrderMap.plex[SortOrder.ASC]}`;
+};
+
+const getPlexArtistSort = (sortBy?: ArtistListSort, sortOrder?: SortOrder) => {
+    const plexSortOrder = sortOrder ? sortOrderMap.plex[sortOrder] : undefined;
+    const mappedSort = sortBy ? artistListSortMap.plex[sortBy] : undefined;
+
+    if (!mappedSort) {
+        return undefined;
     }
 
     return `${mappedSort}:${plexSortOrder || sortOrderMap.plex[SortOrder.ASC]}`;
 };
 
 export const PlexController: InternalControllerEndpoint = {
-    addToPlaylist: async (args) => {
+    addToPlaylist: async () => {
         throw new Error('Not implemented for Plex');
     },
 
@@ -119,7 +132,9 @@ export const PlexController: InternalControllerEndpoint = {
         const token = (body as any).token || body.password;
 
         if (!token) {
-            throw new Error('Plex token is required');
+            throw new Error(
+                i18n.t('error.plexTokenRequired', { postProcess: 'sentenceCase' }) as string,
+            );
         }
 
         // Verify token by making a request to the server
@@ -144,7 +159,9 @@ export const PlexController: InternalControllerEndpoint = {
             };
         } catch (error) {
             throw new Error(
-                'Failed to authenticate with Plex token. Please check your token and server URL.',
+                i18n.t('error.plexTokenAuthenticationFailed', {
+                    postProcess: 'sentenceCase',
+                }) as string,
             );
         }
     },
@@ -160,11 +177,11 @@ export const PlexController: InternalControllerEndpoint = {
         return null;
     },
 
-    createInternetRadioStation: async (args) => {
+    createInternetRadioStation: async () => {
         throw new Error('Not implemented for Plex');
     },
 
-    createPlaylist: async (args) => {
+    createPlaylist: async () => {
         throw new Error('Not implemented for Plex');
     },
 
@@ -179,20 +196,21 @@ export const PlexController: InternalControllerEndpoint = {
         return null;
     },
 
-    deleteInternetRadioStation: async (args) => {
+    deleteInternetRadioStation: async () => {
         throw new Error('Not implemented for Plex');
     },
 
-    deletePlaylist: async (args) => {
+    deletePlaylist: async () => {
         throw new Error('Not implemented for Plex');
     },
 
     getAlbumArtistDetail: async (args) => {
         const { apiClientProps, query } = args;
-        const serverUrl = getServerUrl(apiClientProps.server);
+        const serverUrl = getPlexServerUrl(apiClientProps.server);
+        const token = getPlexToken(apiClientProps.server);
 
         const apiClient = pxApiClient(apiClientProps);
-        const res = await apiClient.getMetadata(query.id);
+        const res = await apiClient.getMetadata<PlexArtistMetadataResponse>(query.id);
 
         if (res.status !== 200) {
             throw new Error('Failed to get album artist detail');
@@ -207,17 +225,18 @@ export const PlexController: InternalControllerEndpoint = {
             artist,
             apiClientProps.server,
             serverUrl,
-            apiClientProps.server?.credential,
+            token,
         );
     },
 
-    getAlbumArtistInfo: async (args) => {
+    getAlbumArtistInfo: async () => {
         return null;
     },
 
     getAlbumArtistList: async (args) => {
         const { apiClientProps, query } = args;
-        const serverUrl = getServerUrl(apiClientProps.server);
+        const serverUrl = getPlexServerUrl(apiClientProps.server);
+        const token = getPlexToken(apiClientProps.server);
         const sectionId = getLibraryId(query.musicFolderId) || '1';
 
         const apiClient = pxApiClient(apiClientProps);
@@ -240,7 +259,7 @@ export const PlexController: InternalControllerEndpoint = {
                     item,
                     apiClientProps.server,
                     serverUrl,
-                    apiClientProps.server?.credential,
+                    token,
                 ),
             ),
             startIndex: query.startIndex,
@@ -256,7 +275,8 @@ export const PlexController: InternalControllerEndpoint = {
 
     getAlbumDetail: async (args) => {
         const { apiClientProps, query } = args;
-        const serverUrl = getServerUrl(apiClientProps.server);
+        const serverUrl = getPlexServerUrl(apiClientProps.server);
+        const token = getPlexToken(apiClientProps.server);
 
         const apiClient = pxApiClient(apiClientProps);
 
@@ -273,7 +293,7 @@ export const PlexController: InternalControllerEndpoint = {
                 track,
                 apiClientProps.server,
                 serverUrl,
-                apiClientProps.server?.credential,
+                token,
             ),
         );
 
@@ -325,7 +345,8 @@ export const PlexController: InternalControllerEndpoint = {
 
     getAlbumList: async (args) => {
         const { apiClientProps, query } = args;
-        const serverUrl = getServerUrl(apiClientProps.server);
+        const serverUrl = getPlexServerUrl(apiClientProps.server);
+        const token = getPlexToken(apiClientProps.server);
         const sectionId = getLibraryId(query.musicFolderId) || '1';
 
         const apiClient = pxApiClient(apiClientProps);
@@ -350,7 +371,7 @@ export const PlexController: InternalControllerEndpoint = {
                     item,
                     apiClientProps.server,
                     serverUrl,
-                    apiClientProps.server?.credential,
+                    token,
                 ),
             ),
             startIndex: query.startIndex,
@@ -366,7 +387,8 @@ export const PlexController: InternalControllerEndpoint = {
 
     getAlbumRadio: async (args) => {
         const { apiClientProps, query } = args;
-        const serverUrl = getServerUrl(apiClientProps.server);
+        const serverUrl = getPlexServerUrl(apiClientProps.server);
+        const token = getPlexToken(apiClientProps.server);
 
         const apiClient = pxApiClient(apiClientProps);
         const res = await apiClient.getSimilarAlbums(query.albumId);
@@ -376,33 +398,32 @@ export const PlexController: InternalControllerEndpoint = {
         }
 
         const container = res.body?.MediaContainer;
-        const items = container?.Directory || [];
+        const albums = container?.Directory || [];
+        const targetCount = query.count || albums.length;
 
-        return items
-            .slice(0, query.count)
-            .map((item) =>
-                pxNormalize.album(
-                    item,
-                    apiClientProps.server,
-                    serverUrl,
-                    apiClientProps.server?.credential,
-                ),
-            );
+        const trackResponses = await Promise.all(
+            albums.slice(0, targetCount).map((album) => apiClient.getAlbumTracks(album.$.ratingKey)),
+        );
+
+        return trackResponses
+            .flatMap((response) =>
+                response.status === 200 ? (response.body?.MediaContainer?.Track ?? []) : [],
+            )
+            .map((track) => pxNormalize.song(track, apiClientProps.server, serverUrl, token))
+            .slice(0, targetCount);
     },
 
     getArtistList: async (args) => {
         const { apiClientProps, query } = args;
-        const serverUrl = getServerUrl(apiClientProps.server);
+        const serverUrl = getPlexServerUrl(apiClientProps.server);
+        const token = getPlexToken(apiClientProps.server);
         const sectionId = getLibraryId(query.musicFolderId) || '1';
 
         const apiClient = pxApiClient(apiClientProps);
         const res = await apiClient.getArtistList({
             sectionId,
             size: query.limit || 50,
-            sort:
-                query.sortBy && albumArtistListSortMap.plex[query.sortBy as AlbumArtistListSort]
-                    ? `${albumArtistListSortMap.plex[query.sortBy as AlbumArtistListSort]}:${sortOrderMap.plex[query.sortOrder || SortOrder.ASC]}`
-                    : undefined,
+            sort: getPlexArtistSort(query.sortBy, query.sortOrder),
             start: query.startIndex || 0,
         });
 
@@ -419,7 +440,7 @@ export const PlexController: InternalControllerEndpoint = {
                     item,
                     apiClientProps.server,
                     serverUrl,
-                    apiClientProps.server?.credential,
+                    token,
                 ),
             ),
             startIndex: query.startIndex,
@@ -433,7 +454,7 @@ export const PlexController: InternalControllerEndpoint = {
             query: { ...query, limit: 1, startIndex: 0 },
         }).then((result) => result?.totalRecordCount ?? 0),
 
-    getArtistRadio: async (args) => {
+    getArtistRadio: async () => {
         return [];
     },
 
@@ -443,13 +464,12 @@ export const PlexController: InternalControllerEndpoint = {
         return `${serverUrl}/library/metadata/${query.id}/download?X-Plex-Token=${apiClientProps.server?.credential}`;
     },
 
-    getFolder: async (args) => {
+    getFolder: async () => {
         throw new Error('Not implemented for Plex');
     },
 
     getGenreList: async (args) => {
         const { apiClientProps, query } = args;
-        const serverUrl = getServerUrl(apiClientProps.server);
         const sectionId = getLibraryId(query.musicFolderId) || '1';
 
         const apiClient = pxApiClient(apiClientProps);
@@ -473,12 +493,12 @@ export const PlexController: InternalControllerEndpoint = {
 
     getImageUrl: (args) => getPlexImageRequest(args)?.url || null,
 
-    getInternetRadioStations: async (args) => {
+    getInternetRadioStations: async () => {
         return [];
     },
 
-    getLyrics: async (args) => {
-        return null;
+    getLyrics: async (): Promise<LyricsResponse> => {
+        return '';
     },
 
     getMusicFolderList: async (args) => {
@@ -505,7 +525,8 @@ export const PlexController: InternalControllerEndpoint = {
 
     getPlaylistDetail: async (args) => {
         const { apiClientProps, query } = args;
-        const serverUrl = getServerUrl(apiClientProps.server);
+        const serverUrl = getPlexServerUrl(apiClientProps.server);
+        const token = getPlexToken(apiClientProps.server);
 
         const apiClient = pxApiClient(apiClientProps);
         const playlistRes = await apiClient.getPlaylistList();
@@ -525,13 +546,14 @@ export const PlexController: InternalControllerEndpoint = {
             playlist,
             apiClientProps.server,
             serverUrl,
-            apiClientProps.server?.credential,
+            token,
         );
     },
 
     getPlaylistList: async (args) => {
-        const { apiClientProps, query } = args;
-        const serverUrl = getServerUrl(apiClientProps.server);
+        const { apiClientProps } = args;
+        const serverUrl = getPlexServerUrl(apiClientProps.server);
+        const token = getPlexToken(apiClientProps.server);
 
         const apiClient = pxApiClient(apiClientProps);
         const res = await apiClient.getPlaylistList();
@@ -549,7 +571,7 @@ export const PlexController: InternalControllerEndpoint = {
                     item,
                     apiClientProps.server,
                     serverUrl,
-                    apiClientProps.server?.credential,
+                    token,
                 ),
             ),
             startIndex: 0,
@@ -565,7 +587,8 @@ export const PlexController: InternalControllerEndpoint = {
 
     getPlaylistSongList: async (args) => {
         const { apiClientProps, query } = args;
-        const serverUrl = getServerUrl(apiClientProps.server);
+        const serverUrl = getPlexServerUrl(apiClientProps.server);
+        const token = getPlexToken(apiClientProps.server);
 
         const apiClient = pxApiClient(apiClientProps);
         const res = await apiClient.getPlaylistTracks(query.id);
@@ -583,7 +606,7 @@ export const PlexController: InternalControllerEndpoint = {
                     item,
                     apiClientProps.server,
                     serverUrl,
-                    apiClientProps.server?.credential,
+                    token,
                 ),
             ),
             startIndex: 0,
@@ -597,7 +620,8 @@ export const PlexController: InternalControllerEndpoint = {
 
     getRandomSongList: async (args) => {
         const { apiClientProps, query } = args;
-        const serverUrl = getServerUrl(apiClientProps.server);
+        const serverUrl = getPlexServerUrl(apiClientProps.server);
+        const token = getPlexToken(apiClientProps.server);
         const sectionId = getLibraryId(query.musicFolderId) || '1';
 
         const apiClient = pxApiClient(apiClientProps);
@@ -620,7 +644,7 @@ export const PlexController: InternalControllerEndpoint = {
                     item,
                     apiClientProps.server,
                     serverUrl,
-                    apiClientProps.server?.credential,
+                    token,
                 ),
             ),
             startIndex: 0,
@@ -638,21 +662,17 @@ export const PlexController: InternalControllerEndpoint = {
         };
     },
 
-    getSimilarSongs: async (args) => {
+    getSimilarSongs: async () => {
         return [];
     },
 
     getSongDetail: async (args) => {
         const { apiClientProps, query } = args;
-        const serverUrl = getServerUrl(apiClientProps.server);
-        const sectionId = getLibraryId(query.musicFolderId) || '1';
+        const serverUrl = getPlexServerUrl(apiClientProps.server);
+        const token = getPlexToken(apiClientProps.server);
 
         const apiClient = pxApiClient(apiClientProps);
-        const res = await apiClient.getSongList({
-            sectionId,
-            size: 1,
-            start: 0,
-        });
+        const res = await apiClient.getMetadata<PlexSongMetadataResponse>(query.id);
 
         if (res.status !== 200) {
             throw new Error('Failed to get song detail');
@@ -667,13 +687,14 @@ export const PlexController: InternalControllerEndpoint = {
             tracks[0],
             apiClientProps.server,
             serverUrl,
-            apiClientProps.server?.credential,
+            token,
         );
     },
 
     getSongList: async (args) => {
         const { apiClientProps, query } = args;
-        const serverUrl = getServerUrl(apiClientProps.server);
+        const serverUrl = getPlexServerUrl(apiClientProps.server);
+        const token = getPlexToken(apiClientProps.server);
         const sectionId = getLibraryId(query.musicFolderId) || '1';
 
         const apiClient = pxApiClient(apiClientProps);
@@ -687,6 +708,7 @@ export const PlexController: InternalControllerEndpoint = {
                       (query.albumArtistIds?.length === 1
                           ? query.albumArtistIds[0]
                           : undefined),
+                  favorite: query.favorite,
                   sectionId,
                   size: query.limit === -1 ? 100 : query.limit || 50,
                   sort: getPlexSongSort(query.sortBy, query.sortOrder),
@@ -699,6 +721,10 @@ export const PlexController: InternalControllerEndpoint = {
 
         const container = res.body?.MediaContainer;
         let items = container?.Track || [];
+
+        if (query.favorite === true) {
+            items = items.filter((item) => Number(item.$.userRating || 0) >= PX_TRACK_RATING_FAVORITE);
+        }
 
         if (singleAlbumId) {
             const sorted = getPlexSongSort(query.sortBy, query.sortOrder);
@@ -719,7 +745,7 @@ export const PlexController: InternalControllerEndpoint = {
                     item,
                     apiClientProps.server,
                     serverUrl,
-                    apiClientProps.server?.credential,
+                    token,
                 ),
             ),
             startIndex: query.startIndex,
@@ -742,14 +768,15 @@ export const PlexController: InternalControllerEndpoint = {
 
     getTopSongs: async (args) => {
         const { apiClientProps, query } = args;
-        const serverUrl = getServerUrl(apiClientProps.server);
-        const sectionId = getLibraryId(query.musicFolderId) || '1';
+        const serverUrl = getPlexServerUrl(apiClientProps.server);
+        const token = getPlexToken(apiClientProps.server);
+        const sectionId = getLibraryId(apiClientProps.server?.musicFolderId) || '1';
 
         const apiClient = pxApiClient(apiClientProps);
         const res = await apiClient.getSongList({
             artistId: query.artistId,
             sectionId,
-            size: query.count,
+            size: query.limit || 50,
             sort: 'viewCount:desc',
             start: 0,
         });
@@ -767,7 +794,7 @@ export const PlexController: InternalControllerEndpoint = {
                     item,
                     apiClientProps.server,
                     serverUrl,
-                    apiClientProps.server?.credential,
+                    token,
                 ),
             ),
             startIndex: 0,
@@ -783,19 +810,19 @@ export const PlexController: InternalControllerEndpoint = {
         };
     },
 
-    movePlaylistItem: async (args) => {
+    movePlaylistItem: async () => {
         throw new Error('Not implemented for Plex');
     },
 
-    removeFromPlaylist: async (args) => {
+    removeFromPlaylist: async () => {
         throw new Error('Not implemented for Plex');
     },
 
-    replacePlaylist: async (args) => {
+    replacePlaylist: async () => {
         throw new Error('Not implemented for Plex');
     },
 
-    savePlayQueue: async (args) => {
+    savePlayQueue: async () => {
         return;
     },
 
@@ -803,19 +830,15 @@ export const PlexController: InternalControllerEndpoint = {
         const { apiClientProps, query } = args;
         const apiClient = pxApiClient(apiClientProps);
 
-        for (const id of query.ids) {
-            await apiClient.scrobble(id);
-        }
+        await apiClient.scrobble(query.id);
 
         return null;
     },
 
-    search: async (args) => {
+    search: async () => {
         return {
             albumArtists: [],
             albums: [],
-            genres: [],
-            playlists: [],
             songs: [],
         };
     },
@@ -824,16 +847,18 @@ export const PlexController: InternalControllerEndpoint = {
         const { apiClientProps, query } = args;
         const apiClient = pxApiClient(apiClientProps);
 
-        await apiClient.setRating(query.item, query.rating);
+        for (const id of query.id) {
+            await apiClient.setRating(id, query.rating);
+        }
 
         return null;
     },
 
-    updateInternetRadioStation: async (args) => {
+    updateInternetRadioStation: async () => {
         throw new Error('Not implemented for Plex');
     },
 
-    updatePlaylist: async (args) => {
+    updatePlaylist: async () => {
         throw new Error('Not implemented for Plex');
     },
 };

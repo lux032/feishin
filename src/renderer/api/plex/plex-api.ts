@@ -5,7 +5,20 @@ import i18n from '/@/i18n/i18n';
 import { authenticationFailure } from '/@/renderer/api/utils';
 import { useAuthStore } from '/@/renderer/store';
 import { getServerUrl } from '/@/renderer/utils/normalize-server-url';
-import { plexType, PlexResource, PlexSection } from '/@/shared/api/plex/plex-types';
+import {
+    PlexAlbumListResponse,
+    PlexAlbumTracksResponse,
+    PlexArtistListResponse,
+    PlexGenreListResponse,
+    PlexMusicFolderListResponse,
+    PlexPlaylistListResponse,
+    PlexPlaylistTracksResponse,
+    PlexResource,
+    PlexResourcesResponse,
+    PlexSection,
+    PlexSectionsResponse,
+    PlexSongListResponse,
+} from '/@/shared/api/plex/plex-types';
 import { ServerListItemWithCredential } from '/@/shared/types/domain-types';
 
 const PLEX_PRODUCT = 'Feishin';
@@ -68,6 +81,8 @@ const parser = new XMLParser({
 });
 
 const axiosClient = axios.create({});
+
+type ApiResponse<T> = Promise<{ body: T; status: number; headers?: any }>;
 
 axiosClient.interceptors.response.use(
     (response) => response,
@@ -204,7 +219,9 @@ export const pxApiClient = (args: {
             const user = parsed?.user;
 
             if (!user?.$?.authenticationToken) {
-                throw new Error('Plex authentication failed');
+                throw new Error(
+                    i18n.t('error.authenticationFailed', { postProcess: 'sentenceCase' }) as string,
+                );
             }
 
             return {
@@ -218,7 +235,7 @@ export const pxApiClient = (args: {
         },
 
         getResources: async () => {
-            const response = await request<{ MediaContainer: { Device: PlexResource[] } }>({
+            const response = await request<PlexResourcesResponse>({
                 method: 'GET',
                 path: 'api/v2/resources',
                 params: {
@@ -251,8 +268,8 @@ export const pxApiClient = (args: {
             };
         },
 
-        getSections: async (serverUrl: string, authToken: string) => {
-            const response = await request<{ MediaContainer: { Directory: PlexSection[] } }>({
+        getSections: async (_serverUrl: string, _authToken: string) => {
+            const response = await request<PlexSectionsResponse>({
                 method: 'GET',
                 path: 'library/sections',
             });
@@ -278,8 +295,8 @@ export const pxApiClient = (args: {
             start?: number;
             size?: number;
             sort?: string;
-        }) => {
-            const response = await request({
+        }): ApiResponse<PlexAlbumListResponse> => {
+            const response = await request<PlexAlbumListResponse>({
                 method: 'GET',
                 path: `library/sections/${params.sectionId}/all`,
                 params: {
@@ -299,8 +316,8 @@ export const pxApiClient = (args: {
             start?: number;
             size?: number;
             sort?: string;
-        }) => {
-            const response = await request({
+        }): ApiResponse<PlexArtistListResponse> => {
+            const response = await request<PlexArtistListResponse>({
                 method: 'GET',
                 path: `library/sections/${params.sectionId}/all`,
                 params: {
@@ -317,12 +334,13 @@ export const pxApiClient = (args: {
         getSongList: async (params: {
             albumId?: string;
             artistId?: string;
+            favorite?: boolean;
             sectionId: string;
             start?: number;
             size?: number;
             sort?: string;
-        }) => {
-            const response = await request({
+        }): ApiResponse<PlexSongListResponse> => {
+            const response = await request<PlexSongListResponse>({
                 method: 'GET',
                 path: `library/sections/${params.sectionId}/all`,
                 params: {
@@ -330,6 +348,7 @@ export const pxApiClient = (args: {
                     'X-Plex-Container-Start': params.start || 0,
                     'album.id': params.albumId,
                     'artist.id': params.artistId,
+                    'userRating>=': params.favorite ? 10 : undefined,
                     sort: params.sort || 'titleSort',
                     type: 10,
                 },
@@ -338,8 +357,8 @@ export const pxApiClient = (args: {
             return response;
         },
 
-        getAlbumTracks: async (albumRatingKey: string) => {
-            const response = await request({
+        getAlbumTracks: async (albumRatingKey: string): ApiResponse<PlexAlbumTracksResponse> => {
+            const response = await request<PlexAlbumTracksResponse>({
                 method: 'GET',
                 path: `library/metadata/${albumRatingKey}/children`,
             });
@@ -347,8 +366,8 @@ export const pxApiClient = (args: {
             return response;
         },
 
-        getMetadata: async (ratingKey: string) => {
-            const response = await request({
+        getMetadata: async <T>(ratingKey: string): ApiResponse<T> => {
+            const response = await request<T>({
                 method: 'GET',
                 path: `library/metadata/${ratingKey}`,
             });
@@ -356,8 +375,8 @@ export const pxApiClient = (args: {
             return response;
         },
 
-        getPlaylistList: async () => {
-            const response = await request({
+        getPlaylistList: async (): ApiResponse<PlexPlaylistListResponse> => {
+            const response = await request<PlexPlaylistListResponse>({
                 method: 'GET',
                 path: 'playlists',
                 params: {
@@ -368,8 +387,10 @@ export const pxApiClient = (args: {
             return response;
         },
 
-        getPlaylistTracks: async (playlistRatingKey: string) => {
-            const response = await request({
+        getPlaylistTracks: async (
+            playlistRatingKey: string,
+        ): ApiResponse<PlexPlaylistTracksResponse> => {
+            const response = await request<PlexPlaylistTracksResponse>({
                 method: 'GET',
                 path: `playlists/${playlistRatingKey}/items`,
             });
@@ -377,8 +398,8 @@ export const pxApiClient = (args: {
             return response;
         },
 
-        getGenreList: async (params: { sectionId: string }) => {
-            const response = await request({
+        getGenreList: async (params: { sectionId: string }): ApiResponse<PlexGenreListResponse> => {
+            const response = await request<PlexGenreListResponse>({
                 method: 'GET',
                 path: `library/sections/${params.sectionId}/genre`,
             });
@@ -386,8 +407,8 @@ export const pxApiClient = (args: {
             return response;
         },
 
-        getMusicFolderList: async () => {
-            const response = await request({
+        getMusicFolderList: async (): ApiResponse<PlexMusicFolderListResponse> => {
+            const response = await request<PlexMusicFolderListResponse>({
                 method: 'GET',
                 path: 'library/sections',
             });
@@ -395,8 +416,8 @@ export const pxApiClient = (args: {
             return response;
         },
 
-        getSimilarAlbums: async (albumRatingKey: string) => {
-            const response = await request({
+        getSimilarAlbums: async (albumRatingKey: string): ApiResponse<PlexAlbumListResponse> => {
+            const response = await request<PlexAlbumListResponse>({
                 method: 'GET',
                 path: `library/metadata/${albumRatingKey}/similar`,
             });

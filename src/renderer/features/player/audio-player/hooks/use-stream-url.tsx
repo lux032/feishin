@@ -20,7 +20,9 @@ export function useSongUrl(
                 return prior.current[1];
             }
 
-            if (song._serverType === ServerType.PLEX && !transcode.enabled && song.streamUrl) {
+            // Plex direct part URLs are more reliable than the metadata download route.
+            // Prefer the normalized streamUrl whenever it is available.
+            if (song._serverType === ServerType.PLEX && song.streamUrl) {
                 prior.current = [song._uniqueId, song.streamUrl];
                 return song.streamUrl;
             }
@@ -55,7 +57,7 @@ export function useSongUrl(
 }
 
 export const getSongUrl = (song: QueueSong, transcode: TranscodingConfig) => {
-    if (song._serverType === ServerType.PLEX && !transcode.enabled && song.streamUrl) {
+    if (song._serverType === ServerType.PLEX && song.streamUrl) {
         return song.streamUrl;
     }
 

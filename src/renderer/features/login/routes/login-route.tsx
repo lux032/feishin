@@ -13,6 +13,7 @@ import {
 import JellyfinIcon from '/@/renderer/features/servers/assets/jellyfin.png';
 import NavidromeIcon from '/@/renderer/features/servers/assets/navidrome.png';
 import SubsonicIcon from '/@/renderer/features/servers/assets/opensubsonic.png';
+import PlexIcon from '/@/renderer/features/servers/assets/plex.png';
 import { IgnoreCorsSslSwitches } from '/@/renderer/features/servers/components/ignore-cors-ssl-switches';
 import { AnimatedPage } from '/@/renderer/features/shared/components/animated-page';
 import { PageErrorBoundary } from '/@/renderer/features/shared/components/page-error-boundary';
@@ -42,7 +43,7 @@ const localSettings = isElectron() ? window.api.localSettings : null;
 const SERVER_ICONS: Record<ServerType, string> = {
     [ServerType.JELLYFIN]: JellyfinIcon,
     [ServerType.NAVIDROME]: NavidromeIcon,
-    [ServerType.PLEX]: JellyfinIcon, // Placeholder - use Jellyfin icon for now
+    [ServerType.PLEX]: PlexIcon,
     [ServerType.SUBSONIC]: SubsonicIcon,
 };
 
@@ -161,9 +162,9 @@ const LoginRoute = () => {
 
             const normalizedUrl = normalizeUrl(serverUrl);
             const normalizedRemoteURL = normalizeUrl(remoteUrl);
-            const existingServer =
-                serverLock &&
-                Object.values(serverList).find((s) => normalizeUrl(s.url) === normalizedUrl);
+            const existingServer = serverLock
+                ? Object.values(serverList).find((s) => normalizeUrl(s.url) === normalizedUrl)
+                : undefined;
 
             const serverItem: ServerListItemWithCredential = {
                 credential: data.credential,
@@ -203,7 +204,8 @@ const LoginRoute = () => {
             });
 
             if (localSettings && values.password) {
-                const saved = await localSettings.passwordSet(values.password, serverItem.id);
+                const passwordServerId = existingServer?.id || serverItem.id;
+                const saved = await localSettings.passwordSet(values.password, passwordServerId);
                 if (!saved) {
                     toast.error({
                         message: t('form.addServer.error', {
@@ -267,11 +269,19 @@ const LoginRoute = () => {
                                 <PasswordInput
                                     data-autofocus={isPlex || undefined}
                                     description={
-                                        isPlex ? '在 Plex 设置 > 账户中获取 X-Plex-Token' : undefined
+                                        isPlex
+                                            ? t('form.addServer.input', {
+                                                  context: 'tokenDescription',
+                                                  postProcess: 'sentenceCase',
+                                              })
+                                            : undefined
                                     }
                                     label={
                                         isPlex
-                                            ? 'Plex Token'
+                                            ? t('form.addServer.input', {
+                                                  context: 'token',
+                                                  postProcess: 'titleCase',
+                                              })
                                             : t('form.addServer.input', {
                                                   context: 'password',
                                                   postProcess: 'titleCase',

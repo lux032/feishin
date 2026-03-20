@@ -7,6 +7,7 @@ import { isServerLock } from '/@/renderer/features/action-required/utils/window-
 import JellyfinLogo from '/@/renderer/features/servers/assets/jellyfin.png';
 import NavidromeLogo from '/@/renderer/features/servers/assets/navidrome.png';
 import OpenSubsonicLogo from '/@/renderer/features/servers/assets/opensubsonic.png';
+import PlexLogo from '/@/renderer/features/servers/assets/plex.png';
 import { ServerList } from '/@/renderer/features/servers/components/server-list';
 import { sharedQueries } from '/@/renderer/features/shared/api/shared-api';
 import { AppRoute } from '/@/renderer/router/routes';
@@ -105,7 +106,9 @@ export const ServerSelectorItems = () => {
                         ? NavidromeLogo
                         : server.type === ServerType.JELLYFIN
                           ? JellyfinLogo
-                          : OpenSubsonicLogo;
+                          : server.type === ServerType.PLEX
+                            ? PlexLogo
+                            : OpenSubsonicLogo;
 
                 return (
                     <DropdownMenu.Item

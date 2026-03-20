@@ -1,5 +1,45 @@
 import { z } from 'zod';
 
+const plexTagSchema = z.object({
+    $: z.object({
+        id: z.string(),
+        filter: z.string(),
+        tag: z.string(),
+    }),
+});
+
+const plexRoleSchema = z.object({
+    $: z.object({
+        id: z.string(),
+        filter: z.string(),
+        role: z.string().optional(),
+        tag: z.string(),
+    }),
+});
+
+const plexMediaPartSchema = z.object({
+    $: z.object({
+        id: z.string(),
+        key: z.string(),
+        container: z.string().optional(),
+        duration: z.string().optional(),
+        file: z.string().optional(),
+        size: z.string().optional(),
+    }),
+});
+
+const plexMediaSchema = z.object({
+    $: z.object({
+        id: z.string(),
+        audioChannels: z.string().optional(),
+        audioCodec: z.string().optional(),
+        bitrate: z.string().optional(),
+        container: z.string().optional(),
+        duration: z.string().optional(),
+    }),
+    Part: z.array(plexMediaPartSchema),
+});
+
 export enum PXAlbumListSort {
     NAME = 'titleSort',
     RANDOM = 'random',
@@ -180,41 +220,10 @@ export const plexType = {
                             parentGuid: z.string().optional(),
                             parentThumb: z.string().optional(),
                             parentStudio: z.string().optional(),
-                            Genre: z
-                                .array(
-                                    z.object({
-                                        $: z.object({
-                                            id: z.string(),
-                                            filter: z.string(),
-                                            tag: z.string(),
-                                        }),
-                                    }),
-                                )
-                                .optional(),
-                            Country: z
-                                .array(
-                                    z.object({
-                                        $: z.object({
-                                            id: z.string(),
-                                            filter: z.string(),
-                                            tag: z.string(),
-                                        }),
-                                    }),
-                                )
-                                .optional(),
-                            Role: z
-                                .array(
-                                    z.object({
-                                        $: z.object({
-                                            id: z.string(),
-                                            filter: z.string(),
-                                            tag: z.string(),
-                                            role: z.string().optional(),
-                                        }),
-                                    }),
-                                )
-                                .optional(),
                         }),
+                        Country: z.array(plexTagSchema).optional(),
+                        Genre: z.array(plexTagSchema).optional(),
+                        Role: z.array(plexRoleSchema).optional(),
                     }),
                 ).optional(),
             }),
@@ -248,18 +257,8 @@ export const plexType = {
                             addedAt: z.string().optional(),
                             updatedAt: z.string().optional(),
                             composite: z.string().optional(),
-                            Genre: z
-                                .array(
-                                    z.object({
-                                        $: z.object({
-                                            id: z.string(),
-                                            filter: z.string(),
-                                            tag: z.string(),
-                                        }),
-                                    }),
-                                )
-                                .optional(),
                         }),
+                        Genre: z.array(plexTagSchema).optional(),
                     }),
                 ).optional(),
             }),
@@ -306,44 +305,9 @@ export const plexType = {
                             grandparentKey: z.string().optional(),
                             grandparentGuid: z.string().optional(),
                             grandparentThumb: z.string().optional(),
-                            Media: z
-                                .array(
-                                    z.object({
-                                        $: z.object({
-                                            id: z.string(),
-                                            duration: z.string().optional(),
-                                            bitrate: z.string().optional(),
-                                            audioCodec: z.string().optional(),
-                                            audioChannels: z.string().optional(),
-                                            container: z.string().optional(),
-                                        }),
-                                        Part: z.array(
-                                            z.object({
-                                                $: z.object({
-                                                    id: z.string(),
-                                                    key: z.string(),
-                                                    duration: z.string().optional(),
-                                                    file: z.string().optional(),
-                                                    size: z.string().optional(),
-                                                    container: z.string().optional(),
-                                                }),
-                                            }),
-                                        ),
-                                    }),
-                                )
-                                .optional(),
-                            Genre: z
-                                .array(
-                                    z.object({
-                                        $: z.object({
-                                            id: z.string(),
-                                            filter: z.string(),
-                                            tag: z.string(),
-                                        }),
-                                    }),
-                                )
-                                .optional(),
                         }),
+                        Genre: z.array(plexTagSchema).optional(),
+                        Media: z.array(plexMediaSchema).optional(),
                     }),
                 ).optional(),
             }),
@@ -378,33 +342,8 @@ export const plexType = {
                             parentRatingKey: z.string().optional(),
                             parentTitle: z.string().optional(),
                             grandparentTitle: z.string().optional(),
-                            Media: z
-                                .array(
-                                    z.object({
-                                        $: z.object({
-                                            id: z.string(),
-                                            duration: z.string().optional(),
-                                            bitrate: z.string().optional(),
-                                            audioCodec: z.string().optional(),
-                                            audioChannels: z.string().optional(),
-                                            container: z.string().optional(),
-                                        }),
-                                        Part: z.array(
-                                            z.object({
-                                                $: z.object({
-                                                    id: z.string(),
-                                                    key: z.string(),
-                                                    duration: z.string().optional(),
-                                                    file: z.string().optional(),
-                                                    size: z.string().optional(),
-                                                    container: z.string().optional(),
-                                                }),
-                                            }),
-                                        ),
-                                    }),
-                                )
-                                .optional(),
                         }),
+                        Media: z.array(plexMediaSchema).optional(),
                     }),
                 ).optional(),
             }),
@@ -467,33 +406,8 @@ export const plexType = {
                             parentRatingKey: z.string().optional(),
                             parentTitle: z.string().optional(),
                             grandparentTitle: z.string().optional(),
-                            Media: z
-                                .array(
-                                    z.object({
-                                        $: z.object({
-                                            id: z.string(),
-                                            duration: z.string().optional(),
-                                            bitrate: z.string().optional(),
-                                            audioCodec: z.string().optional(),
-                                            audioChannels: z.string().optional(),
-                                            container: z.string().optional(),
-                                        }),
-                                        Part: z.array(
-                                            z.object({
-                                                $: z.object({
-                                                    id: z.string(),
-                                                    key: z.string(),
-                                                    duration: z.string().optional(),
-                                                    file: z.string().optional(),
-                                                    size: z.string().optional(),
-                                                    container: z.string().optional(),
-                                                }),
-                                            }),
-                                        ),
-                                    }),
-                                )
-                                .optional(),
                         }),
+                        Media: z.array(plexMediaSchema).optional(),
                     }),
                 ).optional(),
             }),
@@ -548,7 +462,24 @@ export type PlexSection = {
     type: string;
 };
 
-export type PlexAlbum = z.infer<typeof plexType._response.albumList>['MediaContainer']['Directory'][0];
-export type PlexArtist = z.infer<typeof plexType._response.artistList>['MediaContainer']['Directory'][0];
-export type PlexTrack = z.infer<typeof plexType._response.songList>['MediaContainer']['Track'][0];
-export type PlexPlaylist = z.infer<typeof plexType._response.playlistList>['MediaContainer']['Playlist'][0];
+export type PlexResourcesResponse = z.infer<typeof plexType._response.resources>;
+export type PlexSectionsResponse = z.infer<typeof plexType._response.sections>;
+export type PlexAlbumListResponse = z.infer<typeof plexType._response.albumList>;
+export type PlexArtistListResponse = z.infer<typeof plexType._response.artistList>;
+export type PlexSongListResponse = z.infer<typeof plexType._response.songList>;
+export type PlexAlbumTracksResponse = z.infer<typeof plexType._response.albumTracks>;
+export type PlexPlaylistListResponse = z.infer<typeof plexType._response.playlistList>;
+export type PlexPlaylistTracksResponse = z.infer<typeof plexType._response.playlistTracks>;
+export type PlexMusicFolderListResponse = z.infer<typeof plexType._response.musicFolderList>;
+export type PlexGenreListResponse = z.infer<typeof plexType._response.genreList>;
+
+export type PlexResourceDevice = NonNullable<
+    PlexResourcesResponse['MediaContainer']['Device']
+>[number];
+export type PlexSectionDirectory = NonNullable<
+    PlexSectionsResponse['MediaContainer']['Directory']
+>[number];
+export type PlexAlbum = NonNullable<z.infer<typeof plexType._response.albumList>['MediaContainer']['Directory']>[0];
+export type PlexArtist = NonNullable<z.infer<typeof plexType._response.artistList>['MediaContainer']['Directory']>[0];
+export type PlexTrack = NonNullable<z.infer<typeof plexType._response.songList>['MediaContainer']['Track']>[0];
+export type PlexPlaylist = NonNullable<z.infer<typeof plexType._response.playlistList>['MediaContainer']['Playlist']>[0];

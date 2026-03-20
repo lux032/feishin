@@ -34,6 +34,7 @@
         "increase": "增高",
         "left": "左",
         "limit": "限制",
+        "login": "登入",
         "manage": "管理",
         "maximize": "最大化",
         "ok": "好",
@@ -144,6 +145,8 @@
         "networkError": "發生網路錯誤",
         "notificationDenied": "通知權限被拒絕。此設定無效",
         "openError": "無法開啟檔案",
+        "plexTokenAuthenticationFailed": "Plex Token 驗證失敗，請檢查 Token 與伺服器網址",
+        "plexTokenRequired": "需要 Plex Token",
         "multipleServerSaveQueueError": "播放佇列中包含不是來自目前伺服器的歌曲，此操作不受支援",
         "saveQueueFailed": "儲存播放佇列失敗",
         "settingsSyncError": "偵測到渲染器與主程式之間的設定不一致，請重新啟動應用程式以套用變更",
@@ -1019,6 +1022,8 @@
             "input_legacyAuthentication": "啟用舊版認證方式",
             "input_name": "伺服器名稱",
             "input_password": "密碼",
+            "input_token": "Plex Token",
+            "input_tokenDescription": "在 Plex 設定 > 帳戶中取得 X-Plex-Token",
             "input_savePassword": "儲存密碼",
             "input_url": "url",
             "input_username": "使用者名稱",
@@ -1031,7 +1036,8 @@
             "input_preferInstantMixDescription": "僅使用即時混音功能來取得相似歌曲。若您擁有能修改此行為的外掛，此功能將相當實用",
             "input_preferRemoteUrl": "優先使用公開網址",
             "input_remoteUrl": "公開網址",
-            "input_remoteUrlPlaceholder": "選用：對外功能的公開網址"
+            "input_remoteUrlPlaceholder": "選用：對外功能的公開網址",
+            "discoveredServer": "{{serverType}} 伺服器：{{serverUrl}}"
         },
         "addToPlaylist": {
             "input_playlists": "$t(entity.playlist, {\"count\": 2})",

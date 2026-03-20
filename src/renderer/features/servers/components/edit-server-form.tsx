@@ -264,10 +264,20 @@ export const EditServerForm = ({ isUpdate, onCancel, password, server }: EditSer
                 )}
                 <PasswordInput
                     data-autofocus
-                    description={isPlex ? '在 Plex 设置 > 账户中获取 X-Plex-Token' : undefined}
+                    description={
+                        isPlex
+                            ? t('form.addServer.input', {
+                                  context: 'tokenDescription',
+                                  postProcess: 'sentenceCase',
+                              })
+                            : undefined
+                    }
                     label={
                         isPlex
-                            ? 'Plex Token'
+                            ? t('form.addServer.input', {
+                                  context: 'token',
+                                  postProcess: 'titleCase',
+                              })
                             : t('form.addServer.input', {
                                   context: 'password',
                                   postProcess: 'titleCase',

@@ -9,6 +9,7 @@ import styles from './collapsed-sidebar.module.css';
 import JellyfinLogo from '/@/renderer/features/servers/assets/jellyfin.png';
 import NavidromeLogo from '/@/renderer/features/servers/assets/navidrome.png';
 import OpenSubsonicLogo from '/@/renderer/features/servers/assets/opensubsonic.png';
+import PlexLogo from '/@/renderer/features/servers/assets/plex.png';
 import { CollapsedSidebarButton } from '/@/renderer/features/sidebar/components/collapsed-sidebar-button';
 import { CollapsedSidebarItem } from '/@/renderer/features/sidebar/components/collapsed-sidebar-item';
 import { ServerSelectorItems } from '/@/renderer/features/sidebar/components/server-selector-items';
@@ -188,7 +189,9 @@ export const CollapsedSidebar = () => {
                                                 ? NavidromeLogo
                                                 : currentServer.type === ServerType.JELLYFIN
                                                   ? JellyfinLogo
-                                                  : OpenSubsonicLogo
+                                                  : currentServer.type === ServerType.PLEX
+                                                    ? PlexLogo
+                                                    : OpenSubsonicLogo
                                         }
                                     />
                                 }

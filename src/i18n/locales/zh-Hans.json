@@ -105,6 +105,7 @@
         "backward": "后退",
         "gap": "空隙",
         "limit": "限制",
+        "login": "登录",
         "duration": "时长",
         "ok": "好",
         "no": "否",
@@ -618,6 +619,8 @@
         "badAlbum": "您看到此页面是因为这首歌不是专辑的一部分。如果您的音乐文件夹顶层有一首歌曲，您很可能会遇到此问题。Jellyfin 仅对位于文件夹中的曲目进行分组",
         "networkError": "发生网络错误",
         "openError": "无法打开文件",
+        "plexTokenAuthenticationFailed": "Plex Token 认证失败，请检查 Token 和服务器地址",
+        "plexTokenRequired": "需要 Plex Token",
         "badValue": "无效的选项 \"{{value}}\". 此值不再存在",
         "notificationDenied": "通知权限被拒绝。此设置无效",
         "multipleServerSaveQueueError": "不支持此操作（播放列表中包含来自其他服务器的歌曲）",
@@ -899,6 +902,8 @@
             "title": "添加服务器",
             "input_username": "用户名",
             "input_password": "密码",
+            "input_token": "Plex Token",
+            "input_tokenDescription": "在 Plex 设置 > 账户中获取 X-Plex-Token",
             "input_legacyAuthentication": "启用旧版认证方式",
             "input_name": "服务器名称",
             "success": "服务器添加成功",
@@ -911,7 +916,8 @@
             "input_preferInstantMix": "首选即时混音",
             "input_preferRemoteUrl": "首选公共 url",
             "input_remoteUrl": "公共 url",
-            "input_remoteUrlPlaceholder": "可选：对外功能的公共 url"
+            "input_remoteUrlPlaceholder": "可选：对外功能的公共 url",
+            "discoveredServer": "{{serverType}} 服务器：{{serverUrl}}"
         },
         "addToPlaylist": {
             "success": "添加$t(entity.trackWithCount, {\"count\": {{message}} })到$t(entity.playlistWithCount, {\"count\": {{numOfPlaylists}} })",

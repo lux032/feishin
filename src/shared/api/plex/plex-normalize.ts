@@ -11,11 +11,10 @@ import {
 import { ServerListItem, ServerType } from '/@/shared/types/types';
 
 import {
-    plexType,
     PlexAlbum,
     PlexArtist,
-    PlexTrack,
     PlexPlaylist,
+    PlexTrack,
     PX_TRACK_RATING_FAVORITE,
 } from '/@/shared/api/plex/plex-types';
 
@@ -99,7 +98,6 @@ const normalizeSong = (
     token: string,
 ): Song => {
     const media = item.Media?.[0];
-    const part = media?.$;
     const mediaPart = media?.Part?.[0]?.$;
 
     let bitRate = 0;
