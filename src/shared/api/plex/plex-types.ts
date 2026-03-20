@@ -160,6 +160,7 @@ export const plexType = {
                                 titleSort: z.string().optional(),
                                 type: z.string(),
                                 updatedAt: z.string().optional(),
+                                userRating: z.string().optional(),
                                 viewedLeafCount: z.string().optional(),
                                 year: z.string().optional(),
                             }),
@@ -238,6 +239,7 @@ export const plexType = {
                                 titleSort: z.string().optional(),
                                 type: z.string(),
                                 updatedAt: z.string().optional(),
+                                userRating: z.string().optional(),
                                 viewedLeafCount: z.string().optional(),
                             }),
                             Genre: z.array(plexTagSchema).optional(),
@@ -475,6 +477,22 @@ export type PlexArtist = NonNullable<
     z.infer<typeof plexType._response.artistList>['MediaContainer']['Directory']
 >[0];
 export type PlexArtistListResponse = z.infer<typeof plexType._response.artistList>;
+export type PlexFolderDirectory = {
+    $: {
+        key: string;
+        title: string;
+    };
+};
+export type PlexFolderResponse = {
+    MediaContainer?: {
+        $?: {
+            size?: string;
+            totalSize?: string;
+        };
+        Directory?: PlexFolderDirectory[];
+        Track?: PlexTrack[];
+    };
+};
 export type PlexGenreListResponse = z.infer<typeof plexType._response.genreList>;
 export type PlexMusicFolderListResponse = z.infer<typeof plexType._response.musicFolderList>;
 export type PlexPlaylist = NonNullable<

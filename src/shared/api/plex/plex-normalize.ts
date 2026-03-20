@@ -17,6 +17,9 @@ import {
 } from '/@/shared/types/domain-types';
 import { ServerListItem, ServerType } from '/@/shared/types/types';
 
+const isPlexFavorite = (userRating?: null | string) =>
+    userRating !== undefined && Number(userRating) >= PX_TRACK_RATING_FAVORITE;
+
 const getAlbumImageId = (item: PlexAlbum): null | string => {
     const thumb = item.$.thumb;
     return thumb ? thumb : null;
@@ -187,7 +190,7 @@ const normalizeSong = (
         updatedAt: item.$.updatedAt
             ? new Date(Number(item.$.updatedAt) * 1000).toISOString()
             : new Date().toISOString(),
-        userFavorite: userRating !== null && userRating >= PX_TRACK_RATING_FAVORITE,
+        userFavorite: isPlexFavorite(item.$.userRating),
         userRating,
     };
 };
@@ -200,6 +203,7 @@ const normalizeAlbum = (
 ): Album => {
     const duration = item.$.duration ? Number(item.$.duration) : null;
     const songCount = item.$.leafCount ? Number(item.$.leafCount) : null;
+    const userRating = item.$.userRating ? Number(item.$.userRating) : null;
 
     return {
         _itemType: LibraryItem.ALBUM,
@@ -239,8 +243,8 @@ const normalizeAlbum = (
         updatedAt: item.$.updatedAt
             ? new Date(Number(item.$.updatedAt) * 1000).toISOString()
             : new Date().toISOString(),
-        userFavorite: item.$.rating ? Number(item.$.rating) >= PX_TRACK_RATING_FAVORITE : false,
-        userRating: item.$.rating ? Number(item.$.rating) : null,
+        userFavorite: isPlexFavorite(item.$.userRating),
+        userRating,
         version: null,
     };
 };
@@ -251,6 +255,8 @@ const normalizeAlbumArtist = (
     serverUrl: string,
     token: string,
 ): AlbumArtist => {
+    const userRating = item.$.userRating ? Number(item.$.userRating) : null;
+
     return {
         _itemType: LibraryItem.ALBUM_ARTIST,
         _serverId: server?.id || '',
@@ -268,8 +274,8 @@ const normalizeAlbumArtist = (
         playCount: null,
         similarArtists: null,
         songCount: item.$.leafCount ? Number(item.$.leafCount) : null,
-        userFavorite: false,
-        userRating: null,
+        userFavorite: isPlexFavorite(item.$.userRating),
+        userRating,
     };
 };
 

@@ -9,6 +9,7 @@ import {
     PlexAlbumListResponse,
     PlexAlbumTracksResponse,
     PlexArtistListResponse,
+    PlexFolderResponse,
     PlexGenreListResponse,
     PlexMusicFolderListResponse,
     PlexPlaylistListResponse,
@@ -267,6 +268,7 @@ export const pxApiClient = (args: {
         },
 
         getArtistList: async (params: {
+            genreId?: string;
             sectionId: string;
             size?: number;
             sort?: string;
@@ -275,12 +277,28 @@ export const pxApiClient = (args: {
             const response = await request<PlexArtistListResponse>({
                 method: 'GET',
                 params: {
+                    genre: params.genreId,
                     sort: params.sort || 'titleSort',
                     type: 8,
                     'X-Plex-Container-Size': params.size || 50,
                     'X-Plex-Container-Start': params.start || 0,
                 },
                 path: `library/sections/${params.sectionId}/all`,
+            });
+
+            return response;
+        },
+
+        getFolder: async (params: {
+            parentId?: string;
+            sectionId: string;
+        }): ApiResponse<PlexFolderResponse> => {
+            const response = await request<PlexFolderResponse>({
+                method: 'GET',
+                params: {
+                    parent: params.parentId,
+                },
+                path: `library/sections/${params.sectionId}/folder`,
             });
 
             return response;
