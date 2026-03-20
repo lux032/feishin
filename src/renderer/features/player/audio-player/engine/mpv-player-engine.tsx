@@ -9,7 +9,6 @@ import { getSongUrl } from '/@/renderer/features/player/audio-player/hooks/use-s
 import { AudioPlayer, PlayerOnProgressProps } from '/@/renderer/features/player/audio-player/types';
 import { useRadioStore } from '/@/renderer/features/radio/hooks/use-radio-player';
 import { getMpvProperties } from '/@/renderer/features/settings/components/playback/mpv-properties';
-import { logFn } from '/@/renderer/utils/logger';
 import {
     usePlaybackSettings,
     usePlayerActions,
@@ -17,6 +16,7 @@ import {
     usePlayerStore,
     useSettingsStore,
 } from '/@/renderer/store';
+import { logFn } from '/@/renderer/utils/logger';
 import { PlayerStatus, ServerType } from '/@/shared/types/types';
 
 export interface MpvPlayerEngineHandle extends AudioPlayer {}

@@ -70,9 +70,10 @@ const getLibraryId = (musicFolderId?: string | string[]): string | undefined => 
     return musicFolderId;
 };
 
-const getPlexServerUrl = (server: ServerListItemWithCredential | null) => getServerUrl(server) || '';
+const getPlexServerUrl = (server: null | ServerListItemWithCredential) =>
+    getServerUrl(server) || '';
 
-const getPlexToken = (server: ServerListItemWithCredential | null) => server?.credential || '';
+const getPlexToken = (server: null | ServerListItemWithCredential) => server?.credential || '';
 
 const getPlexAlbumSort = (sortBy?: AlbumListSort, sortOrder?: SortOrder) => {
     const plexSortOrder = sortOrder ? sortOrderMap.plex[sortOrder] : undefined;
@@ -157,7 +158,7 @@ export const PlexController: InternalControllerEndpoint = {
                 userId: machineIdentifier,
                 username: 'Plex User',
             };
-        } catch (error) {
+        } catch {
             throw new Error(
                 i18n.t('error.plexTokenAuthenticationFailed', {
                     postProcess: 'sentenceCase',
@@ -221,12 +222,7 @@ export const PlexController: InternalControllerEndpoint = {
             throw new Error('Artist not found');
         }
 
-        return pxNormalize.albumArtist(
-            artist,
-            apiClientProps.server,
-            serverUrl,
-            token,
-        );
+        return pxNormalize.albumArtist(artist, apiClientProps.server, serverUrl, token);
     },
 
     getAlbumArtistInfo: async () => {
@@ -255,12 +251,7 @@ export const PlexController: InternalControllerEndpoint = {
 
         return {
             items: items.map((item) =>
-                pxNormalize.albumArtist(
-                    item,
-                    apiClientProps.server,
-                    serverUrl,
-                    token,
-                ),
+                pxNormalize.albumArtist(item, apiClientProps.server, serverUrl, token),
             ),
             startIndex: query.startIndex,
             totalRecordCount: Number(container?.$.totalSize || items.length),
@@ -289,12 +280,7 @@ export const PlexController: InternalControllerEndpoint = {
         const tracks = tracksContainer?.Track || [];
 
         const songs = tracks.map((track) =>
-            pxNormalize.song(
-                track,
-                apiClientProps.server,
-                serverUrl,
-                token,
-            ),
+            pxNormalize.song(track, apiClientProps.server, serverUrl, token),
         );
 
         if (songs.length === 0) {
@@ -367,12 +353,7 @@ export const PlexController: InternalControllerEndpoint = {
 
         return {
             items: items.map((item) =>
-                pxNormalize.album(
-                    item,
-                    apiClientProps.server,
-                    serverUrl,
-                    token,
-                ),
+                pxNormalize.album(item, apiClientProps.server, serverUrl, token),
             ),
             startIndex: query.startIndex,
             totalRecordCount: Number(container?.$.totalSize || items.length),
@@ -402,7 +383,9 @@ export const PlexController: InternalControllerEndpoint = {
         const targetCount = query.count || albums.length;
 
         const trackResponses = await Promise.all(
-            albums.slice(0, targetCount).map((album) => apiClient.getAlbumTracks(album.$.ratingKey)),
+            albums
+                .slice(0, targetCount)
+                .map((album) => apiClient.getAlbumTracks(album.$.ratingKey)),
         );
 
         return trackResponses
@@ -436,12 +419,7 @@ export const PlexController: InternalControllerEndpoint = {
 
         return {
             items: items.map((item) =>
-                pxNormalize.albumArtist(
-                    item,
-                    apiClientProps.server,
-                    serverUrl,
-                    token,
-                ),
+                pxNormalize.albumArtist(item, apiClientProps.server, serverUrl, token),
             ),
             startIndex: query.startIndex,
             totalRecordCount: Number(container?.$.totalSize || items.length),
@@ -542,12 +520,7 @@ export const PlexController: InternalControllerEndpoint = {
             throw new Error('Playlist not found');
         }
 
-        return pxNormalize.playlist(
-            playlist,
-            apiClientProps.server,
-            serverUrl,
-            token,
-        );
+        return pxNormalize.playlist(playlist, apiClientProps.server, serverUrl, token);
     },
 
     getPlaylistList: async (args) => {
@@ -567,12 +540,7 @@ export const PlexController: InternalControllerEndpoint = {
 
         return {
             items: items.map((item) =>
-                pxNormalize.playlist(
-                    item,
-                    apiClientProps.server,
-                    serverUrl,
-                    token,
-                ),
+                pxNormalize.playlist(item, apiClientProps.server, serverUrl, token),
             ),
             startIndex: 0,
             totalRecordCount: items.length,
@@ -602,12 +570,7 @@ export const PlexController: InternalControllerEndpoint = {
 
         return {
             items: items.map((item) =>
-                pxNormalize.song(
-                    item,
-                    apiClientProps.server,
-                    serverUrl,
-                    token,
-                ),
+                pxNormalize.song(item, apiClientProps.server, serverUrl, token),
             ),
             startIndex: 0,
             totalRecordCount: items.length,
@@ -640,12 +603,7 @@ export const PlexController: InternalControllerEndpoint = {
 
         return {
             items: items.map((item) =>
-                pxNormalize.song(
-                    item,
-                    apiClientProps.server,
-                    serverUrl,
-                    token,
-                ),
+                pxNormalize.song(item, apiClientProps.server, serverUrl, token),
             ),
             startIndex: 0,
             totalRecordCount: items.length,
@@ -683,12 +641,7 @@ export const PlexController: InternalControllerEndpoint = {
             throw new Error('Song not found');
         }
 
-        return pxNormalize.song(
-            tracks[0],
-            apiClientProps.server,
-            serverUrl,
-            token,
-        );
+        return pxNormalize.song(tracks[0], apiClientProps.server, serverUrl, token);
     },
 
     getSongList: async (args) => {
@@ -705,9 +658,7 @@ export const PlexController: InternalControllerEndpoint = {
             : await apiClient.getSongList({
                   artistId:
                       (query.artistIds?.length === 1 ? query.artistIds[0] : undefined) ||
-                      (query.albumArtistIds?.length === 1
-                          ? query.albumArtistIds[0]
-                          : undefined),
+                      (query.albumArtistIds?.length === 1 ? query.albumArtistIds[0] : undefined),
                   favorite: query.favorite,
                   sectionId,
                   size: query.limit === -1 ? 100 : query.limit || 50,
@@ -723,7 +674,9 @@ export const PlexController: InternalControllerEndpoint = {
         let items = container?.Track || [];
 
         if (query.favorite === true) {
-            items = items.filter((item) => Number(item.$.userRating || 0) >= PX_TRACK_RATING_FAVORITE);
+            items = items.filter(
+                (item) => Number(item.$.userRating || 0) >= PX_TRACK_RATING_FAVORITE,
+            );
         }
 
         if (singleAlbumId) {
@@ -741,12 +694,7 @@ export const PlexController: InternalControllerEndpoint = {
 
         return {
             items: pagedItems.map((item) =>
-                pxNormalize.song(
-                    item,
-                    apiClientProps.server,
-                    serverUrl,
-                    token,
-                ),
+                pxNormalize.song(item, apiClientProps.server, serverUrl, token),
             ),
             startIndex: query.startIndex,
             totalRecordCount: Number(container?.$.totalSize || items.length),
@@ -790,12 +738,7 @@ export const PlexController: InternalControllerEndpoint = {
 
         return {
             items: items.map((item) =>
-                pxNormalize.song(
-                    item,
-                    apiClientProps.server,
-                    serverUrl,
-                    token,
-                ),
+                pxNormalize.song(item, apiClientProps.server, serverUrl, token),
             ),
             startIndex: 0,
             totalRecordCount: Number(container?.$.totalSize || items.length),

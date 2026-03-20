@@ -1,4 +1,11 @@
 import {
+    PlexAlbum,
+    PlexArtist,
+    PlexPlaylist,
+    PlexTrack,
+    PX_TRACK_RATING_FAVORITE,
+} from '/@/shared/api/plex/plex-types';
+import {
     Album,
     AlbumArtist,
     Genre,
@@ -10,37 +17,29 @@ import {
 } from '/@/shared/types/domain-types';
 import { ServerListItem, ServerType } from '/@/shared/types/types';
 
-import {
-    PlexAlbum,
-    PlexArtist,
-    PlexPlaylist,
-    PlexTrack,
-    PX_TRACK_RATING_FAVORITE,
-} from '/@/shared/api/plex/plex-types';
-
-const getAlbumImageId = (item: PlexAlbum): string | null => {
+const getAlbumImageId = (item: PlexAlbum): null | string => {
     const thumb = item.$.thumb;
     return thumb ? thumb : null;
 };
 
-const getArtistImageId = (item: PlexArtist): string | null => {
+const getArtistImageId = (item: PlexArtist): null | string => {
     const thumb = item.$.thumb;
     return thumb ? thumb : null;
 };
 
-const getSongImageId = (item: PlexTrack): string | null => {
+const getSongImageId = (item: PlexTrack): null | string => {
     const thumb = item.$.thumb || item.$.parentThumb;
     return thumb ? thumb : null;
 };
 
-const getPlaylistImageId = (item: PlexPlaylist): string | null => {
+const getPlaylistImageId = (item: PlexPlaylist): null | string => {
     const composite = item.$.composite;
     return composite ? composite : null;
 };
 
 const getGenres = (
-    genres: { $: { id: string; filter: string; tag: string } }[] | undefined,
-    server: ServerListItem | null,
+    genres: undefined | { $: { filter: string; id: string; tag: string } }[],
+    server: null | ServerListItem,
 ): Genre[] => {
     if (!genres || genres.length === 0) return [];
 
@@ -93,7 +92,7 @@ const getAlbumArtists = (item: PlexAlbum): RelatedArtist[] => {
 
 const normalizeSong = (
     item: PlexTrack,
-    server: ServerListItem | null,
+    server: null | ServerListItem,
     serverUrl: string,
     token: string,
 ): Song => {
@@ -101,8 +100,8 @@ const normalizeSong = (
     const mediaPart = media?.Part?.[0]?.$;
 
     let bitRate = 0;
-    let channels: number | null = null;
-    let container: string | null = null;
+    let channels: null | number = null;
+    let container: null | string = null;
     let duration = 0;
     let size = 0;
 
@@ -121,9 +120,7 @@ const normalizeSong = (
         container = mediaPart.container || container;
     }
 
-    const streamUrl = mediaPart?.key
-        ? `${serverUrl}${mediaPart.key}?X-Plex-Token=${token}`
-        : '';
+    const streamUrl = mediaPart?.key ? `${serverUrl}${mediaPart.key}?X-Plex-Token=${token}` : '';
 
     const userRating = item.$.userRating ? Number(item.$.userRating) : null;
 
@@ -197,7 +194,7 @@ const normalizeSong = (
 
 const normalizeAlbum = (
     item: PlexAlbum,
-    server: ServerListItem | null,
+    server: null | ServerListItem,
     serverUrl: string,
     token: string,
 ): Album => {
@@ -220,9 +217,7 @@ const normalizeAlbum = (
         genres: getGenres(item.Genre, server),
         id: item.$.ratingKey,
         imageId: getAlbumImageId(item),
-        imageUrl: item.$.thumb
-            ? `${serverUrl}${item.$.thumb}?X-Plex-Token=${token}`
-            : null,
+        imageUrl: item.$.thumb ? `${serverUrl}${item.$.thumb}?X-Plex-Token=${token}` : null,
         isCompilation: null,
         lastPlayedAt: null,
         mbzId: null,
@@ -252,7 +247,7 @@ const normalizeAlbum = (
 
 const normalizeAlbumArtist = (
     item: PlexArtist,
-    server: ServerListItem | null,
+    server: null | ServerListItem,
     serverUrl: string,
     token: string,
 ): AlbumArtist => {
@@ -266,9 +261,7 @@ const normalizeAlbumArtist = (
         genres: getGenres(item.Genre, server),
         id: item.$.ratingKey,
         imageId: getArtistImageId(item),
-        imageUrl: item.$.thumb
-            ? `${serverUrl}${item.$.thumb}?X-Plex-Token=${token}`
-            : null,
+        imageUrl: item.$.thumb ? `${serverUrl}${item.$.thumb}?X-Plex-Token=${token}` : null,
         lastPlayedAt: null,
         mbz: null,
         name: item.$.title,
@@ -282,7 +275,7 @@ const normalizeAlbumArtist = (
 
 const normalizePlaylist = (
     item: PlexPlaylist,
-    server: ServerListItem | null,
+    server: null | ServerListItem,
     serverUrl: string,
     token: string,
 ): Playlist => {
@@ -295,9 +288,7 @@ const normalizePlaylist = (
         genres: [],
         id: item.$.ratingKey,
         imageId: getPlaylistImageId(item),
-        imageUrl: item.$.composite
-            ? `${serverUrl}${item.$.composite}?X-Plex-Token=${token}`
-            : null,
+        imageUrl: item.$.composite ? `${serverUrl}${item.$.composite}?X-Plex-Token=${token}` : null,
         name: item.$.title,
         owner: null,
         ownerId: null,
@@ -320,6 +311,8 @@ const normalizeMusicFolder = (item: {
 
 const normalizeGenre = (
     item:
+        | null
+        | undefined
         | {
               $?: {
                   id?: string;
@@ -328,10 +321,8 @@ const normalizeGenre = (
                   tag?: string;
                   title?: string;
               };
-          }
-        | null
-        | undefined,
-    server: ServerListItem | null,
+          },
+    server: null | ServerListItem,
 ): Genre => {
     const metadata = item?.$;
     const id = metadata?.key || metadata?.id || metadata?.title || metadata?.tag || '';

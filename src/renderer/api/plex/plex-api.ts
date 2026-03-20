@@ -47,7 +47,9 @@ const decodeXmlBytes = (data: Uint8Array, headers?: Record<string, string>) => {
         getCharsetFromContentType(contentType),
         getCharsetFromXmlDeclaration(data),
         'utf-8',
-    ].filter((value, index, array): value is string => Boolean(value) && array.indexOf(value) === index);
+    ].filter(
+        (value, index, array): value is string => Boolean(value) && array.indexOf(value) === index,
+    );
 
     for (const encoding of candidates) {
         try {
@@ -82,7 +84,7 @@ const parser = new XMLParser({
 
 const axiosClient = axios.create({});
 
-type ApiResponse<T> = Promise<{ body: T; status: number; headers?: any }>;
+type ApiResponse<T> = Promise<{ body: T; headers?: any; status: number }>;
 
 axiosClient.interceptors.response.use(
     (response) => response,
@@ -143,11 +145,11 @@ export const pxApiClient = (args: {
     const token = server?.credential;
 
     const request = async <T>(config: {
-        method: Method;
-        path: string;
-        params?: Record<string, string | number | boolean | undefined>;
         body?: any;
-    }): Promise<{ body: T; status: number; headers: any }> => {
+        method: Method;
+        params?: Record<string, boolean | number | string | undefined>;
+        path: string;
+    }): Promise<{ body: T; headers: any; status: number }> => {
         try {
             const queryParams: Record<string, string> = {};
             if (config.params) {
@@ -168,7 +170,10 @@ export const pxApiClient = (args: {
                 url: `${baseUrl}/${config.path}`,
             });
 
-            const parsedBody = parseXmlResponse(result.data, result.headers as Record<string, string>);
+            const parsedBody = parseXmlResponse(
+                result.data,
+                result.headers as Record<string, string>,
+            );
 
             return {
                 body: parsedBody,
@@ -198,19 +203,15 @@ export const pxApiClient = (args: {
     };
 
     return {
-        authenticate: async (params: { username: string; password: string }) => {
-            const authResponse = await axios.post(
-                'https://plex.tv/users/sign_in.xml',
-                null,
-                {
-                    auth: {
-                        password: params.password,
-                        username: params.username,
-                    },
-                    headers: getPlexHeaders(),
-                    responseType: 'arraybuffer',
+        authenticate: async (params: { password: string; username: string }) => {
+            const authResponse = await axios.post('https://plex.tv/users/sign_in.xml', null, {
+                auth: {
+                    password: params.password,
+                    username: params.username,
                 },
-            );
+                headers: getPlexHeaders(),
+                responseType: 'arraybuffer',
+            });
 
             const parsed = parseXmlResponse(
                 authResponse.data,
@@ -234,14 +235,115 @@ export const pxApiClient = (args: {
             };
         },
 
+        getAlbumList: async (params: {
+            artistId?: string;
+            sectionId: string;
+            size?: number;
+            sort?: string;
+            start?: number;
+        }): ApiResponse<PlexAlbumListResponse> => {
+            const response = await request<PlexAlbumListResponse>({
+                method: 'GET',
+                params: {
+                    'artist.id': params.artistId,
+                    sort: params.sort || 'titleSort',
+                    type: 9,
+                    'X-Plex-Container-Size': params.size || 50,
+                    'X-Plex-Container-Start': params.start || 0,
+                },
+                path: `library/sections/${params.sectionId}/all`,
+            });
+
+            return response;
+        },
+
+        getAlbumTracks: async (albumRatingKey: string): ApiResponse<PlexAlbumTracksResponse> => {
+            const response = await request<PlexAlbumTracksResponse>({
+                method: 'GET',
+                path: `library/metadata/${albumRatingKey}/children`,
+            });
+
+            return response;
+        },
+
+        getArtistList: async (params: {
+            sectionId: string;
+            size?: number;
+            sort?: string;
+            start?: number;
+        }): ApiResponse<PlexArtistListResponse> => {
+            const response = await request<PlexArtistListResponse>({
+                method: 'GET',
+                params: {
+                    sort: params.sort || 'titleSort',
+                    type: 8,
+                    'X-Plex-Container-Size': params.size || 50,
+                    'X-Plex-Container-Start': params.start || 0,
+                },
+                path: `library/sections/${params.sectionId}/all`,
+            });
+
+            return response;
+        },
+
+        getGenreList: async (params: { sectionId: string }): ApiResponse<PlexGenreListResponse> => {
+            const response = await request<PlexGenreListResponse>({
+                method: 'GET',
+                path: `library/sections/${params.sectionId}/genre`,
+            });
+
+            return response;
+        },
+
+        getMetadata: async <T>(ratingKey: string): ApiResponse<T> => {
+            const response = await request<T>({
+                method: 'GET',
+                path: `library/metadata/${ratingKey}`,
+            });
+
+            return response;
+        },
+
+        getMusicFolderList: async (): ApiResponse<PlexMusicFolderListResponse> => {
+            const response = await request<PlexMusicFolderListResponse>({
+                method: 'GET',
+                path: 'library/sections',
+            });
+
+            return response;
+        },
+
+        getPlaylistList: async (): ApiResponse<PlexPlaylistListResponse> => {
+            const response = await request<PlexPlaylistListResponse>({
+                method: 'GET',
+                params: {
+                    playlistType: 'audio',
+                },
+                path: 'playlists',
+            });
+
+            return response;
+        },
+
+        getPlaylistTracks: async (
+            playlistRatingKey: string,
+        ): ApiResponse<PlexPlaylistTracksResponse> => {
+            const response = await request<PlexPlaylistTracksResponse>({
+                method: 'GET',
+                path: `playlists/${playlistRatingKey}/items`,
+            });
+
+            return response;
+        },
+
         getResources: async () => {
             const response = await request<PlexResourcesResponse>({
                 method: 'GET',
-                path: 'api/v2/resources',
                 params: {
                     includeHttps: 1,
                     includeRelay: 0,
                 },
+                path: 'api/v2/resources',
             });
 
             const devices = response.body?.MediaContainer?.Device || [];
@@ -268,7 +370,7 @@ export const pxApiClient = (args: {
             };
         },
 
-        getSections: async (_serverUrl: string, _authToken: string) => {
+        getSections: async () => {
             const response = await request<PlexSectionsResponse>({
                 method: 'GET',
                 path: 'library/sections',
@@ -289,43 +391,10 @@ export const pxApiClient = (args: {
             };
         },
 
-        getAlbumList: async (params: {
-            artistId?: string;
-            sectionId: string;
-            start?: number;
-            size?: number;
-            sort?: string;
-        }): ApiResponse<PlexAlbumListResponse> => {
+        getSimilarAlbums: async (albumRatingKey: string): ApiResponse<PlexAlbumListResponse> => {
             const response = await request<PlexAlbumListResponse>({
                 method: 'GET',
-                path: `library/sections/${params.sectionId}/all`,
-                params: {
-                    'X-Plex-Container-Size': params.size || 50,
-                    'X-Plex-Container-Start': params.start || 0,
-                    'artist.id': params.artistId,
-                    sort: params.sort || 'titleSort',
-                    type: 9,
-                },
-            });
-
-            return response;
-        },
-
-        getArtistList: async (params: {
-            sectionId: string;
-            start?: number;
-            size?: number;
-            sort?: string;
-        }): ApiResponse<PlexArtistListResponse> => {
-            const response = await request<PlexArtistListResponse>({
-                method: 'GET',
-                path: `library/sections/${params.sectionId}/all`,
-                params: {
-                    'X-Plex-Container-Size': params.size || 50,
-                    'X-Plex-Container-Start': params.start || 0,
-                    sort: params.sort || 'titleSort',
-                    type: 8,
-                },
+                path: `library/metadata/${albumRatingKey}/similar`,
             });
 
             return response;
@@ -336,90 +405,22 @@ export const pxApiClient = (args: {
             artistId?: string;
             favorite?: boolean;
             sectionId: string;
-            start?: number;
             size?: number;
             sort?: string;
+            start?: number;
         }): ApiResponse<PlexSongListResponse> => {
             const response = await request<PlexSongListResponse>({
                 method: 'GET',
-                path: `library/sections/${params.sectionId}/all`,
                 params: {
-                    'X-Plex-Container-Size': params.size || 50,
-                    'X-Plex-Container-Start': params.start || 0,
                     'album.id': params.albumId,
                     'artist.id': params.artistId,
-                    'userRating>=': params.favorite ? 10 : undefined,
                     sort: params.sort || 'titleSort',
                     type: 10,
+                    'userRating>=': params.favorite ? 10 : undefined,
+                    'X-Plex-Container-Size': params.size || 50,
+                    'X-Plex-Container-Start': params.start || 0,
                 },
-            });
-
-            return response;
-        },
-
-        getAlbumTracks: async (albumRatingKey: string): ApiResponse<PlexAlbumTracksResponse> => {
-            const response = await request<PlexAlbumTracksResponse>({
-                method: 'GET',
-                path: `library/metadata/${albumRatingKey}/children`,
-            });
-
-            return response;
-        },
-
-        getMetadata: async <T>(ratingKey: string): ApiResponse<T> => {
-            const response = await request<T>({
-                method: 'GET',
-                path: `library/metadata/${ratingKey}`,
-            });
-
-            return response;
-        },
-
-        getPlaylistList: async (): ApiResponse<PlexPlaylistListResponse> => {
-            const response = await request<PlexPlaylistListResponse>({
-                method: 'GET',
-                path: 'playlists',
-                params: {
-                    playlistType: 'audio',
-                },
-            });
-
-            return response;
-        },
-
-        getPlaylistTracks: async (
-            playlistRatingKey: string,
-        ): ApiResponse<PlexPlaylistTracksResponse> => {
-            const response = await request<PlexPlaylistTracksResponse>({
-                method: 'GET',
-                path: `playlists/${playlistRatingKey}/items`,
-            });
-
-            return response;
-        },
-
-        getGenreList: async (params: { sectionId: string }): ApiResponse<PlexGenreListResponse> => {
-            const response = await request<PlexGenreListResponse>({
-                method: 'GET',
-                path: `library/sections/${params.sectionId}/genre`,
-            });
-
-            return response;
-        },
-
-        getMusicFolderList: async (): ApiResponse<PlexMusicFolderListResponse> => {
-            const response = await request<PlexMusicFolderListResponse>({
-                method: 'GET',
-                path: 'library/sections',
-            });
-
-            return response;
-        },
-
-        getSimilarAlbums: async (albumRatingKey: string): ApiResponse<PlexAlbumListResponse> => {
-            const response = await request<PlexAlbumListResponse>({
-                method: 'GET',
-                path: `library/metadata/${albumRatingKey}/similar`,
+                path: `library/sections/${params.sectionId}/all`,
             });
 
             return response;
@@ -428,11 +429,11 @@ export const pxApiClient = (args: {
         scrobble: async (ratingKey: string) => {
             const response = await request({
                 method: 'GET',
-                path: ':/scrobble',
                 params: {
                     identifier: 'com.plexapp.plugins.library',
                     key: ratingKey,
                 },
+                path: ':/scrobble',
             });
 
             return response;
@@ -441,12 +442,12 @@ export const pxApiClient = (args: {
         setRating: async (ratingKey: string, rating: number) => {
             const response = await request({
                 method: 'GET',
-                path: ':/rate',
                 params: {
                     identifier: 'com.plexapp.plugins.library',
                     key: ratingKey,
                     rating,
                 },
+                path: ':/rate',
             });
 
             return response;

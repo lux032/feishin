@@ -29,7 +29,7 @@ export const GenreBadgeColumn = ({ song }: ItemDetailListCellProps) => {
 
     return (
         <Group className={styles.group} wrap="nowrap">
-            {genresWithStyle.map((genre) => (
+            {genresWithStyle.map((genre) =>
                 genre.path ? (
                     <Badge
                         component={Link}
@@ -54,8 +54,8 @@ export const GenreBadgeColumn = ({ song }: ItemDetailListCellProps) => {
                     >
                         {genre.name}
                     </Badge>
-                )
-            ))}
+                ),
+            )}
         </Group>
     );
 };

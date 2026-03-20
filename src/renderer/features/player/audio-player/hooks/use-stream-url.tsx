@@ -47,8 +47,10 @@ export function useSongUrl(
         return undefined;
     }, [
         song?._serverId,
+        song?._serverType,
         song?._uniqueId,
         song?.id,
+        song?.streamUrl,
         current,
         transcode.bitrate,
         transcode.format,

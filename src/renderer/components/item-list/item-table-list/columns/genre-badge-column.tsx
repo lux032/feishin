@@ -36,7 +36,7 @@ const GenreBadgeColumn = (props: ItemTableListInnerColumn) => {
         return (
             <TableColumnContainer {...props}>
                 <Group className={styles.group} wrap="wrap">
-                    {genres.slice(0, MAX_GENRES).map((genre) => (
+                    {genres.slice(0, MAX_GENRES).map((genre) =>
                         genre.path ? (
                             <Badge
                                 component={Link}
@@ -61,8 +61,8 @@ const GenreBadgeColumn = (props: ItemTableListInnerColumn) => {
                             >
                                 {genre.name}
                             </Badge>
-                        )
-                    ))}
+                        ),
+                    )}
                 </Group>
             </TableColumnContainer>
         );

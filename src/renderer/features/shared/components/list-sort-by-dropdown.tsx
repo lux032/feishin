@@ -691,9 +691,7 @@ const FOLDER_LIST_FILTERS: Partial<
         },
         ...(SONG_LIST_FILTERS[ServerType.NAVIDROME] || []),
     ],
-    [ServerType.PLEX]: [
-        ...(SONG_LIST_FILTERS[ServerType.PLEX] || []),
-    ],
+    [ServerType.PLEX]: [...(SONG_LIST_FILTERS[ServerType.PLEX] || [])],
     [ServerType.SUBSONIC]: [
         {
             defaultOrder: SortOrder.ASC,
