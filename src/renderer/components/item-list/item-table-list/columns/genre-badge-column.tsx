@@ -25,7 +25,9 @@ const GenreBadgeColumn = (props: ItemTableListInnerColumn) => {
         if (!row) return [];
         return row.map((genre) => {
             const { color, isLight } = stringToColor(genre.name);
-            const path = generatePath(AppRoute.LIBRARY_GENRES_DETAIL, { genreId: genre.id });
+            const path = genre.id
+                ? generatePath(AppRoute.LIBRARY_GENRES_DETAIL, { genreId: genre.id })
+                : null;
             return { ...genre, color, isLight, path };
         });
     }, [row]);
@@ -35,18 +37,31 @@ const GenreBadgeColumn = (props: ItemTableListInnerColumn) => {
             <TableColumnContainer {...props}>
                 <Group className={styles.group} wrap="wrap">
                     {genres.slice(0, MAX_GENRES).map((genre) => (
-                        <Badge
-                            component={Link}
-                            key={genre.id}
-                            state={{ item: genre }}
-                            style={{
-                                backgroundColor: genre.color,
-                                color: genre.isLight ? 'black' : 'white',
-                            }}
-                            to={genre.path}
-                        >
-                            {genre.name}
-                        </Badge>
+                        genre.path ? (
+                            <Badge
+                                component={Link}
+                                key={genre.id || genre.name}
+                                state={{ item: genre }}
+                                style={{
+                                    backgroundColor: genre.color,
+                                    color: genre.isLight ? 'black' : 'white',
+                                }}
+                                to={genre.path}
+                            >
+                                {genre.name}
+                            </Badge>
+                        ) : (
+                            <Badge
+                                component="span"
+                                key={genre.id || genre.name}
+                                style={{
+                                    backgroundColor: genre.color,
+                                    color: genre.isLight ? 'black' : 'white',
+                                }}
+                            >
+                                {genre.name}
+                            </Badge>
+                        )
                     ))}
                 </Group>
             </TableColumnContainer>

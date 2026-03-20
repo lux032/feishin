@@ -3,6 +3,7 @@ import { useMemo, useRef } from 'react';
 import { api } from '/@/renderer/api';
 import { TranscodingConfig } from '/@/renderer/store';
 import { QueueSong } from '/@/shared/types/domain-types';
+import { ServerType } from '/@/shared/types/types';
 
 export function useSongUrl(
     song: QueueSong | undefined,
@@ -17,6 +18,11 @@ export function useSongUrl(
             // reconfiguration to force a restart.
             if (current && prior.current[0] === song._uniqueId) {
                 return prior.current[1];
+            }
+
+            if (song._serverType === ServerType.PLEX && !transcode.enabled && song.streamUrl) {
+                prior.current = [song._uniqueId, song.streamUrl];
+                return song.streamUrl;
             }
 
             const url = api.controller.getStreamUrl({
@@ -49,6 +55,10 @@ export function useSongUrl(
 }
 
 export const getSongUrl = (song: QueueSong, transcode: TranscodingConfig) => {
+    if (song._serverType === ServerType.PLEX && !transcode.enabled && song.streamUrl) {
+        return song.streamUrl;
+    }
+
     return api.controller.getStreamUrl({
         apiClientProps: { serverId: song._serverId },
         query: {

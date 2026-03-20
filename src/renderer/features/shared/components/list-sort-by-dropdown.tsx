@@ -408,6 +408,33 @@ const ALBUM_LIST_FILTERS: Partial<
             value: AlbumListSort.YEAR,
         },
     ],
+    [ServerType.PLEX]: [
+        {
+            defaultOrder: SortOrder.ASC,
+            name: i18n.t('filter.name', { postProcess: 'titleCase' }),
+            value: AlbumListSort.NAME,
+        },
+        {
+            defaultOrder: SortOrder.ASC,
+            name: i18n.t('filter.random', { postProcess: 'titleCase' }),
+            value: AlbumListSort.RANDOM,
+        },
+        {
+            defaultOrder: SortOrder.DESC,
+            name: i18n.t('filter.recentlyAdded', { postProcess: 'titleCase' }),
+            value: AlbumListSort.RECENTLY_ADDED,
+        },
+        {
+            defaultOrder: SortOrder.DESC,
+            name: i18n.t('filter.releaseYear', { postProcess: 'titleCase' }),
+            value: AlbumListSort.YEAR,
+        },
+        {
+            defaultOrder: SortOrder.DESC,
+            name: i18n.t('filter.criticRating', { postProcess: 'titleCase' }),
+            value: AlbumListSort.CRITIC_RATING,
+        },
+    ],
     [ServerType.SUBSONIC]: [
         {
             defaultOrder: SortOrder.ASC,
@@ -594,6 +621,48 @@ const SONG_LIST_FILTERS: Partial<
             value: SongListSort.YEAR,
         },
     ],
+    [ServerType.PLEX]: [
+        {
+            defaultOrder: SortOrder.ASC,
+            name: i18n.t('filter.album', { postProcess: 'titleCase' }),
+            value: SongListSort.ALBUM,
+        },
+        {
+            defaultOrder: SortOrder.ASC,
+            name: i18n.t('filter.artist', { postProcess: 'titleCase' }),
+            value: SongListSort.ARTIST,
+        },
+        {
+            defaultOrder: SortOrder.ASC,
+            name: i18n.t('filter.duration', { postProcess: 'titleCase' }),
+            value: SongListSort.DURATION,
+        },
+        {
+            defaultOrder: SortOrder.ASC,
+            name: i18n.t('filter.name', { postProcess: 'titleCase' }),
+            value: SongListSort.NAME,
+        },
+        {
+            defaultOrder: SortOrder.ASC,
+            name: i18n.t('filter.playCount', { postProcess: 'titleCase' }),
+            value: SongListSort.PLAY_COUNT,
+        },
+        {
+            defaultOrder: SortOrder.ASC,
+            name: i18n.t('filter.random', { postProcess: 'titleCase' }),
+            value: SongListSort.RANDOM,
+        },
+        {
+            defaultOrder: SortOrder.DESC,
+            name: i18n.t('filter.recentlyAdded', { postProcess: 'titleCase' }),
+            value: SongListSort.RECENTLY_ADDED,
+        },
+        {
+            defaultOrder: SortOrder.DESC,
+            name: i18n.t('filter.releaseYear', { postProcess: 'titleCase' }),
+            value: SongListSort.RELEASE_DATE,
+        },
+    ],
     [ServerType.SUBSONIC]: [
         {
             defaultOrder: SortOrder.ASC,
@@ -622,6 +691,9 @@ const FOLDER_LIST_FILTERS: Partial<
         },
         ...(SONG_LIST_FILTERS[ServerType.NAVIDROME] || []),
     ],
+    [ServerType.PLEX]: [
+        ...(SONG_LIST_FILTERS[ServerType.PLEX] || []),
+    ],
     [ServerType.SUBSONIC]: [
         {
             defaultOrder: SortOrder.ASC,
@@ -637,6 +709,7 @@ const PLAYLIST_SONG_LIST_FILTERS: Partial<
 > = {
     [ServerType.JELLYFIN]: CLIENT_SIDE_SONG_FILTERS,
     [ServerType.NAVIDROME]: CLIENT_SIDE_SONG_FILTERS,
+    [ServerType.PLEX]: CLIENT_SIDE_SONG_FILTERS,
     [ServerType.SUBSONIC]: CLIENT_SIDE_SONG_FILTERS,
 };
 
@@ -700,6 +773,18 @@ const ALBUM_ARTIST_LIST_FILTERS: Partial<
             defaultOrder: SortOrder.DESC,
             name: i18n.t('filter.songCount', { postProcess: 'titleCase' }),
             value: AlbumArtistListSort.SONG_COUNT,
+        },
+    ],
+    [ServerType.PLEX]: [
+        {
+            defaultOrder: SortOrder.ASC,
+            name: i18n.t('filter.name', { postProcess: 'titleCase' }),
+            value: AlbumArtistListSort.NAME,
+        },
+        {
+            defaultOrder: SortOrder.DESC,
+            name: i18n.t('filter.recentlyAdded', { postProcess: 'titleCase' }),
+            value: AlbumArtistListSort.RECENTLY_ADDED,
         },
     ],
     [ServerType.SUBSONIC]: [
@@ -788,6 +873,18 @@ const ARTIST_LIST_FILTERS: Partial<
             value: ArtistListSort.SONG_COUNT,
         },
     ],
+    [ServerType.PLEX]: [
+        {
+            defaultOrder: SortOrder.ASC,
+            name: i18n.t('filter.name', { postProcess: 'titleCase' }),
+            value: ArtistListSort.NAME,
+        },
+        {
+            defaultOrder: SortOrder.DESC,
+            name: i18n.t('filter.recentlyAdded', { postProcess: 'titleCase' }),
+            value: ArtistListSort.RECENTLY_ADDED,
+        },
+    ],
     [ServerType.SUBSONIC]: [
         {
             defaultOrder: SortOrder.DESC,
@@ -823,6 +920,13 @@ const GENRE_LIST_FILTERS: Partial<
         },
     ],
     [ServerType.NAVIDROME]: [
+        {
+            defaultOrder: SortOrder.ASC,
+            name: i18n.t('filter.name', { postProcess: 'titleCase' }),
+            value: GenreListSort.NAME,
+        },
+    ],
+    [ServerType.PLEX]: [
         {
             defaultOrder: SortOrder.ASC,
             name: i18n.t('filter.name', { postProcess: 'titleCase' }),
@@ -890,6 +994,18 @@ const PLAYLIST_LIST_FILTERS: Partial<
             value: PlaylistListSort.UPDATED_AT,
         },
     ],
+    [ServerType.PLEX]: [
+        {
+            defaultOrder: SortOrder.DESC,
+            name: i18n.t('filter.duration', { postProcess: 'titleCase' }),
+            value: PlaylistListSort.DURATION,
+        },
+        {
+            defaultOrder: SortOrder.ASC,
+            name: i18n.t('filter.name', { postProcess: 'titleCase' }),
+            value: PlaylistListSort.NAME,
+        },
+    ],
     [ServerType.SUBSONIC]: [
         {
             defaultOrder: SortOrder.ASC,
@@ -915,6 +1031,18 @@ const RADIO_LIST_FILTERS: Partial<
         },
     ],
     [ServerType.NAVIDROME]: [
+        {
+            defaultOrder: SortOrder.ASC,
+            name: i18n.t('filter.id', { postProcess: 'titleCase' }),
+            value: RadioListSort.ID,
+        },
+        {
+            defaultOrder: SortOrder.ASC,
+            name: i18n.t('filter.name', { postProcess: 'titleCase' }),
+            value: RadioListSort.NAME,
+        },
+    ],
+    [ServerType.PLEX]: [
         {
             defaultOrder: SortOrder.ASC,
             name: i18n.t('filter.id', { postProcess: 'titleCase' }),

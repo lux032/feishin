@@ -42,12 +42,14 @@ const localSettings = isElectron() ? window.api.localSettings : null;
 const SERVER_ICONS: Record<ServerType, string> = {
     [ServerType.JELLYFIN]: JellyfinIcon,
     [ServerType.NAVIDROME]: NavidromeIcon,
+    [ServerType.PLEX]: JellyfinIcon, // Placeholder - use Jellyfin icon for now
     [ServerType.SUBSONIC]: SubsonicIcon,
 };
 
 const SERVER_NAMES: Record<ServerType, string> = {
     [ServerType.JELLYFIN]: 'Jellyfin',
     [ServerType.NAVIDROME]: 'Navidrome',
+    [ServerType.PLEX]: 'Plex',
     [ServerType.SUBSONIC]: 'OpenSubsonic',
 };
 
@@ -67,6 +69,7 @@ const LoginRoute = () => {
     const serverUrl = window.SERVER_URL || '';
     const remoteUrl = window.REMOTE_URL || '';
     const legacyAuth = serverLock && isLegacyAuth();
+    const isPlex = serverType === ServerType.PLEX;
 
     const config = [
         {
@@ -144,7 +147,8 @@ const LoginRoute = () => {
                 {
                     legacy: legacyAuth,
                     password: values.password,
-                    username: values.username,
+                    token: isPlex ? values.password : undefined,
+                    username: isPlex ? '' : values.username,
                 },
                 serverType as ServerType,
             );
@@ -217,7 +221,9 @@ const LoginRoute = () => {
         return setIsLoading(false);
     });
 
-    const isSubmitDisabled = !form.values.username || !form.values.password;
+    const isSubmitDisabled = isPlex
+        ? !form.values.password
+        : !form.values.username || !form.values.password;
     const serverIcon = SERVER_ICONS[serverType as ServerType];
     const serverDisplayName = SERVER_NAMES[serverType as ServerType];
 
@@ -246,21 +252,31 @@ const LoginRoute = () => {
                             </Stack>
 
                             <Stack gap="md">
-                                <TextInput
-                                    data-autofocus
-                                    label={t('form.addServer.input', {
-                                        context: 'username',
-                                        postProcess: 'titleCase',
-                                    })}
-                                    required
-                                    variant="filled"
-                                    {...form.getInputProps('username')}
-                                />
+                                {!isPlex && (
+                                    <TextInput
+                                        data-autofocus
+                                        label={t('form.addServer.input', {
+                                            context: 'username',
+                                            postProcess: 'titleCase',
+                                        })}
+                                        required
+                                        variant="filled"
+                                        {...form.getInputProps('username')}
+                                    />
+                                )}
                                 <PasswordInput
-                                    label={t('form.addServer.input', {
-                                        context: 'password',
-                                        postProcess: 'titleCase',
-                                    })}
+                                    data-autofocus={isPlex || undefined}
+                                    description={
+                                        isPlex ? '在 Plex 设置 > 账户中获取 X-Plex-Token' : undefined
+                                    }
+                                    label={
+                                        isPlex
+                                            ? 'Plex Token'
+                                            : t('form.addServer.input', {
+                                                  context: 'password',
+                                                  postProcess: 'titleCase',
+                                              })
+                                    }
                                     required
                                     variant="filled"
                                     {...form.getInputProps('password')}

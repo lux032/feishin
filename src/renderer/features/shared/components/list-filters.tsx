@@ -45,7 +45,7 @@ export const ListFiltersModal = ({ isActive, itemType }: ListFiltersProps) => {
 
     const serverType = server.type;
 
-    const FilterComponent = FILTERS[serverType][itemType];
+    const FilterComponent = FILTERS[serverType]?.[itemType];
 
     const [isOpen, handlers] = useDisclosure(false);
 
@@ -101,10 +101,12 @@ export const ListFiltersModal = ({ isActive, itemType }: ListFiltersProps) => {
                     </Group>
                 }
             >
-                <FilterComponent
-                    disableArtistFilter={disableArtistFilter}
-                    disableGenreFilter={disableGenreFilter}
-                />
+                {FilterComponent ? (
+                    <FilterComponent
+                        disableArtistFilter={disableArtistFilter}
+                        disableGenreFilter={disableGenreFilter}
+                    />
+                ) : null}
                 <Stack p="md">
                     <SaveAsCollectionButton
                         fullWidth
@@ -119,7 +121,7 @@ export const ListFiltersModal = ({ isActive, itemType }: ListFiltersProps) => {
 export const ListFilters = ({ itemType }: ListFiltersProps) => {
     const server = useCurrentServer();
     const serverType = server.type;
-    const FilterComponent = FILTERS[serverType][itemType];
+    const FilterComponent = FILTERS[serverType]?.[itemType];
     const { pageKey } = useListContext();
 
     const disableArtistFilter = pageKey === ItemListKey.ALBUM_ARTIST_ALBUM;
@@ -129,10 +131,12 @@ export const ListFilters = ({ itemType }: ListFiltersProps) => {
     return (
         <ComponentErrorBoundary>
             <Suspense fallback={<Spinner container />}>
-                <FilterComponent
-                    disableArtistFilter={disableArtistFilter}
-                    disableGenreFilter={disableGenreFilter}
-                />
+                {FilterComponent ? (
+                    <FilterComponent
+                        disableArtistFilter={disableArtistFilter}
+                        disableGenreFilter={disableGenreFilter}
+                    />
+                ) : null}
             </Suspense>
         </ComponentErrorBoundary>
     );
@@ -186,6 +190,10 @@ const FILTERS = {
     [ServerType.NAVIDROME]: {
         [LibraryItem.ALBUM]: NavidromeAlbumFilters,
         [LibraryItem.SONG]: NavidromeSongFilters,
+    },
+    [ServerType.PLEX]: {
+        [LibraryItem.ALBUM]: SubsonicAlbumFilters,
+        [LibraryItem.SONG]: SubsonicSongFilters,
     },
     [ServerType.SUBSONIC]: {
         [LibraryItem.ALBUM]: SubsonicAlbumFilters,

@@ -66,13 +66,14 @@ export const EditServerForm = ({ isUpdate, onCancel, password, server }: EditSer
 
     const isSubsonic = form.values.type === ServerType.SUBSONIC;
     const isNavidrome = form.values.type === ServerType.NAVIDROME;
+    const isPlex = form.values.type === ServerType.PLEX;
 
     const handleSubmit = form.onSubmit(async (values) => {
         try {
             setIsLoading(true);
 
             // Check if we can skip authentication
-            const usernameChanged = values.username !== server.username;
+            const usernameChanged = !isPlex && values.username !== server.username;
             const passwordProvided = values.password && values.password.trim() !== '';
             const urlChanged = values.url !== server.url;
             const typeChanged = values.type !== server.type;
@@ -115,7 +116,8 @@ export const EditServerForm = ({ isUpdate, onCancel, password, server }: EditSer
                     {
                         legacy: values.legacyAuth,
                         password: values.password,
-                        username: values.username,
+                        token: values.type === ServerType.PLEX ? values.password : undefined,
+                        username: values.type === ServerType.PLEX ? '' : values.username,
                     },
                     values.type,
                 );
@@ -249,21 +251,28 @@ export const EditServerForm = ({ isUpdate, onCancel, password, server }: EditSer
                         {form.isDirty('preferRemoteUrl') && <ModifiedFieldIndicator />}
                     </Group>
                 )}
-                <TextInput
-                    label={t('form.addServer.input', {
-                        context: 'username',
-                        postProcess: 'titleCase',
-                    })}
-                    required
-                    rightSection={form.isDirty('username') && <ModifiedFieldIndicator />}
-                    {...form.getInputProps('username')}
-                />
+                {!isPlex && (
+                    <TextInput
+                        label={t('form.addServer.input', {
+                            context: 'username',
+                            postProcess: 'titleCase',
+                        })}
+                        required
+                        rightSection={form.isDirty('username') && <ModifiedFieldIndicator />}
+                        {...form.getInputProps('username')}
+                    />
+                )}
                 <PasswordInput
                     data-autofocus
-                    label={t('form.addServer.input', {
-                        context: 'password',
-                        postProcess: 'titleCase',
-                    })}
+                    description={isPlex ? '在 Plex 设置 > 账户中获取 X-Plex-Token' : undefined}
+                    label={
+                        isPlex
+                            ? 'Plex Token'
+                            : t('form.addServer.input', {
+                                  context: 'password',
+                                  postProcess: 'titleCase',
+                              })
+                    }
                     {...form.getInputProps('password')}
                 />
                 {localSettings && isNavidrome && (

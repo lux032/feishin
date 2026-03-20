@@ -340,6 +340,12 @@ ipcMain.on('player-seek-to', async (_event, time: number) => {
 
 // Sets the queue in position 0 and 1 to the given data. Used when manually starting a song or using the next/prev buttons
 ipcMain.on('player-set-queue', async (_event, current?: string, next?: string, pause?: boolean) => {
+    mpvLog({
+        action: `player-set-queue current=${current || '<none>'} next=${next || '<none>'} pause=${
+            pause === undefined ? '<undefined>' : String(pause)
+        }`,
+    });
+
     if (!current && !next) {
         try {
             await getMpvInstance()?.clearPlaylist();
@@ -354,6 +360,7 @@ ipcMain.on('player-set-queue', async (_event, current?: string, next?: string, p
         if (current) {
             try {
                 await getMpvInstance()?.load(current, 'replace');
+                mpvLog({ action: `Loaded current song into mpv: ${current}` });
             } catch (error: any | NodeMpvError) {
                 mpvLog({ action: `Failed to load current song` }, error);
                 await getMpvInstance()?.play();
@@ -361,14 +368,17 @@ ipcMain.on('player-set-queue', async (_event, current?: string, next?: string, p
 
             if (next) {
                 await getMpvInstance()?.load(next, 'append');
+                mpvLog({ action: `Appended next song into mpv: ${next}` });
             }
         }
 
         if (pause) {
             await getMpvInstance()?.pause();
+            mpvLog({ action: 'Paused mpv after setting queue' });
         } else if (pause === false) {
             // Only force play if pause is explicitly false
             await getMpvInstance()?.play();
+            mpvLog({ action: 'Forced mpv playback after setting queue' });
         }
     } catch (err: any | NodeMpvError) {
         mpvLog({ action: `Failed to set play queue` }, err);

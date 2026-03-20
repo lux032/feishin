@@ -79,6 +79,10 @@ const SERVER_TYPES: Record<ServerType, ServerDetails> = {
         icon: NavidromeIcon,
         name: 'Navidrome',
     },
+    [ServerType.PLEX]: {
+        icon: JellyfinIcon, // Placeholder - use Jellyfin icon for now
+        name: 'Plex',
+    },
     [ServerType.SUBSONIC]: {
         icon: SubsonicIcon,
         name: 'OpenSubsonic',
@@ -113,6 +117,7 @@ export const AddServerForm = ({ onCancel }: AddServerFormProps) => {
             preferRemoteUrl: false,
             remoteUrl: '',
             savePassword: undefined,
+            token: '',
             type:
                 (localSettings
                     ? localSettings.env.SERVER_TYPE
@@ -122,7 +127,11 @@ export const AddServerForm = ({ onCancel }: AddServerFormProps) => {
         },
     });
 
-    const isSubmitDisabled = !form.values.name || !form.values.url || !form.values.username;
+    const isPlex = form.values.type === 'plex';
+    const isSubmitDisabled =
+        !form.values.name ||
+        !form.values.url ||
+        (isPlex ? !form.values.token : !form.values.username);
 
     const fillServerDetails = (server: DiscoveredServerItem) => {
         form.setValues({ ...server });
@@ -146,12 +155,14 @@ export const AddServerForm = ({ onCancel }: AddServerFormProps) => {
 
         try {
             setIsLoading(true);
+            const isPlexType = values.type === ServerType.PLEX;
             const data: AuthenticationResponse | undefined = await authFunction(
                 values.url,
                 {
                     legacy: values.legacyAuth,
-                    password: values.password,
-                    username: values.username,
+                    password: isPlexType ? values.token : values.password,
+                    token: isPlexType ? values.token : undefined,
+                    username: isPlexType ? '' : values.username,
                 },
                 values.type as ServerType,
             );
@@ -202,7 +213,10 @@ export const AddServerForm = ({ onCancel }: AddServerFormProps) => {
             });
 
             if (localSettings && values.savePassword) {
-                const saved = await localSettings.passwordSet(values.password, serverItem.id);
+                const saved = await localSettings.passwordSet(
+                    isPlexType ? values.token : values.password,
+                    serverItem.id,
+                );
                 if (!saved) {
                     toast.error({
                         message: t('form.addServer.error', {
@@ -293,21 +307,33 @@ export const AddServerForm = ({ onCancel }: AddServerFormProps) => {
                             })}
                         />
                     )}
-                    <TextInput
-                        label={t('form.addServer.input', {
-                            context: 'username',
-                            postProcess: 'titleCase',
-                        })}
-                        required
-                        {...form.getInputProps('username')}
-                    />
-                    <PasswordInput
-                        label={t('form.addServer.input', {
-                            context: 'password',
-                            postProcess: 'titleCase',
-                        })}
-                        {...form.getInputProps('password')}
-                    />
+                    {form.values.type === ServerType.PLEX ? (
+                        <PasswordInput
+                            label="Plex Token"
+                            description="在 Plex 设置 > 账户中获取 X-Plex-Token"
+                            required
+                            {...form.getInputProps('token')}
+                        />
+                    ) : (
+                        <>
+                            <TextInput
+                                label={t('form.addServer.input', {
+                                    context: 'username',
+                                    postProcess: 'titleCase',
+                                })}
+                                required
+                                {...form.getInputProps('username')}
+                            />
+                            <PasswordInput
+                                label={t('form.addServer.input', {
+                                    context: 'password',
+                                    postProcess: 'titleCase',
+                                })}
+                                {...form.getInputProps('password')}
+                            />
+                        </>
+                    )}
+                    <Text size="xs">当前服务器类型: {form.values.type}</Text>
                     {localSettings && form.values.type === ServerType.NAVIDROME && (
                         <Checkbox
                             label={t('form.addServer.input', {

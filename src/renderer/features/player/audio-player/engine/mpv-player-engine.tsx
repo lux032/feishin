@@ -9,6 +9,7 @@ import { getSongUrl } from '/@/renderer/features/player/audio-player/hooks/use-s
 import { AudioPlayer, PlayerOnProgressProps } from '/@/renderer/features/player/audio-player/types';
 import { useRadioStore } from '/@/renderer/features/radio/hooks/use-radio-player';
 import { getMpvProperties } from '/@/renderer/features/settings/components/playback/mpv-properties';
+import { logFn } from '/@/renderer/utils/logger';
 import {
     usePlaybackSettings,
     usePlayerActions,
@@ -16,7 +17,7 @@ import {
     usePlayerStore,
     useSettingsStore,
 } from '/@/renderer/store';
-import { PlayerStatus } from '/@/shared/types/types';
+import { PlayerStatus, ServerType } from '/@/shared/types/types';
 
 export interface MpvPlayerEngineHandle extends AudioPlayer {}
 
@@ -112,6 +113,16 @@ export const MpvPlayerEngine = (props: MpvPlayerEngineProps) => {
             const audioDevice = mpvAudioDeviceId?.trim() || 'auto';
             extraParameters.push(`--audio-device=${audioDevice}`);
 
+            logFn.debug('Initializing mpv player engine', {
+                category: 'player',
+                meta: {
+                    audioDevice,
+                    currentSongId: currentSong?.id,
+                    extraParameters,
+                    serverType: currentSong?._serverType,
+                },
+            });
+
             await mpvPlayer?.initialize({
                 extraParameters,
                 properties,
@@ -129,6 +140,18 @@ export const MpvPlayerEngine = (props: MpvPlayerEngineProps) => {
                 const nextSongUrl = playerData.nextSong
                     ? getSongUrl(playerData.nextSong, transcode)
                     : undefined;
+
+                if (playerData.currentSong?._serverType === ServerType.PLEX) {
+                    logFn.debug('Priming mpv queue for Plex', {
+                        category: 'player',
+                        meta: {
+                            currentSongId: playerData.currentSong.id,
+                            currentSongUrl,
+                            nextSongId: playerData.nextSong?.id,
+                            nextSongUrl,
+                        },
+                    });
+                }
 
                 if (currentSongUrl && nextSongUrl && !hasPopulatedQueueRef.current && mpvPlayer) {
                     mpvPlayer.setQueue(currentSongUrl, nextSongUrl, true);
@@ -282,6 +305,12 @@ export const MpvPlayerEngine = (props: MpvPlayerEngineProps) => {
                 }
 
                 const nextSongUrl = song ? getSongUrl(song, transcode) : undefined;
+                if (song?._serverType === ServerType.PLEX) {
+                    logFn.debug('Updating next mpv queue item for Plex', {
+                        category: 'player',
+                        meta: { nextSongId: song.id, nextSongUrl },
+                    });
+                }
                 mpvPlayer?.setQueueNext(nextSongUrl);
             },
             onPlayerPlay: () => {
@@ -370,5 +399,19 @@ function replaceMpvQueue(transcode: {
     const nextSongUrl = playerData.nextSong
         ? getSongUrl(playerData.nextSong, transcode)
         : undefined;
+
+    if (playerData.currentSong?._serverType === ServerType.PLEX) {
+        logFn.debug('Replacing mpv queue for Plex', {
+            category: 'player',
+            meta: {
+                currentSongId: playerData.currentSong.id,
+                currentSongUrl,
+                nextSongId: playerData.nextSong?.id,
+                nextSongUrl,
+                transcodeEnabled: transcode.enabled,
+            },
+        });
+    }
+
     mpvPlayer?.setQueue(currentSongUrl, nextSongUrl, false);
 }

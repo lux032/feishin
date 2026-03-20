@@ -1,6 +1,7 @@
 import i18n from '/@/i18n/i18n';
 import { JellyfinController } from '/@/renderer/api/jellyfin/jellyfin-controller';
 import { NavidromeController } from '/@/renderer/api/navidrome/navidrome-controller';
+import { PlexController } from '/@/renderer/api/plex/plex-controller';
 import { SubsonicController } from '/@/renderer/api/subsonic/subsonic-controller';
 import { mergeMusicFolderId } from '/@/renderer/api/utils-music-folder';
 import { getServerById, useAuthStore, useSettingsStore } from '/@/renderer/store';
@@ -15,12 +16,14 @@ import {
 type ApiController = {
     jellyfin: InternalControllerEndpoint;
     navidrome: InternalControllerEndpoint;
+    plex: InternalControllerEndpoint;
     subsonic: InternalControllerEndpoint;
 };
 
 const endpoints: ApiController = {
     jellyfin: JellyfinController,
     navidrome: NavidromeController,
+    plex: PlexController,
     subsonic: SubsonicController,
 };
 
@@ -79,7 +82,7 @@ const addContext = <T extends { apiClientProps: any; context?: any }>(args: T): 
 export interface GeneralController extends Omit<Required<ControllerEndpoint>, 'authenticate'> {
     authenticate: (
         url: string,
-        body: { legacy?: boolean; password: string; username: string },
+        body: { legacy?: boolean; password: string; token?: string; username: string },
         type: ServerType,
     ) => Promise<AuthenticationResponse>;
 }

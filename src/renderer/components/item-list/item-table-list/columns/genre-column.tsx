@@ -21,6 +21,10 @@ const GenreColumn = (props: ItemTableListInnerColumn) => {
     const genres = useMemo(() => {
         if (!row) return [];
         return row.map((genre) => {
+            if (!genre.id) {
+                return { ...genre, path: null };
+            }
+
             const path = generatePath(AppRoute.LIBRARY_GENRES_DETAIL, {
                 genreId: genre.id,
             });
@@ -39,16 +43,22 @@ const GenreColumn = (props: ItemTableListInnerColumn) => {
                 >
                     {genres.map((genre, index) => (
                         <Fragment key={genre.id}>
-                            <Text
-                                component={Link}
-                                isLink
-                                isMuted
-                                isNoSelect
-                                state={{ item: genre }}
-                                to={genre.path}
-                            >
-                                {genre.name}
-                            </Text>
+                            {genre.path ? (
+                                <Text
+                                    component={Link}
+                                    isLink
+                                    isMuted
+                                    isNoSelect
+                                    state={{ item: genre }}
+                                    to={genre.path}
+                                >
+                                    {genre.name}
+                                </Text>
+                            ) : (
+                                <Text isMuted isNoSelect>
+                                    {genre.name}
+                                </Text>
+                            )}
                             {index < genres.length - 1 && ', '}
                         </Fragment>
                     ))}

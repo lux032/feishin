@@ -14,8 +14,8 @@ export const GenreColumn = ({ isRowHovered, song }: ItemDetailListCellProps) => 
     return (
         <>
             {genres.map((genre, index) => (
-                <Fragment key={genre.id}>
-                    {isRowHovered ? (
+                <Fragment key={genre.id || genre.name}>
+                    {isRowHovered && genre.id ? (
                         <Text
                             component={Link}
                             isLink

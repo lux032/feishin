@@ -17,6 +17,14 @@ import {
     NDTagListSort,
     NDUserListSort,
 } from '/@/shared/api/navidrome/navidrome-types';
+import {
+    PXAlbumListSort,
+    PXArtistListSort,
+    PXGenreListSort,
+    PXPlaylistListSort,
+    PXSongListSort,
+    PXSortOrder,
+} from '/@/shared/api/plex/plex-types';
 import { ServerFeatures } from '/@/shared/types/features-types';
 import { PlayerStatus } from '/@/shared/types/types';
 
@@ -36,6 +44,7 @@ export enum LibraryItem {
 export enum ServerType {
     JELLYFIN = 'jellyfin',
     NAVIDROME = 'navidrome',
+    PLEX = 'plex',
     SUBSONIC = 'subsonic',
 }
 
@@ -118,6 +127,7 @@ export type User = {
 type SortOrderMap = {
     jellyfin: Record<SortOrder, JFSortOrder>;
     navidrome: Record<SortOrder, NDSortOrder>;
+    plex: Record<SortOrder, PXSortOrder>;
     subsonic: Record<SortOrder, undefined>;
 };
 
@@ -129,6 +139,10 @@ export const sortOrderMap: SortOrderMap = {
     navidrome: {
         ASC: NDSortOrder.ASC,
         DESC: NDSortOrder.DESC,
+    },
+    plex: {
+        ASC: PXSortOrder.ASC,
+        DESC: PXSortOrder.DESC,
     },
     subsonic: {
         ASC: undefined,
@@ -402,6 +416,7 @@ export type Song = {
     sampleRate: null | number;
     size: number;
     sortName: string;
+    streamUrl?: string;
     tags: null | Record<string, string[]>;
     trackNumber: number;
     trackSubtitle: null | string;
@@ -425,6 +440,7 @@ type BaseEndpointArgs = {
 type GenreListSortMap = {
     jellyfin: Record<GenreListSort, JFGenreListSort | undefined>;
     navidrome: Record<GenreListSort, NDGenreListSort | undefined>;
+    plex: Record<GenreListSort, PXGenreListSort | undefined>;
     subsonic: Record<UserListSort, undefined>;
 };
 
@@ -434,6 +450,9 @@ export const genreListSortMap: GenreListSortMap = {
     },
     navidrome: {
         name: NDGenreListSort.NAME,
+    },
+    plex: {
+        name: PXGenreListSort.NAME,
     },
     subsonic: {
         name: undefined,
@@ -510,6 +529,7 @@ interface AlbumListNavidromeQuery {
 type AlbumListSortMap = {
     jellyfin: Record<AlbumListSort, JFAlbumListSort | undefined>;
     navidrome: Record<AlbumListSort, NDAlbumListSort | undefined>;
+    plex: Record<AlbumListSort, PXAlbumListSort | undefined>;
     subsonic: Record<AlbumListSort, undefined>;
 };
 
@@ -554,6 +574,26 @@ export const albumListSortMap: AlbumListSortMap = {
         songCount: NDAlbumListSort.SONG_COUNT,
         sortName: NDAlbumListSort.NAME,
         year: NDAlbumListSort.YEAR,
+    },
+    plex: {
+        albumArtist: undefined,
+        artist: undefined,
+        communityRating: undefined,
+        criticRating: PXAlbumListSort.CRITIC_RATING,
+        duration: undefined,
+        explicitStatus: undefined,
+        favorited: undefined,
+        id: undefined,
+        name: PXAlbumListSort.NAME,
+        playCount: undefined,
+        random: PXAlbumListSort.RANDOM,
+        rating: undefined,
+        recentlyAdded: PXAlbumListSort.RECENTLY_ADDED,
+        recentlyPlayed: undefined,
+        releaseDate: PXAlbumListSort.RELEASE_DATE,
+        songCount: undefined,
+        sortName: PXAlbumListSort.NAME,
+        year: PXAlbumListSort.RELEASE_DATE,
     },
     subsonic: {
         albumArtist: undefined,
@@ -639,6 +679,7 @@ export type SongListResponse = BasePaginatedResponse<Song[]>;
 type SongListSortMap = {
     jellyfin: Record<SongListSort, JFSongListSort | undefined>;
     navidrome: Record<SongListSort, NDSongListSort | undefined>;
+    plex: Record<SongListSort, PXSongListSort | undefined>;
     subsonic: Record<SongListSort, undefined>;
 };
 
@@ -686,6 +727,28 @@ export const songListSortMap: SongListSortMap = {
         releaseDate: undefined,
         sortName: NDSongListSort.TITLE,
         year: NDSongListSort.YEAR,
+    },
+    plex: {
+        album: PXSongListSort.ALBUM,
+        albumArtist: undefined,
+        artist: PXSongListSort.ARTIST,
+        bpm: undefined,
+        channels: undefined,
+        comment: undefined,
+        duration: PXSongListSort.DURATION,
+        explicitStatus: undefined,
+        favorited: undefined,
+        genre: undefined,
+        id: undefined,
+        name: PXSongListSort.NAME,
+        playCount: PXSongListSort.PLAY_COUNT,
+        random: PXSongListSort.RANDOM,
+        rating: undefined,
+        recentlyAdded: PXSongListSort.RECENTLY_ADDED,
+        recentlyPlayed: undefined,
+        releaseDate: PXSongListSort.RELEASE_DATE,
+        sortName: PXSongListSort.NAME,
+        year: PXSongListSort.RELEASE_DATE,
     },
     subsonic: {
         album: undefined,
@@ -753,6 +816,7 @@ export type SongDetailResponse = Song;
 type AlbumArtistListSortMap = {
     jellyfin: Record<AlbumArtistListSort, JFAlbumArtistListSort | undefined>;
     navidrome: Record<AlbumArtistListSort, NDAlbumArtistListSort | undefined>;
+    plex: Record<AlbumArtistListSort, PXArtistListSort | undefined>;
     subsonic: Record<AlbumArtistListSort, undefined>;
 };
 
@@ -782,6 +846,19 @@ export const albumArtistListSortMap: AlbumArtistListSortMap = {
         recentlyAdded: undefined,
         releaseDate: undefined,
         songCount: NDAlbumArtistListSort.SONG_COUNT,
+    },
+    plex: {
+        album: undefined,
+        albumCount: undefined,
+        duration: undefined,
+        favorited: undefined,
+        name: PXArtistListSort.NAME,
+        playCount: undefined,
+        random: undefined,
+        rating: undefined,
+        recentlyAdded: PXArtistListSort.RECENTLY_ADDED,
+        releaseDate: undefined,
+        songCount: undefined,
     },
     subsonic: {
         album: undefined,
@@ -850,6 +927,7 @@ export type ArtistListResponse = BasePaginatedResponse<AlbumArtist[]>;
 type ArtistListSortMap = {
     jellyfin: Record<ArtistListSort, JFArtistListSort | undefined>;
     navidrome: Record<ArtistListSort, undefined>;
+    plex: Record<ArtistListSort, PXArtistListSort | undefined>;
     subsonic: Record<ArtistListSort, undefined>;
 };
 
@@ -877,6 +955,19 @@ export const artistListSortMap: ArtistListSortMap = {
         random: undefined,
         rating: undefined,
         recentlyAdded: undefined,
+        releaseDate: undefined,
+        songCount: undefined,
+    },
+    plex: {
+        album: undefined,
+        albumCount: undefined,
+        duration: undefined,
+        favorited: undefined,
+        name: PXArtistListSort.NAME,
+        playCount: undefined,
+        random: undefined,
+        rating: undefined,
+        recentlyAdded: PXArtistListSort.RECENTLY_ADDED,
         releaseDate: undefined,
         songCount: undefined,
     },
@@ -1102,6 +1193,7 @@ export type UpdatePlaylistResponse = null | undefined;
 type PlaylistListSortMap = {
     jellyfin: Record<PlaylistListSort, JFPlaylistListSort | undefined>;
     navidrome: Record<PlaylistListSort, NDPlaylistListSort | undefined>;
+    plex: Record<PlaylistListSort, PXPlaylistListSort | undefined>;
     subsonic: Record<PlaylistListSort, undefined>;
 };
 
@@ -1121,6 +1213,14 @@ export const playlistListSortMap: PlaylistListSortMap = {
         public: NDPlaylistListSort.PUBLIC,
         songCount: NDPlaylistListSort.SONG_COUNT,
         updatedAt: NDPlaylistListSort.UPDATED_AT,
+    },
+    plex: {
+        duration: PXPlaylistListSort.DURATION,
+        name: PXPlaylistListSort.NAME,
+        owner: undefined,
+        public: undefined,
+        songCount: undefined,
+        updatedAt: undefined,
     },
     subsonic: {
         duration: undefined,
@@ -1371,7 +1471,7 @@ export type ControllerEndpoint = {
     addToPlaylist: (args: AddToPlaylistArgs) => Promise<AddToPlaylistResponse>;
     authenticate: (
         url: string,
-        body: { legacy?: boolean; password: string; username: string },
+        body: { legacy?: boolean; password: string; token?: string; username: string },
     ) => Promise<AuthenticationResponse>;
     createFavorite: (args: FavoriteArgs) => Promise<FavoriteResponse>;
     createInternetRadioStation: (
@@ -1492,7 +1592,7 @@ export type InternalControllerEndpoint = {
     ) => Promise<AddToPlaylistResponse>;
     authenticate: (
         url: string,
-        body: { legacy?: boolean; password: string; username: string },
+        body: { legacy?: boolean; password: string; token?: string; username: string },
     ) => Promise<AuthenticationResponse>;
     createFavorite: (args: ReplaceApiClientProps<FavoriteArgs>) => Promise<FavoriteResponse>;
     createInternetRadioStation: (
