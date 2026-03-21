@@ -123,7 +123,9 @@ const getPlexHeaders = (token?: string): Record<string, string> => {
         Accept: 'application/xml',
         'X-Plex-Client-Identifier': useAuthStore.getState().deviceId || 'feishin',
         'X-Plex-Device': PLEX_DEVICE,
+        'X-Plex-Device-Name': PLEX_PRODUCT,
         'X-Plex-Platform': PLEX_PLATFORM,
+        'X-Plex-Provides': 'player',
         'X-Plex-Product': PLEX_PRODUCT,
         'X-Plex-Version': PLEX_VERSION,
     };
@@ -439,6 +441,31 @@ export const pxApiClient = (args: {
                     'X-Plex-Container-Start': params.start || 0,
                 },
                 path: `library/sections/${params.sectionId}/all`,
+            });
+
+            return response;
+        },
+
+        reportTimeline: async (params: {
+            continuing?: boolean;
+            duration?: number;
+            ratingKey: string;
+            state: 'paused' | 'playing' | 'stopped';
+            time?: number;
+        }) => {
+            const response = await request({
+                method: 'POST',
+                params: {
+                    containerKey: '/playQueues/0',
+                    continuing: params.continuing ? 1 : 0,
+                    duration: params.duration,
+                    identifier: 'com.plexapp.plugins.library',
+                    key: `/library/metadata/${params.ratingKey}`,
+                    ratingKey: params.ratingKey,
+                    state: params.state,
+                    time: params.time,
+                },
+                path: ':/timeline',
             });
 
             return response;

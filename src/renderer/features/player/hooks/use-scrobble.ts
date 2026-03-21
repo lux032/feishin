@@ -62,6 +62,21 @@ const checkScrobbleConditions = (args: {
     return shouldScrobbleBasedOnPercetange || shouldScrobbleBasedOnDuration;
 };
 
+const supportsPlaybackStateScrobble = (serverType?: ServerType) =>
+    serverType === ServerType.JELLYFIN || serverType === ServerType.PLEX;
+
+const getScrobblePosition = (song: QueueSong, timestampSeconds: number) => {
+    if (song._serverType === ServerType.JELLYFIN) {
+        return Math.round(timestampSeconds * 1e7);
+    }
+
+    if (song._serverType === ServerType.PLEX) {
+        return Math.round(timestampSeconds * 1000);
+    }
+
+    return undefined;
+};
+
 export const useScrobble = () => {
     const scrobbleSettings = usePlaybackSettings().scrobble;
     const isScrobbleEnabled = scrobbleSettings?.enabled;
@@ -113,16 +128,17 @@ export const useScrobble = () => {
                 return;
             }
 
-            // Send Jellyfin progress events every 10 seconds
-            if (currentSong._serverType === ServerType.JELLYFIN) {
+            // Send playback progress events every 10 seconds for servers that support state sync
+            if (supportsPlaybackStateScrobble(currentSong._serverType)) {
                 const timeSinceLastProgress = currentTime - lastProgressEventRef.current;
                 if (timeSinceLastProgress >= 10) {
-                    const position = currentTime * 1e7;
+                    const position = getScrobblePosition(currentSong, currentTime);
                     sendScrobble.mutate(
                         {
                             apiClientProps: { serverId: currentSong._serverId || '' },
                             query: {
                                 albumId: currentSong.albumId,
+                                duration: currentSong.duration,
                                 event: 'timeupdate',
                                 id: currentSong.id,
                                 position,
@@ -246,6 +262,27 @@ export const useScrobble = () => {
             setIsCurrentSongScrobbled(false);
             lastProgressEventRef.current = 0;
 
+            if (
+                previousSong?.id &&
+                previousSong._serverType === ServerType.PLEX &&
+                previousSong._uniqueId !== currentSong?._uniqueId
+            ) {
+                sendScrobble.mutate({
+                    apiClientProps: { serverId: previousSong._serverId || '' },
+                    query: {
+                        albumId: previousSong.albumId,
+                        duration: previousSong.duration,
+                        event: 'stop',
+                        id: previousSong.id,
+                        position: getScrobblePosition(
+                            previousSong,
+                            previousTimestampRef.current,
+                        ),
+                        submission: false,
+                    },
+                });
+            }
+
             // Use a timeout to prevent spamming the server when switching songs quickly
             clearTimeout(songChangeTimeoutRef.current);
             songChangeTimeoutRef.current = setTimeout(() => {
@@ -258,6 +295,7 @@ export const useScrobble = () => {
                             apiClientProps: { serverId: currentSong._serverId || '' },
                             query: {
                                 albumId: currentSong.albumId,
+                                duration: currentSong.duration,
                                 event: 'start',
                                 id: currentSong.id,
                                 position: 0,
@@ -297,8 +335,7 @@ export const useScrobble = () => {
                 return;
             }
 
-            // Position scrobbles are only relevant for Jellyfin
-            if (currentSong._serverType !== ServerType.JELLYFIN) {
+            if (!supportsPlaybackStateScrobble(currentSong._serverType)) {
                 return;
             }
 
@@ -310,7 +347,7 @@ export const useScrobble = () => {
                 return;
             }
 
-            const position = properties.timestamp * 1e7;
+            const position = getScrobblePosition(currentSong, properties.timestamp);
 
             lastProgressEventRef.current = properties.timestamp;
             lastSeekEventRef.current = now;
@@ -320,6 +357,7 @@ export const useScrobble = () => {
                     apiClientProps: { serverId: currentSong._serverId || '' },
                     query: {
                         albumId: currentSong.albumId,
+                        duration: currentSong.duration,
                         event: 'timeupdate',
                         id: currentSong.id,
                         position,
@@ -353,13 +391,12 @@ export const useScrobble = () => {
                 return;
             }
 
-            // Only apply to Jellyfin controller scrobble
-            if (currentSong._serverType !== ServerType.JELLYFIN) {
+            if (!supportsPlaybackStateScrobble(currentSong._serverType)) {
                 return;
             }
 
             const currentTimestamp = useTimestampStoreBase.getState().timestamp;
-            const position = currentTimestamp * 1e7;
+            const position = getScrobblePosition(currentSong, currentTimestamp);
 
             // Send pause event when status changes to paused
             if (properties.status === PlayerStatus.PAUSED && prev.status === PlayerStatus.PLAYING) {
@@ -368,6 +405,7 @@ export const useScrobble = () => {
                         apiClientProps: { serverId: currentSong._serverId || '' },
                         query: {
                             albumId: currentSong.albumId,
+                            duration: currentSong.duration,
                             event: 'pause',
                             id: currentSong.id,
                             position,
@@ -394,6 +432,7 @@ export const useScrobble = () => {
                         apiClientProps: { serverId: currentSong._serverId || '' },
                         query: {
                             albumId: currentSong.albumId,
+                            duration: currentSong.duration,
                             event: 'unpause',
                             id: currentSong.id,
                             position,
@@ -437,6 +476,7 @@ export const useScrobble = () => {
                 apiClientProps: { serverId: currentSong._serverId || '' },
                 query: {
                     albumId: currentSong.albumId,
+                    duration: currentSong.duration,
                     event: 'start',
                     id: currentSong.id,
                     position: 0,

@@ -220,6 +220,20 @@ const getPlexServerUrl = (server: null | ServerListItemWithCredential) =>
 
 const getPlexToken = (server: null | ServerListItemWithCredential) => server?.credential || '';
 
+const getPlexTimelineState = (
+    event?: 'pause' | 'start' | 'stop' | 'timeupdate' | 'unpause',
+): 'paused' | 'playing' | 'stopped' => {
+    if (event === 'pause') {
+        return 'paused';
+    }
+
+    if (event === 'stop') {
+        return 'stopped';
+    }
+
+    return 'playing';
+};
+
 const getPlexAlbumSort = (sortBy?: AlbumListSort, sortOrder?: SortOrder) => {
     const plexSortOrder = sortOrder ? sortOrderMap.plex[sortOrder] : undefined;
 
@@ -1257,7 +1271,17 @@ export const PlexController: InternalControllerEndpoint = {
         const { apiClientProps, query } = args;
         const apiClient = pxApiClient(apiClientProps);
 
-        await apiClient.scrobble(query.id);
+        if (query.submission) {
+            await apiClient.scrobble(query.id);
+            return null;
+        }
+
+        await apiClient.reportTimeline({
+            duration: query.duration,
+            ratingKey: query.id,
+            state: getPlexTimelineState(query.event),
+            time: query.position,
+        });
 
         return null;
     },
