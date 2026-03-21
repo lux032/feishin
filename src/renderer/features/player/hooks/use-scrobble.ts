@@ -274,10 +274,7 @@ export const useScrobble = () => {
                         duration: previousSong.duration,
                         event: 'stop',
                         id: previousSong.id,
-                        position: getScrobblePosition(
-                            previousSong,
-                            previousTimestampRef.current,
-                        ),
+                        position: getScrobblePosition(previousSong, previousTimestampRef.current),
                         submission: false,
                     },
                 });

@@ -125,8 +125,8 @@ const getPlexHeaders = (token?: string): Record<string, string> => {
         'X-Plex-Device': PLEX_DEVICE,
         'X-Plex-Device-Name': PLEX_PRODUCT,
         'X-Plex-Platform': PLEX_PLATFORM,
-        'X-Plex-Provides': 'player',
         'X-Plex-Product': PLEX_PRODUCT,
+        'X-Plex-Provides': 'player',
         'X-Plex-Version': PLEX_VERSION,
     };
 
