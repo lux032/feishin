@@ -15,7 +15,6 @@ import {
     PX_TRACK_RATING_FAVORITE,
 } from '/@/shared/api/plex/plex-types';
 import { sortAlbumList, sortSongList } from '/@/shared/api/utils';
-import { ServerFeature } from '/@/shared/types/features-types';
 import {
     AlbumListSort,
     albumListSortMap,
@@ -35,6 +34,7 @@ import {
     SortOrder,
     sortOrderMap,
 } from '/@/shared/types/domain-types';
+import { ServerFeature } from '/@/shared/types/features-types';
 
 type PlexAlbumMetadataResponse = {
     MediaContainer?: {

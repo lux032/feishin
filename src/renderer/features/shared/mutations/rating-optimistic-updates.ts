@@ -14,11 +14,11 @@ import {
     ArtistListResponse,
     LibraryItem,
     PlaylistSongListResponse,
+    ServerType,
     SetRatingArgs,
     Song,
     SongDetailResponse,
     TopSongListResponse,
-    ServerType,
 } from '/@/shared/types/domain-types';
 
 interface PendingUpdate {

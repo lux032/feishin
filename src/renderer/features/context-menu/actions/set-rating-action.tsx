@@ -6,8 +6,8 @@ import { useCurrentServer, useCurrentServerId, useShowRatings } from '/@/rendere
 import { hasFeature } from '/@/shared/api/utils';
 import { ContextMenu } from '/@/shared/components/context-menu/context-menu';
 import { Rating } from '/@/shared/components/rating/rating';
-import { ServerFeature } from '/@/shared/types/features-types';
 import { LibraryItem } from '/@/shared/types/domain-types';
+import { ServerFeature } from '/@/shared/types/features-types';
 
 interface SetRatingActionProps {
     ids: string[];

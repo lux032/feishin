@@ -14,11 +14,11 @@ import {
     FavoriteArgs,
     LibraryItem,
     PlaylistSongListResponse,
+    ServerType,
     Song,
     SongDetailResponse,
     SongListResponse,
     TopSongListResponse,
-    ServerType,
 } from '/@/shared/types/domain-types';
 
 export interface PreviousQueryData {

@@ -679,6 +679,7 @@ const AlbumDetailSongsTable = ({ songs }: AlbumDetailSongsTableProps) => {
     const [searchTerm, setSearchTerm] = useState('');
     const [debouncedSearchTerm] = useDebouncedValue(searchTerm, 300);
     const tableConfig = useSettingsStore((state) => state.lists[ItemListKey.ALBUM_DETAIL]?.table);
+    const tableColumns = tableConfig?.columns;
 
     const currentSong = usePlayerSong();
 
@@ -686,15 +687,15 @@ const AlbumDetailSongsTable = ({ songs }: AlbumDetailSongsTableProps) => {
     const [sortOrder, setSortOrder] = useState<SortOrder>(SortOrder.ASC);
 
     const columns = useMemo(() => {
-        if (!tableConfig?.columns) {
+        if (!tableColumns) {
             return [];
         }
 
         if (server?.type !== ServerType.PLEX) {
-            return tableConfig.columns;
+            return tableColumns;
         }
 
-        return tableConfig.columns.map((column) => {
+        return tableColumns.map((column) => {
             if (column.id === TableColumn.USER_FAVORITE) {
                 return { ...column, isEnabled: false };
             }
@@ -705,7 +706,7 @@ const AlbumDetailSongsTable = ({ songs }: AlbumDetailSongsTableProps) => {
 
             return column;
         });
-    }, [server?.type, tableConfig?.columns]);
+    }, [server?.type, tableColumns]);
 
     const filteredSongs = useMemo(() => {
         return sortSongList(

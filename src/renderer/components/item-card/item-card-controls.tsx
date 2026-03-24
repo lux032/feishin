@@ -296,14 +296,12 @@ export const ItemCardControls = ({
             {controls?.onFavorite && item?._serverType !== ServerType.PLEX && (
                 <FavoriteButton isFavorite={isFavorite} onClick={favoriteHandler} />
             )}
-            {controls?.onRating &&
-                showRating &&
-                hasFeature(server, ServerFeature.STAR_RATING) && (
-                    <RatingButton
-                        onChange={ratingChangeHandler}
-                        rating={(item as { userRating: number }).userRating}
-                    />
-                )}
+            {controls?.onRating && showRating && hasFeature(server, ServerFeature.STAR_RATING) && (
+                <RatingButton
+                    onChange={ratingChangeHandler}
+                    rating={(item as { userRating: number }).userRating}
+                />
+            )}
             {controls?.onMore && (
                 <SecondaryButton
                     className={styles.options}

@@ -14,7 +14,7 @@ import {
 } from '/@/renderer/store/timestamp.store';
 import { idbStateStorage } from '/@/renderer/store/utils';
 import { shuffleInPlace } from '/@/renderer/utils/shuffle';
-import { PlayerData, QueueData, QueueSong, Song, ServerType } from '/@/shared/types/domain-types';
+import { PlayerData, QueueData, QueueSong, ServerType, Song } from '/@/shared/types/domain-types';
 import {
     CrossfadeStyle,
     Play,

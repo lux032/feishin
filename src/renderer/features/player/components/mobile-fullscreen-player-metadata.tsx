@@ -14,24 +14,24 @@ import { QueueSong } from '/@/shared/types/domain-types';
 
 interface MobileFullscreenPlayerMetadataProps {
     currentSong?: QueueSong;
-    showFavorite?: boolean;
     onToggleFavorite: (e: MouseEvent<HTMLButtonElement>) => void;
     onUpdateRating: (rating: number) => void;
     radioArtist?: string;
     radioStationName?: string;
     radioTitle?: string;
+    showFavorite?: boolean;
     showRating?: boolean;
 }
 
 export const MobileFullscreenPlayerMetadata = memo(
     ({
         currentSong,
-        showFavorite,
         onToggleFavorite,
         onUpdateRating,
         radioArtist,
         radioStationName,
         radioTitle,
+        showFavorite,
         showRating,
     }: MobileFullscreenPlayerMetadataProps) => {
         const isRadio = radioTitle !== undefined || radioStationName !== undefined;
