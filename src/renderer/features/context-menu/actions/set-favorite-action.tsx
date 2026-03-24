@@ -3,9 +3,10 @@ import { useTranslation } from 'react-i18next';
 
 import { useCreateFavorite } from '/@/renderer/features/shared/mutations/create-favorite-mutation';
 import { useDeleteFavorite } from '/@/renderer/features/shared/mutations/delete-favorite-mutation';
-import { useCurrentServerId } from '/@/renderer/store';
+import { useCurrentServer, useCurrentServerId } from '/@/renderer/store';
 import { ContextMenu } from '/@/shared/components/context-menu/context-menu';
 import { LibraryItem } from '/@/shared/types/domain-types';
+import { ServerType } from '/@/shared/types/types';
 
 interface SetFavoriteActionProps {
     ids: string[];
@@ -14,6 +15,7 @@ interface SetFavoriteActionProps {
 
 export const SetFavoriteAction = ({ ids, itemType }: SetFavoriteActionProps) => {
     const { t } = useTranslation();
+    const server = useCurrentServer();
     const serverId = useCurrentServerId();
 
     const createFavoriteMutation = useCreateFavorite({});
@@ -42,6 +44,10 @@ export const SetFavoriteAction = ({ ids, itemType }: SetFavoriteActionProps) => 
             },
         });
     }, [deleteFavoriteMutation, ids, itemType, serverId]);
+
+    if (server?.type === ServerType.PLEX) {
+        return null;
+    }
 
     return (
         <ContextMenu.Submenu>

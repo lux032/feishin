@@ -60,7 +60,7 @@ import {
     SongListSort,
     SortOrder,
 } from '/@/shared/types/domain-types';
-import { ItemListKey, ListDisplayType, Play } from '/@/shared/types/types';
+import { ItemListKey, ListDisplayType, Play, TableColumn } from '/@/shared/types/types';
 
 const MetadataPillGroup = ({
     items,
@@ -675,6 +675,7 @@ function AlbumDetailCarousels({ data }: { data: Album }) {
 
 const AlbumDetailSongsTable = ({ songs }: AlbumDetailSongsTableProps) => {
     const { t } = useTranslation();
+    const server = useCurrentServer();
     const [searchTerm, setSearchTerm] = useState('');
     const [debouncedSearchTerm] = useDebouncedValue(searchTerm, 300);
     const tableConfig = useSettingsStore((state) => state.lists[ItemListKey.ALBUM_DETAIL]?.table);
@@ -685,8 +686,26 @@ const AlbumDetailSongsTable = ({ songs }: AlbumDetailSongsTableProps) => {
     const [sortOrder, setSortOrder] = useState<SortOrder>(SortOrder.ASC);
 
     const columns = useMemo(() => {
-        return tableConfig?.columns || [];
-    }, [tableConfig?.columns]);
+        if (!tableConfig?.columns) {
+            return [];
+        }
+
+        if (server?.type !== ServerType.PLEX) {
+            return tableConfig.columns;
+        }
+
+        return tableConfig.columns.map((column) => {
+            if (column.id === TableColumn.USER_FAVORITE) {
+                return { ...column, isEnabled: false };
+            }
+
+            if (column.id === TableColumn.USER_RATING) {
+                return { ...column, isEnabled: true };
+            }
+
+            return column;
+        });
+    }, [server?.type, tableConfig?.columns]);
 
     const filteredSongs = useMemo(() => {
         return sortSongList(

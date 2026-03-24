@@ -11,6 +11,8 @@ import { PlayTooltip } from '/@/renderer/features/shared/components/play-button-
 import { useIsMutatingCreateFavorite } from '/@/renderer/features/shared/mutations/create-favorite-mutation';
 import { useIsMutatingDeleteFavorite } from '/@/renderer/features/shared/mutations/delete-favorite-mutation';
 import { useIsMutatingRating } from '/@/renderer/features/shared/mutations/set-rating-mutation';
+import { useCurrentServer } from '/@/renderer/store';
+import { hasFeature } from '/@/shared/api/utils';
 import { animationVariants } from '/@/shared/components/animations/animation-variants';
 import { AppIcon, Icon, IconProps } from '/@/shared/components/icon/icon';
 import { Rating } from '/@/shared/components/rating/rating';
@@ -25,6 +27,7 @@ import {
     ServerType,
     Song,
 } from '/@/shared/types/domain-types';
+import { ServerFeature } from '/@/shared/types/features-types';
 import { Play } from '/@/shared/types/types';
 
 interface ItemCardControlsProps {
@@ -208,6 +211,7 @@ export const ItemCardControls = ({
     showRating,
     type = 'default',
 }: ItemCardControlsProps) => {
+    const server = useCurrentServer();
     const playNowHandler = useMemo(
         () => createPlayHandler(controls, item, internalState, itemType, Play.NOW),
         [controls, item, internalState, itemType],
@@ -289,13 +293,12 @@ export const ItemCardControls = ({
                     </PlayTooltip>
                 </Tooltip.Group>
             )}
-            {controls?.onFavorite && (
+            {controls?.onFavorite && item?._serverType !== ServerType.PLEX && (
                 <FavoriteButton isFavorite={isFavorite} onClick={favoriteHandler} />
             )}
             {controls?.onRating &&
                 showRating &&
-                (item?._serverType === ServerType.NAVIDROME ||
-                    item?._serverType === ServerType.SUBSONIC) && (
+                hasFeature(server, ServerFeature.STAR_RATING) && (
                     <RatingButton
                         onChange={ratingChangeHandler}
                         rating={(item as { userRating: number }).userRating}

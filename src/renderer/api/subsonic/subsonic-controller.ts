@@ -1285,6 +1285,8 @@ export const SubsonicController: InternalControllerEndpoint = {
             features.serverPlayQueue = [1];
         }
 
+        features.starRating = [1];
+
         return { features, id: apiClientProps.server?.id, version: ping.body.serverVersion };
     },
     getSimilarSongs: async (args) => {

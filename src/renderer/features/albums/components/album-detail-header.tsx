@@ -22,11 +22,13 @@ import { useCurrentServer, useShowRatings } from '/@/renderer/store';
 import { useArtistRadioCount, usePlayButtonBehavior } from '/@/renderer/store/settings.store';
 import { formatDateAbsoluteUTC, formatDurationString, formatSizeString } from '/@/renderer/utils';
 import { normalizeReleaseTypes } from '/@/renderer/utils/normalize-release-types';
+import { hasFeature } from '/@/shared/api/utils';
 import { Group } from '/@/shared/components/group/group';
 import { Separator } from '/@/shared/components/separator/separator';
 import { Stack } from '/@/shared/components/stack/stack';
 import { Text } from '/@/shared/components/text/text';
 import { LibraryItem, ServerType } from '/@/shared/types/domain-types';
+import { ServerFeature } from '/@/shared/types/features-types';
 import { Play } from '/@/shared/types/types';
 
 export const AlbumDetailHeader = forwardRef<HTMLDivElement>((_props, ref) => {
@@ -40,10 +42,7 @@ export const AlbumDetailHeader = forwardRef<HTMLDivElement>((_props, ref) => {
         albumQueries.detail({ query: { id: albumId }, serverId: server?.id }),
     );
 
-    const showRating =
-        showRatings &&
-        (detailQuery?.data?._serverType === ServerType.NAVIDROME ||
-            detailQuery?.data?._serverType === ServerType.SUBSONIC);
+    const showRating = showRatings && hasFeature(server, ServerFeature.STAR_RATING);
 
     const { addToQueueByData, addToQueueByFetch } = usePlayer();
     const playButtonBehavior = usePlayButtonBehavior();
@@ -282,7 +281,11 @@ export const AlbumDetailHeader = forwardRef<HTMLDivElement>((_props, ref) => {
                     <LibraryHeaderMenu
                         favorite={detailQuery?.data?.userFavorite}
                         onAlbumRadio={handleAlbumRadio}
-                        onFavorite={handleFavorite}
+                        onFavorite={
+                            detailQuery?.data?._serverType === ServerType.PLEX
+                                ? undefined
+                                : handleFavorite
+                        }
                         onMore={handleMoreOptions}
                         onPlay={(type) => handlePlay(type)}
                         onRating={handleUpdateRating}

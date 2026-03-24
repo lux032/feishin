@@ -18,6 +18,7 @@ import {
     SongDetailResponse,
     SongListResponse,
     TopSongListResponse,
+    ServerType,
 } from '/@/shared/types/domain-types';
 
 export interface PreviousQueryData {
@@ -30,6 +31,22 @@ interface PendingUpdate {
     queryKey: readonly unknown[];
     updater: (prev: any) => any;
 }
+
+const createFavoriteUpdater = <
+    T extends {
+        _serverType?: ServerType;
+        id: string;
+        userFavorite?: boolean;
+        userRating?: null | number;
+    },
+>(
+    item: T,
+    isFavorite: boolean,
+): T => ({
+    ...item,
+    userFavorite: isFavorite,
+    userRating: item._serverType === ServerType.PLEX ? (isFavorite ? 5 : null) : item.userRating,
+});
 
 function collectAndApplyUpdates(
     queryClient: QueryClient,
@@ -97,11 +114,6 @@ export const applyFavoriteOptimisticUpdates = (
         itemIdSet.add(variables.query.id);
     }
 
-    const createFavoriteUpdater = <T extends { userFavorite?: boolean }>(item: T): T => ({
-        ...item,
-        userFavorite: isFavorite,
-    });
-
     switch (variables.query.type) {
         case LibraryItem.ALBUM: {
             const detailQueryKey = queryKeys.albums.detail(variables.apiClientProps.serverId);
@@ -117,7 +129,7 @@ export const applyFavoriteOptimisticUpdates = (
                         queryKey,
                         updater: (prev: AlbumDetailResponse | undefined) => {
                             if (prev && itemIdSet.has(prev.id)) {
-                                return { ...prev, userFavorite: isFavorite };
+                                return createFavoriteUpdater(prev, isFavorite);
                             }
                             return prev;
                         },
@@ -141,7 +153,7 @@ export const applyFavoriteOptimisticUpdates = (
                             const updatedItems = updateItemInArray(
                                 current.items,
                                 itemIdSet,
-                                (item) => createFavoriteUpdater<Album>(item),
+                                (item) => createFavoriteUpdater<Album>(item, isFavorite),
                             );
                             return updatedItems ? { ...current, items: updatedItems } : current;
                         },
@@ -176,7 +188,7 @@ export const applyFavoriteOptimisticUpdates = (
                             const updatedPages = updateItemsInPages<Album, AlbumListResponse>(
                                 current.pages.filter((p): p is AlbumListResponse => !!p),
                                 itemIdSet,
-                                (item) => createFavoriteUpdater<Album>(item),
+                                (item) => createFavoriteUpdater<Album>(item, isFavorite),
                             );
                             return updatedPages ? { ...current, pages: updatedPages } : current;
                         },
@@ -210,7 +222,7 @@ export const applyFavoriteOptimisticUpdates = (
                                 const updatedData = updateItemInArray(
                                     prev.data as Array<{ id: string; userFavorite?: boolean }>,
                                     itemIdSet,
-                                    (item) => createFavoriteUpdater(item),
+                                    (item) => createFavoriteUpdater(item, isFavorite),
                                 );
                                 return updatedData ? { ...prev, data: updatedData } : prev;
                             }
@@ -238,7 +250,7 @@ export const applyFavoriteOptimisticUpdates = (
                             if (!prev) return prev;
 
                             if (itemIdSet.has(prev.id)) {
-                                return { ...prev, userFavorite: isFavorite };
+                                return createFavoriteUpdater(prev, isFavorite);
                             }
 
                             return prev;
@@ -295,7 +307,7 @@ export const applyFavoriteOptimisticUpdates = (
                             const updatedItems = updateItemInArray(
                                 prev.items.filter((item): item is AlbumArtist => !!item),
                                 itemIdSet,
-                                (item) => createFavoriteUpdater<AlbumArtist>(item),
+                                (item) => createFavoriteUpdater<AlbumArtist>(item, isFavorite),
                             );
                             return updatedItems ? { ...prev, items: updatedItems } : prev;
                         },
@@ -328,7 +340,7 @@ export const applyFavoriteOptimisticUpdates = (
                             >(
                                 prev.pages.filter((p): p is AlbumArtistListResponse => !!p),
                                 itemIdSet,
-                                (item) => createFavoriteUpdater<AlbumArtist>(item),
+                                (item) => createFavoriteUpdater<AlbumArtist>(item, isFavorite),
                             );
                             return updatedPages ? { ...prev, pages: updatedPages } : prev;
                         },
@@ -362,7 +374,7 @@ export const applyFavoriteOptimisticUpdates = (
                                 const updatedData = updateItemInArray(
                                     prev.data as Array<{ id: string; userFavorite?: boolean }>,
                                     itemIdSet,
-                                    (item) => createFavoriteUpdater(item),
+                                    (item) => createFavoriteUpdater(item, isFavorite),
                                 );
                                 return updatedData ? { ...prev, data: updatedData } : prev;
                             }
@@ -389,7 +401,7 @@ export const applyFavoriteOptimisticUpdates = (
                         updater: (prev: ArtistListResponse | undefined) => {
                             if (!prev) return prev;
                             const updatedItems = updateItemInArray(prev.items, itemIdSet, (item) =>
-                                createFavoriteUpdater<AlbumArtist>(item),
+                                createFavoriteUpdater<AlbumArtist>(item, isFavorite),
                             );
                             return updatedItems ? { ...prev, items: updatedItems } : prev;
                         },
@@ -420,7 +432,7 @@ export const applyFavoriteOptimisticUpdates = (
                             >(
                                 prev.pages.filter((p): p is AlbumArtistListResponse => !!p),
                                 itemIdSet,
-                                (item) => createFavoriteUpdater<AlbumArtist>(item),
+                                (item) => createFavoriteUpdater<AlbumArtist>(item, isFavorite),
                             );
                             return updatedPages ? { ...prev, pages: updatedPages } : prev;
                         },
@@ -454,7 +466,7 @@ export const applyFavoriteOptimisticUpdates = (
                                 const updatedData = updateItemInArray(
                                     prev.data as Array<{ id: string; userFavorite?: boolean }>,
                                     itemIdSet,
-                                    (item) => createFavoriteUpdater(item),
+                                    (item) => createFavoriteUpdater(item, isFavorite),
                                 );
                                 return updatedData ? { ...prev, data: updatedData } : prev;
                             }
@@ -483,7 +495,7 @@ export const applyFavoriteOptimisticUpdates = (
                         updater: (prev: AlbumDetailResponse | undefined) => {
                             if (!prev || !prev.songs) return prev;
                             const updatedSongs = updateItemInArray(prev.songs, itemIdSet, (item) =>
-                                createFavoriteUpdater<Song>(item),
+                                createFavoriteUpdater<Song>(item, isFavorite),
                             );
                             return updatedSongs ? { ...prev, songs: updatedSongs } : prev;
                         },
@@ -504,7 +516,7 @@ export const applyFavoriteOptimisticUpdates = (
                         queryKey,
                         updater: (prev: SongDetailResponse | undefined) => {
                             if (prev && itemIdSet.has(prev.id)) {
-                                return { ...prev, userFavorite: isFavorite };
+                                return createFavoriteUpdater(prev, isFavorite);
                             }
                             return prev;
                         },
@@ -528,7 +540,7 @@ export const applyFavoriteOptimisticUpdates = (
                         updater: (prev: PlaylistSongListResponse | undefined) => {
                             if (!prev) return prev;
                             const updatedItems = updateItemInArray(prev.items, itemIdSet, (item) =>
-                                createFavoriteUpdater<Song>(item),
+                                createFavoriteUpdater<Song>(item, isFavorite),
                             );
                             return updatedItems ? { ...prev, items: updatedItems } : prev;
                         },
@@ -550,7 +562,7 @@ export const applyFavoriteOptimisticUpdates = (
                         updater: (prev: undefined | { items: Song[] }) => {
                             if (!prev) return prev;
                             const updatedItems = updateItemInArray(prev.items, itemIdSet, (item) =>
-                                createFavoriteUpdater<Song>(item),
+                                createFavoriteUpdater<Song>(item, isFavorite),
                             );
                             return updatedItems ? { ...prev, items: updatedItems } : prev;
                         },
@@ -574,7 +586,7 @@ export const applyFavoriteOptimisticUpdates = (
                         updater: (prev: TopSongListResponse | undefined) => {
                             if (!prev) return prev;
                             const updatedItems = updateItemInArray(prev.items, itemIdSet, (item) =>
-                                createFavoriteUpdater<Song>(item),
+                                createFavoriteUpdater<Song>(item, isFavorite),
                             );
                             return updatedItems ? { ...prev, items: updatedItems } : prev;
                         },
@@ -601,7 +613,7 @@ export const applyFavoriteOptimisticUpdates = (
                             const updatedPages = updateItemsInPages<Song, SongListResponse>(
                                 current.pages.filter((p): p is SongListResponse => !!p),
                                 itemIdSet,
-                                (item) => createFavoriteUpdater<Song>(item),
+                                (item) => createFavoriteUpdater<Song>(item, isFavorite),
                             );
                             return updatedPages ? { ...current, pages: updatedPages } : current;
                         },
@@ -740,7 +752,7 @@ export const applyFavoriteOptimisticUpdatesDeferred = (
                     case 'album-detail':
                     case 'song-detail': {
                         if (itemIdSet.has(prev.id)) {
-                            return { ...prev, userFavorite: isFavorite };
+                            return createFavoriteUpdater(prev, isFavorite);
                         }
                         if (prev.similarArtists) {
                             const hasMatch = prev.similarArtists.some((a: any) =>
@@ -765,7 +777,7 @@ export const applyFavoriteOptimisticUpdatesDeferred = (
                         const updatedPages = updateItemsInPages(
                             prev.pages || [],
                             itemIdSet,
-                            (item) => ({ ...item, userFavorite: isFavorite }),
+                            (item) => createFavoriteUpdater(item, isFavorite),
                         );
                         return updatedPages ? { ...prev, pages: updatedPages } : prev;
                     }
@@ -774,8 +786,7 @@ export const applyFavoriteOptimisticUpdatesDeferred = (
                     case 'artist-infinite-loader': {
                         if (prev.data) {
                             const updatedData = updateItemInArray(prev.data, itemIdSet, (item) => ({
-                                ...item,
-                                userFavorite: isFavorite,
+                                ...createFavoriteUpdater(item, isFavorite),
                             }));
                             return updatedData ? { ...prev, data: updatedData } : prev;
                         }
@@ -790,7 +801,7 @@ export const applyFavoriteOptimisticUpdatesDeferred = (
                         const updatedItems = updateItemInArray(
                             prev.items || [],
                             itemIdSet,
-                            (item) => ({ ...item, userFavorite: isFavorite }),
+                            (item) => createFavoriteUpdater(item, isFavorite),
                         );
                         return updatedItems ? { ...prev, items: updatedItems } : prev;
                     }

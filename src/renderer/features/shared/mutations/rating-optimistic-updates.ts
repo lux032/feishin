@@ -18,6 +18,7 @@ import {
     Song,
     SongDetailResponse,
     TopSongListResponse,
+    ServerType,
 } from '/@/shared/types/domain-types';
 
 interface PendingUpdate {
@@ -25,6 +26,22 @@ interface PendingUpdate {
     queryKey: readonly unknown[];
     updater: (prev: any) => any;
 }
+
+const createRatingUpdater = <
+    T extends {
+        _serverType?: ServerType;
+        id: string;
+        userFavorite?: boolean;
+        userRating?: null | number;
+    },
+>(
+    item: T,
+    rating: number,
+): T => ({
+    ...item,
+    userFavorite: item._serverType === ServerType.PLEX ? rating >= 5 : item.userFavorite,
+    userRating: rating,
+});
 
 function collectAndApplyUpdates(
     queryClient: QueryClient,
@@ -93,11 +110,6 @@ export const applyRatingOptimisticUpdates = (
         itemIdSet.add(variables.query.id);
     }
 
-    const createRatingUpdater = <T extends { userRating?: null | number }>(item: T): T => ({
-        ...item,
-        userRating: rating,
-    });
-
     switch (variables.query.type) {
         case LibraryItem.ALBUM: {
             const detailQueryKey = queryKeys.albums.detail(variables.apiClientProps.serverId);
@@ -113,7 +125,7 @@ export const applyRatingOptimisticUpdates = (
                         queryKey,
                         updater: (prev: AlbumDetailResponse | undefined) => {
                             if (prev && itemIdSet.has(prev.id)) {
-                                return { ...prev, userRating: rating };
+                                return createRatingUpdater(prev, rating);
                             }
                             return prev;
                         },
@@ -135,7 +147,7 @@ export const applyRatingOptimisticUpdates = (
                         updater: (prev: AlbumListResponse | undefined) => {
                             if (!prev) return prev;
                             const updatedItems = updateItemInArray(prev.items, itemIdSet, (item) =>
-                                createRatingUpdater<Album>(item),
+                                createRatingUpdater<Album>(item, rating),
                             );
                             return updatedItems ? { ...prev, items: updatedItems } : prev;
                         },
@@ -168,7 +180,7 @@ export const applyRatingOptimisticUpdates = (
                             const updatedPages = updateItemsInPages<Album, AlbumListResponse>(
                                 prev.pages.filter((p): p is AlbumListResponse => !!p),
                                 itemIdSet,
-                                (item) => createRatingUpdater<Album>(item),
+                                (item) => createRatingUpdater<Album>(item, rating),
                             );
                             return updatedPages ? { ...prev, pages: updatedPages } : prev;
                         },
@@ -205,7 +217,7 @@ export const applyRatingOptimisticUpdates = (
                                 const updatedData = updateItemInArray(
                                     prev.data as Array<{ id: string; userRating?: null | number }>,
                                     itemIdSet,
-                                    (item) => createRatingUpdater(item),
+                                    (item) => createRatingUpdater(item, rating),
                                 );
                                 return updatedData ? { ...prev, data: updatedData } : prev;
                             }
@@ -233,7 +245,7 @@ export const applyRatingOptimisticUpdates = (
                             if (!prev) return prev;
 
                             if (itemIdSet.has(prev.id)) {
-                                return { ...prev, userRating: rating };
+                                return createRatingUpdater(prev, rating);
                             }
 
                             return prev;
@@ -288,7 +300,7 @@ export const applyRatingOptimisticUpdates = (
                         updater: (prev: AlbumArtistListResponse | undefined) => {
                             if (!prev) return prev;
                             const updatedItems = updateItemInArray(prev.items, itemIdSet, (item) =>
-                                createRatingUpdater<AlbumArtist>(item),
+                                createRatingUpdater<AlbumArtist>(item, rating),
                             );
                             return updatedItems ? { ...prev, items: updatedItems } : prev;
                         },
@@ -321,7 +333,7 @@ export const applyRatingOptimisticUpdates = (
                             >(
                                 prev.pages.filter((p): p is AlbumArtistListResponse => !!p),
                                 itemIdSet,
-                                (item) => createRatingUpdater<AlbumArtist>(item),
+                                (item) => createRatingUpdater<AlbumArtist>(item, rating),
                             );
                             return updatedPages ? { ...prev, pages: updatedPages } : prev;
                         },
@@ -358,7 +370,7 @@ export const applyRatingOptimisticUpdates = (
                                 const updatedData = updateItemInArray(
                                     prev.data as Array<{ id: string; userRating?: null | number }>,
                                     itemIdSet,
-                                    (item) => createRatingUpdater(item),
+                                    (item) => createRatingUpdater(item, rating),
                                 );
                                 return updatedData ? { ...prev, data: updatedData } : prev;
                             }
@@ -385,7 +397,7 @@ export const applyRatingOptimisticUpdates = (
                         updater: (prev: ArtistListResponse | undefined) => {
                             if (!prev) return prev;
                             const updatedItems = updateItemInArray(prev.items, itemIdSet, (item) =>
-                                createRatingUpdater<AlbumArtist>(item),
+                                createRatingUpdater<AlbumArtist>(item, rating),
                             );
                             return updatedItems ? { ...prev, items: updatedItems } : prev;
                         },
@@ -416,7 +428,7 @@ export const applyRatingOptimisticUpdates = (
                             >(
                                 prev.pages.filter((p): p is AlbumArtistListResponse => !!p),
                                 itemIdSet,
-                                (item) => createRatingUpdater<AlbumArtist>(item),
+                                (item) => createRatingUpdater<AlbumArtist>(item, rating),
                             );
                             return updatedPages ? { ...prev, pages: updatedPages } : prev;
                         },
@@ -453,7 +465,7 @@ export const applyRatingOptimisticUpdates = (
                                 const updatedData = updateItemInArray(
                                     prev.data as Array<{ id: string; userRating?: null | number }>,
                                     itemIdSet,
-                                    (item) => createRatingUpdater(item),
+                                    (item) => createRatingUpdater(item, rating),
                                 );
                                 return updatedData ? { ...prev, data: updatedData } : prev;
                             }
@@ -482,7 +494,7 @@ export const applyRatingOptimisticUpdates = (
                         updater: (prev: AlbumDetailResponse | undefined) => {
                             if (!prev || !prev.songs) return prev;
                             const updatedSongs = updateItemInArray(prev.songs, itemIdSet, (item) =>
-                                createRatingUpdater<Song>(item),
+                                createRatingUpdater<Song>(item, rating),
                             );
                             return updatedSongs ? { ...prev, songs: updatedSongs } : prev;
                         },
@@ -503,7 +515,7 @@ export const applyRatingOptimisticUpdates = (
                         queryKey,
                         updater: (prev: SongDetailResponse | undefined) => {
                             if (prev && itemIdSet.has(prev.id)) {
-                                return { ...prev, userRating: rating };
+                                return createRatingUpdater(prev, rating);
                             }
                             return prev;
                         },
@@ -527,7 +539,7 @@ export const applyRatingOptimisticUpdates = (
                         updater: (prev: PlaylistSongListResponse | undefined) => {
                             if (!prev) return prev;
                             const updatedItems = updateItemInArray(prev.items, itemIdSet, (item) =>
-                                createRatingUpdater<Song>(item),
+                                createRatingUpdater<Song>(item, rating),
                             );
                             return updatedItems ? { ...prev, items: updatedItems } : prev;
                         },
@@ -549,7 +561,7 @@ export const applyRatingOptimisticUpdates = (
                         updater: (prev: undefined | { items: Song[] }) => {
                             if (!prev) return prev;
                             const updatedItems = updateItemInArray(prev.items, itemIdSet, (item) =>
-                                createRatingUpdater<Song>(item),
+                                createRatingUpdater<Song>(item, rating),
                             );
                             return updatedItems ? { ...prev, items: updatedItems } : prev;
                         },
@@ -573,7 +585,7 @@ export const applyRatingOptimisticUpdates = (
                         updater: (prev: TopSongListResponse | undefined) => {
                             if (!prev) return prev;
                             const updatedItems = updateItemInArray(prev.items, itemIdSet, (item) =>
-                                createRatingUpdater<Song>(item),
+                                createRatingUpdater<Song>(item, rating),
                             );
                             return updatedItems ? { ...prev, items: updatedItems } : prev;
                         },
@@ -713,7 +725,7 @@ export const applyRatingOptimisticUpdatesDeferred = (
                     case 'album-detail':
                     case 'song-detail': {
                         if (itemIdSet.has(prev.id)) {
-                            return { ...prev, userRating: rating };
+                            return createRatingUpdater(prev, rating);
                         }
                         return prev;
                     }
@@ -723,7 +735,7 @@ export const applyRatingOptimisticUpdatesDeferred = (
                         const updatedPages = updateItemsInPages(
                             prev.pages || [],
                             itemIdSet,
-                            (item) => ({ ...item, userRating: rating }),
+                            (item) => createRatingUpdater(item, rating),
                         );
                         return updatedPages ? { ...prev, pages: updatedPages } : prev;
                     }
@@ -732,8 +744,7 @@ export const applyRatingOptimisticUpdatesDeferred = (
                     case 'artist-infinite-loader': {
                         if (prev.data) {
                             const updatedData = updateItemInArray(prev.data, itemIdSet, (item) => ({
-                                ...item,
-                                userRating: rating,
+                                ...createRatingUpdater(item, rating),
                             }));
                             return updatedData ? { ...prev, data: updatedData } : prev;
                         }
@@ -758,7 +769,7 @@ export const applyRatingOptimisticUpdatesDeferred = (
                         const updatedItems = updateItemInArray(
                             prev.items || [],
                             itemIdSet,
-                            (item) => ({ ...item, userRating: rating }),
+                            (item) => createRatingUpdater(item, rating),
                         );
                         return updatedItems ? { ...prev, items: updatedItems } : prev;
                     }

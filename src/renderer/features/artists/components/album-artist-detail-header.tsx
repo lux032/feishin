@@ -21,10 +21,12 @@ import { useAppStore, useCurrentServer, useShowRatings } from '/@/renderer/store
 import { useArtistReleaseTypeItems, usePlayButtonBehavior } from '/@/renderer/store/settings.store';
 import { formatDurationString } from '/@/renderer/utils';
 import { SEPARATOR_STRING, sortAlbumList } from '/@/shared/api/utils';
+import { hasFeature } from '/@/shared/api/utils';
 import { Group } from '/@/shared/components/group/group';
 import { Stack } from '/@/shared/components/stack/stack';
 import { Text } from '/@/shared/components/text/text';
 import { AlbumListResponse, LibraryItem, ServerType } from '/@/shared/types/domain-types';
+import { ServerFeature } from '/@/shared/types/features-types';
 import { Play } from '/@/shared/types/types';
 
 interface AlbumArtistDetailHeaderProps {
@@ -182,7 +184,7 @@ export const AlbumArtistDetailHeader = forwardRef<HTMLDivElement, AlbumArtistDet
             enabled: Boolean(server?.id && routeId),
         });
 
-        const showRating = showRatings && detailQuery?.data?._serverType === ServerType.NAVIDROME;
+        const showRating = showRatings && hasFeature(server, ServerFeature.STAR_RATING);
 
         const selectedImageUrl = useMemo(() => {
             return detailQuery.data?.imageUrl || imageUrl;
@@ -219,7 +221,11 @@ export const AlbumArtistDetailHeader = forwardRef<HTMLDivElement, AlbumArtistDet
                     </Group>
                     <LibraryHeaderMenu
                         favorite={detailQuery.data?.userFavorite}
-                        onFavorite={handleFavorite}
+                        onFavorite={
+                            detailQuery.data?._serverType === ServerType.PLEX
+                                ? undefined
+                                : handleFavorite
+                        }
                         onMore={handleMoreOptions}
                         onPlay={(type) => handlePlay(type)}
                         onRating={showRating ? handleUpdateRating : undefined}

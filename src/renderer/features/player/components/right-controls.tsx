@@ -38,7 +38,9 @@ import { useHotkeys } from '/@/shared/hooks/use-hotkeys';
 import { useMediaQuery } from '/@/shared/hooks/use-media-query';
 import { useThrottledCallback } from '/@/shared/hooks/use-throttled-callback';
 import { useThrottledValue } from '/@/shared/hooks/use-throttled-value';
+import { hasFeature } from '/@/shared/api/utils';
 import { LibraryItem, QueueSong, ServerType } from '/@/shared/types/domain-types';
+import { ServerFeature } from '/@/shared/types/features-types';
 
 const calculateVolumeUp = (volume: number, volumeWheelStep: number) => {
     let volumeToSet: number;
@@ -214,6 +216,7 @@ const LyricsButton = () => {
 };
 
 const FavoriteButton = () => {
+    const server = useCurrentServer();
     const currentSong = usePlayerSong();
     const { bindings } = useHotkeySettings();
 
@@ -275,6 +278,10 @@ const FavoriteButton = () => {
         ],
     ]);
 
+    if (server?.type === ServerType.PLEX) {
+        return null;
+    }
+
     return (
         <ActionIcon
             icon="favorite"
@@ -334,9 +341,7 @@ const RatingButton = () => {
     const setRating = useSetRating();
 
     const isSongDefined = Boolean(currentSong?.id);
-    const showRating =
-        isSongDefined &&
-        (server?.type === ServerType.NAVIDROME || server?.type === ServerType.SUBSONIC);
+    const showRating = isSongDefined && hasFeature(server, ServerFeature.STAR_RATING);
 
     const handleUpdateRating = (rating: number) => {
         if (!currentSong) return;

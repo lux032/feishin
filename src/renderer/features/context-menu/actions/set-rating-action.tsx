@@ -3,10 +3,11 @@ import { useTranslation } from 'react-i18next';
 
 import { useSetRating } from '/@/renderer/features/shared/hooks/use-set-rating';
 import { useCurrentServer, useCurrentServerId, useShowRatings } from '/@/renderer/store';
+import { hasFeature } from '/@/shared/api/utils';
 import { ContextMenu } from '/@/shared/components/context-menu/context-menu';
 import { Rating } from '/@/shared/components/rating/rating';
+import { ServerFeature } from '/@/shared/types/features-types';
 import { LibraryItem } from '/@/shared/types/domain-types';
-import { ServerType } from '/@/shared/types/types';
 
 interface SetRatingActionProps {
     ids: string[];
@@ -22,8 +23,8 @@ export const SetRatingAction = ({ ids, itemType }: SetRatingActionProps) => {
     const setRating = useSetRating();
 
     const isRatingSupported = useMemo(() => {
-        return server?.type === ServerType.NAVIDROME || server?.type === ServerType.SUBSONIC;
-    }, [server?.type]);
+        return hasFeature(server, ServerFeature.STAR_RATING);
+    }, [server]);
 
     const onRating = (rating: number) => {
         setRating(serverId, ids, itemType, rating);

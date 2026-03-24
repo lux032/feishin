@@ -1,7 +1,12 @@
 import i18n from '/@/i18n/i18n';
 import { pxApiClient } from '/@/renderer/api/plex/plex-api';
 import { getServerUrl } from '/@/renderer/utils/normalize-server-url';
-import { pxNormalize } from '/@/shared/api/plex/plex-normalize';
+import {
+    isPlexFavorite,
+    normalizePlexUserRating,
+    pxNormalize,
+    toPlexUserRating,
+} from '/@/shared/api/plex/plex-normalize';
 import {
     PlexAlbum,
     PlexArtist,
@@ -10,6 +15,7 @@ import {
     PX_TRACK_RATING_FAVORITE,
 } from '/@/shared/api/plex/plex-types';
 import { sortAlbumList, sortSongList } from '/@/shared/api/utils';
+import { ServerFeature } from '/@/shared/types/features-types';
 import {
     AlbumListSort,
     albumListSortMap,
@@ -49,9 +55,6 @@ type PlexSongMetadataResponse = {
 };
 
 const PLEX_PAGE_SIZE = 200;
-
-const getPlexFavorite = (userRating?: null | string) =>
-    userRating !== undefined && Number(userRating) >= PX_TRACK_RATING_FAVORITE;
 
 const getPlexTotalRecordCount = (
     container: undefined | { $?: { size?: string; totalSize?: string } },
@@ -557,8 +560,8 @@ export const PlexController: InternalControllerEndpoint = {
             sortName: firstTrack.album || '',
             tags: null,
             updatedAt: firstTrack.updatedAt,
-            userFavorite: getPlexFavorite(albumMetadata?.$.userRating),
-            userRating: albumMetadata?.$.userRating ? Number(albumMetadata.$.userRating) : null,
+            userFavorite: isPlexFavorite(albumMetadata?.$.userRating),
+            userRating: normalizePlexUserRating(albumMetadata?.$.userRating),
             version: null,
         };
     },
@@ -1008,7 +1011,7 @@ export const PlexController: InternalControllerEndpoint = {
 
     getServerInfo: async (args) => {
         return {
-            features: {},
+            features: { [ServerFeature.STAR_RATING]: [1] },
             id: args.apiClientProps.server?.id,
             version: '1.0.0',
         };
@@ -1299,7 +1302,7 @@ export const PlexController: InternalControllerEndpoint = {
         const apiClient = pxApiClient(apiClientProps);
 
         for (const id of query.id) {
-            await apiClient.setRating(id, query.rating);
+            await apiClient.setRating(id, toPlexUserRating(query.rating));
         }
 
         return null;

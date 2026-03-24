@@ -40,9 +40,11 @@ import {
     usePlayerSong,
     useSetFullScreenPlayerStore,
 } from '/@/renderer/store';
+import { hasFeature } from '/@/shared/api/utils';
 import { ActionIcon } from '/@/shared/components/action-icon/action-icon';
 import { Text } from '/@/shared/components/text/text';
 import { LibraryItem, ServerType } from '/@/shared/types/domain-types';
+import { ServerFeature } from '/@/shared/types/features-types';
 import { ItemListKey } from '/@/shared/types/types';
 
 const mainBackground = 'var(--theme-colors-background)';
@@ -446,9 +448,8 @@ export const MobileFullscreenPlayer = () => {
     const isLyricsState = activeTab === 'lyrics';
     const isSongDefined = Boolean(currentSong?.id);
     const showRating =
-        showRatingsSetting &&
-        isSongDefined &&
-        (server?.type === ServerType.NAVIDROME || server?.type === ServerType.SUBSONIC);
+        showRatingsSetting && isSongDefined && hasFeature(server, ServerFeature.STAR_RATING);
+    const showFavorite = server?.type !== ServerType.PLEX;
 
     return (
         <MobilePlayerContainer
@@ -482,6 +483,7 @@ export const MobileFullscreenPlayer = () => {
                     radioArtist={isPlayingRadio ? (radioMetadata?.artist ?? undefined) : undefined}
                     radioStationName={isPlayingRadio ? (stationName ?? undefined) : undefined}
                     radioTitle={isPlayingRadio ? (radioMetadata?.title ?? undefined) : undefined}
+                    showFavorite={showFavorite}
                     showRating={showRating}
                 />
                 <MobileFullscreenPlayerProgress currentSong={currentSong} />

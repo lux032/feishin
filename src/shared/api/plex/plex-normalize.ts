@@ -17,8 +17,29 @@ import {
 } from '/@/shared/types/domain-types';
 import { ServerListItem, ServerType } from '/@/shared/types/types';
 
-const isPlexFavorite = (userRating?: null | string) =>
+export const normalizePlexUserRating = (userRating?: null | string): null | number => {
+    if (userRating === undefined || userRating === null) {
+        return null;
+    }
+
+    const normalizedRating = Number(userRating);
+    if (!Number.isFinite(normalizedRating) || normalizedRating <= 0) {
+        return null;
+    }
+
+    return normalizedRating / 2;
+};
+
+export const isPlexFavorite = (userRating?: null | string) =>
     userRating !== undefined && Number(userRating) >= PX_TRACK_RATING_FAVORITE;
+
+export const toPlexUserRating = (rating: number) => {
+    if (!Number.isFinite(rating) || rating <= 0) {
+        return 0;
+    }
+
+    return Math.min(PX_TRACK_RATING_FAVORITE, Math.round(rating * 2));
+};
 
 const getAlbumImageId = (item: PlexAlbum): null | string => {
     const thumb = item.$.thumb;
@@ -125,7 +146,7 @@ const normalizeSong = (
 
     const streamUrl = mediaPart?.key ? `${serverUrl}${mediaPart.key}?X-Plex-Token=${token}` : '';
 
-    const userRating = item.$.userRating ? Number(item.$.userRating) : null;
+    const userRating = normalizePlexUserRating(item.$.userRating);
 
     return {
         _itemType: LibraryItem.SONG,
@@ -203,7 +224,7 @@ const normalizeAlbum = (
 ): Album => {
     const duration = item.$.duration ? Number(item.$.duration) : null;
     const songCount = item.$.leafCount ? Number(item.$.leafCount) : null;
-    const userRating = item.$.userRating ? Number(item.$.userRating) : null;
+    const userRating = normalizePlexUserRating(item.$.userRating);
 
     return {
         _itemType: LibraryItem.ALBUM,
@@ -255,7 +276,7 @@ const normalizeAlbumArtist = (
     serverUrl: string,
     token: string,
 ): AlbumArtist => {
-    const userRating = item.$.userRating ? Number(item.$.userRating) : null;
+    const userRating = normalizePlexUserRating(item.$.userRating);
 
     return {
         _itemType: LibraryItem.ALBUM_ARTIST,

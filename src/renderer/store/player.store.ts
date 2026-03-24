@@ -14,7 +14,7 @@ import {
 } from '/@/renderer/store/timestamp.store';
 import { idbStateStorage } from '/@/renderer/store/utils';
 import { shuffleInPlace } from '/@/renderer/utils/shuffle';
-import { PlayerData, QueueData, QueueSong, Song } from '/@/shared/types/domain-types';
+import { PlayerData, QueueData, QueueSong, Song, ServerType } from '/@/shared/types/domain-types';
 import {
     CrossfadeStyle,
     Play,
@@ -1978,6 +1978,9 @@ export const updateQueueFavorites = (ids: string[], favorite: boolean) => {
         Object.values(state.queue.songs).forEach((song) => {
             if (ids.includes(song.id)) {
                 song.userFavorite = favorite;
+                if (song._serverType === ServerType.PLEX) {
+                    song.userRating = favorite ? 5 : null;
+                }
             }
         });
     });
@@ -1988,6 +1991,9 @@ export const updateQueueRatings = (ids: string[], rating: null | number) => {
         Object.values(state.queue.songs).forEach((song) => {
             if (ids.includes(song.id)) {
                 song.userRating = rating;
+                if (song._serverType === ServerType.PLEX) {
+                    song.userFavorite = (rating || 0) >= 5;
+                }
             }
         });
     });

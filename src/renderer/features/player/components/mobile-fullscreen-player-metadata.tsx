@@ -14,6 +14,7 @@ import { QueueSong } from '/@/shared/types/domain-types';
 
 interface MobileFullscreenPlayerMetadataProps {
     currentSong?: QueueSong;
+    showFavorite?: boolean;
     onToggleFavorite: (e: MouseEvent<HTMLButtonElement>) => void;
     onUpdateRating: (rating: number) => void;
     radioArtist?: string;
@@ -25,6 +26,7 @@ interface MobileFullscreenPlayerMetadataProps {
 export const MobileFullscreenPlayerMetadata = memo(
     ({
         currentSong,
+        showFavorite,
         onToggleFavorite,
         onUpdateRating,
         radioArtist,
@@ -77,16 +79,18 @@ export const MobileFullscreenPlayerMetadata = memo(
                 )}
                 {!isRadio && (
                     <Group align="center" className={styles.actionsRow} gap="xs">
-                        <ActionIcon
-                            icon="favorite"
-                            iconProps={{
-                                fill: isFavorite ? 'primary' : undefined,
-                                size: 'md',
-                            }}
-                            onClick={onToggleFavorite}
-                            size="sm"
-                            variant="subtle"
-                        />
+                        {showFavorite && (
+                            <ActionIcon
+                                icon="favorite"
+                                iconProps={{
+                                    fill: isFavorite ? 'primary' : undefined,
+                                    size: 'md',
+                                }}
+                                onClick={onToggleFavorite}
+                                size="sm"
+                                variant="subtle"
+                            />
+                        )}
                         {showRating && (
                             <Rating onChange={onUpdateRating} size="sm" value={rating || 0} />
                         )}
