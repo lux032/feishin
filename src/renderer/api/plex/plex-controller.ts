@@ -48,6 +48,52 @@ type PlexArtistMetadataResponse = {
     };
 };
 
+type PlexFavoriteSongJson = {
+    addedAt?: number | string;
+    duration?: number | string;
+    grandparentRatingKey?: string;
+    grandparentThumb?: string;
+    grandparentTitle?: string;
+    index?: number | string;
+    lastViewedAt?: number | string;
+    Media?: {
+        audioChannels?: number | string;
+        bitrate?: number | string;
+        container?: string;
+        id?: number | string;
+        Part?: {
+            container?: string;
+            duration?: number | string;
+            file?: string;
+            id?: number | string;
+            key?: string;
+            size?: number | string;
+        }[];
+    }[];
+    originallyAvailableAt?: string;
+    parentIndex?: number | string;
+    parentRatingKey?: string;
+    parentThumb?: string;
+    parentTitle?: string;
+    rating?: number | string;
+    ratingKey?: string;
+    thumb?: string;
+    title?: string;
+    titleSort?: string;
+    updatedAt?: number | string;
+    userRating?: number | string;
+    viewCount?: number | string;
+    year?: number | string;
+};
+
+type PlexFavoriteSongListJsonResponse = {
+    MediaContainer?: {
+        Metadata?: PlexFavoriteSongJson[];
+        size?: number | string;
+        totalSize?: number | string;
+    };
+};
+
 type PlexSongMetadataResponse = {
     MediaContainer?: {
         Track?: PlexTrack[];
@@ -55,6 +101,7 @@ type PlexSongMetadataResponse = {
 };
 
 const PLEX_PAGE_SIZE = 200;
+const PLEX_FAVORITE_SONG_PAGE_SIZE = 1000;
 
 const getPlexTotalRecordCount = (
     container: undefined | { $?: { size?: string; totalSize?: string } },
@@ -132,6 +179,75 @@ const dedupePlexItemsById = <TItem extends { id: string }>(items: TItem[]) => {
 
     return Array.from(byId.values());
 };
+
+const getPlexFavoriteSongItems = (body: PlexFavoriteSongListJsonResponse) =>
+    body?.MediaContainer?.Metadata || [];
+
+const getPlexFavoriteSongTotalCount = (
+    body: PlexFavoriteSongListJsonResponse,
+    fallback: number,
+) => {
+    const totalSize = Number(body?.MediaContainer?.totalSize);
+    if (Number.isFinite(totalSize) && totalSize >= 0) {
+        return totalSize;
+    }
+
+    const size = Number(body?.MediaContainer?.size);
+    if (Number.isFinite(size) && size >= 0) {
+        return size;
+    }
+
+    return fallback;
+};
+
+const toPlexTrackFromFavoriteJson = (item: PlexFavoriteSongJson): PlexTrack => ({
+    $: {
+        addedAt: item.addedAt === undefined ? undefined : String(item.addedAt),
+        duration: item.duration === undefined ? undefined : String(item.duration),
+        grandparentRatingKey: item.grandparentRatingKey,
+        grandparentThumb: item.grandparentThumb,
+        grandparentTitle: item.grandparentTitle,
+        index: item.index === undefined ? undefined : String(item.index),
+        key: item.ratingKey ? `/library/metadata/${item.ratingKey}` : '',
+        lastViewedAt: item.lastViewedAt === undefined ? undefined : String(item.lastViewedAt),
+        originallyAvailableAt: item.originallyAvailableAt,
+        parentIndex: item.parentIndex === undefined ? undefined : String(item.parentIndex),
+        parentRatingKey: item.parentRatingKey,
+        parentThumb: item.parentThumb,
+        parentTitle: item.parentTitle,
+        rating: item.rating === undefined ? undefined : String(item.rating),
+        ratingKey: item.ratingKey || '',
+        thumb: item.thumb,
+        title: item.title || '',
+        titleSort: item.titleSort,
+        type: 'track',
+        updatedAt: item.updatedAt === undefined ? undefined : String(item.updatedAt),
+        userRating: item.userRating === undefined ? undefined : String(item.userRating),
+        viewCount: item.viewCount === undefined ? undefined : String(item.viewCount),
+        year: item.year === undefined ? undefined : String(item.year),
+    },
+    Media: (item.Media || []).map((media, index) => ({
+        $: {
+            audioChannels:
+                media.audioChannels === undefined ? undefined : String(media.audioChannels),
+            bitrate: media.bitrate === undefined ? undefined : String(media.bitrate),
+            container: media.container,
+            id: media.id === undefined ? String(index) : String(media.id),
+        },
+        Part: (media.Part || [])
+            .filter((part): part is NonNullable<typeof part> => Boolean(part?.key))
+            .map((part, partIndex) => ({
+                $: {
+                    container: part.container,
+                    duration: part.duration === undefined ? undefined : String(part.duration),
+                    file: part.file,
+                    id: part.id === undefined ? String(partIndex) : String(part.id),
+                    key: part.key || '',
+                    size: part.size === undefined ? undefined : String(part.size),
+                },
+            })),
+    })),
+});
 
 const getPlexFolderId = (key: string) => {
     const query = key.split('?')[1];
@@ -1050,6 +1166,11 @@ export const PlexController: InternalControllerEndpoint = {
         const apiClient = pxApiClient(apiClientProps);
         const genreId = query.genreIds?.length === 1 ? query.genreIds[0] : undefined;
         const singleAlbumId = query.albumIds?.length === 1 ? query.albumIds[0] : undefined;
+        const singleArtistId =
+            (query.artistIds?.length === 1 ? query.artistIds[0] : undefined) ||
+            (query.albumArtistIds?.length === 1 ? query.albumArtistIds[0] : undefined);
+        const shouldUseGlobalFavoriteSongs =
+            query.favorite === true && !genreId && !singleAlbumId && !singleArtistId;
         const shouldFetchAllPages =
             query.favorite === true || query.limit === -1 || genreId !== undefined;
 
@@ -1111,70 +1232,109 @@ export const PlexController: InternalControllerEndpoint = {
             };
         }
 
-        const rawResult = singleAlbumId
-            ? await apiClient.getAlbumTracks(singleAlbumId).then((res) => {
-                  if (res.status !== 200) {
-                      throw new Error('Failed to get song list');
-                  }
+        let rawResult;
 
-                  const container = res.body?.MediaContainer;
-
-                  return {
-                      items: container?.Track || [],
-                      totalRecordCount: getPlexTotalRecordCount(
-                          container,
-                          (container?.Track || []).length,
-                      ),
-                  };
-              })
-            : shouldFetchAllPages
-              ? await fetchAllPlexPages({
-                    errorMessage: 'Failed to get song list',
-                    fetchPage: (start, size) =>
-                        apiClient.getSongList({
-                            artistId:
-                                (query.artistIds?.length === 1 ? query.artistIds[0] : undefined) ||
-                                (query.albumArtistIds?.length === 1
-                                    ? query.albumArtistIds[0]
-                                    : undefined),
-                            favorite: query.favorite,
-                            sectionId,
-                            size,
-                            sort: getPlexSongSort(query.sortBy, query.sortOrder),
-                            start,
-                        }),
-                    getItems: (body) => body?.MediaContainer?.Track || [],
-                    getTotalCount: (body, pageItems) =>
-                        getPlexTotalRecordCount(body?.MediaContainer, pageItems.length),
+        if (shouldUseGlobalFavoriteSongs) {
+            rawResult = await apiClient
+                .getGlobalFavoriteSongList({
+                    size: query.limit || PLEX_FAVORITE_SONG_PAGE_SIZE,
+                    sort: getPlexSongSort(query.sortBy, query.sortOrder),
+                    start: query.startIndex || 0,
                 })
-              : await apiClient
-                    .getSongList({
-                        artistId:
-                            (query.artistIds?.length === 1 ? query.artistIds[0] : undefined) ||
-                            (query.albumArtistIds?.length === 1
-                                ? query.albumArtistIds[0]
-                                : undefined),
+                .then((res) => {
+                    if (res.status !== 200) {
+                        throw new Error('Failed to get song list');
+                    }
+
+                    const favoriteItems = getPlexFavoriteSongItems(res.body);
+
+                    return {
+                        items: favoriteItems.map(toPlexTrackFromFavoriteJson),
+                        totalRecordCount: getPlexFavoriteSongTotalCount(
+                            res.body,
+                            favoriteItems.length,
+                        ),
+                    };
+                })
+                .catch(async () => {
+                    const fallbackResult = await fetchAllPlexPages({
+                        errorMessage: 'Failed to get song list',
+                        fetchPage: (start, size) =>
+                            apiClient.getSongList({
+                                favorite: true,
+                                sectionId,
+                                size,
+                                sort: getPlexSongSort(query.sortBy, query.sortOrder),
+                                start,
+                            }),
+                        getItems: (body) => body?.MediaContainer?.Track || [],
+                        getTotalCount: (body, pageItems) =>
+                            getPlexTotalRecordCount(body?.MediaContainer, pageItems.length),
+                    });
+
+                    return {
+                        items: fallbackResult.items,
+                        totalRecordCount: fallbackResult.items.length,
+                    };
+                });
+        } else if (singleAlbumId) {
+            rawResult = await apiClient.getAlbumTracks(singleAlbumId).then((res) => {
+                if (res.status !== 200) {
+                    throw new Error('Failed to get song list');
+                }
+
+                const container = res.body?.MediaContainer;
+
+                return {
+                    items: container?.Track || [],
+                    totalRecordCount: getPlexTotalRecordCount(
+                        container,
+                        (container?.Track || []).length,
+                    ),
+                };
+            });
+        } else if (shouldFetchAllPages) {
+            rawResult = await fetchAllPlexPages({
+                errorMessage: 'Failed to get song list',
+                fetchPage: (start, size) =>
+                    apiClient.getSongList({
+                        artistId: singleArtistId,
                         favorite: query.favorite,
                         sectionId,
-                        size: query.limit || 50,
+                        size,
                         sort: getPlexSongSort(query.sortBy, query.sortOrder),
-                        start: query.startIndex || 0,
-                    })
-                    .then((res) => {
-                        if (res.status !== 200) {
-                            throw new Error('Failed to get song list');
-                        }
+                        start,
+                    }),
+                getItems: (body) => body?.MediaContainer?.Track || [],
+                getTotalCount: (body, pageItems) =>
+                    getPlexTotalRecordCount(body?.MediaContainer, pageItems.length),
+            });
+        } else {
+            rawResult = await apiClient
+                .getSongList({
+                    artistId: singleArtistId,
+                    favorite: query.favorite,
+                    sectionId,
+                    size: query.limit || 50,
+                    sort: getPlexSongSort(query.sortBy, query.sortOrder),
+                    start: query.startIndex || 0,
+                })
+                .then((res) => {
+                    if (res.status !== 200) {
+                        throw new Error('Failed to get song list');
+                    }
 
-                        const container = res.body?.MediaContainer;
+                    const container = res.body?.MediaContainer;
 
-                        return {
-                            items: container?.Track || [],
-                            totalRecordCount: getPlexTotalRecordCount(
-                                container,
-                                (container?.Track || []).length,
-                            ),
-                        };
-                    });
+                    return {
+                        items: container?.Track || [],
+                        totalRecordCount: getPlexTotalRecordCount(
+                            container,
+                            (container?.Track || []).length,
+                        ),
+                    };
+                });
+        }
 
         let items = rawResult.items.map((item) =>
             pxNormalize.song(item, apiClientProps.server, serverUrl, token),
@@ -1185,13 +1345,17 @@ export const PlexController: InternalControllerEndpoint = {
         }
 
         const totalRecordCount =
-            singleAlbumId || shouldFetchAllPages ? items.length : rawResult.totalRecordCount;
+            singleAlbumId || shouldFetchAllPages
+                ? shouldUseGlobalFavoriteSongs
+                    ? rawResult.totalRecordCount
+                    : items.length
+                : rawResult.totalRecordCount;
 
         if (singleAlbumId && getPlexSongSort(query.sortBy, query.sortOrder) === 'viewCount:desc') {
             items = [...items].sort((a, b) => (b.playCount || 0) - (a.playCount || 0));
         }
 
-        if (singleAlbumId || shouldFetchAllPages) {
+        if ((singleAlbumId || shouldFetchAllPages) && !shouldUseGlobalFavoriteSongs) {
             items = paginatePlexItems(items, query.startIndex || 0, query.limit);
         }
 

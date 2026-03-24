@@ -87,6 +87,52 @@ const axiosClient = axios.create({});
 
 type ApiResponse<T> = Promise<{ body: T; headers?: any; status: number }>;
 
+type PlexFavoriteSongJson = {
+    addedAt?: number | string;
+    duration?: number | string;
+    grandparentRatingKey?: string;
+    grandparentThumb?: string;
+    grandparentTitle?: string;
+    index?: number | string;
+    lastViewedAt?: number | string;
+    Media?: {
+        audioChannels?: number | string;
+        bitrate?: number | string;
+        container?: string;
+        id?: number | string;
+        Part?: {
+            container?: string;
+            duration?: number | string;
+            file?: string;
+            id?: number | string;
+            key?: string;
+            size?: number | string;
+        }[];
+    }[];
+    originallyAvailableAt?: string;
+    parentIndex?: number | string;
+    parentRatingKey?: string;
+    parentThumb?: string;
+    parentTitle?: string;
+    rating?: number | string;
+    ratingKey?: string;
+    thumb?: string;
+    title?: string;
+    titleSort?: string;
+    updatedAt?: number | string;
+    userRating?: number | string;
+    viewCount?: number | string;
+    year?: number | string;
+};
+
+type PlexFavoriteSongListJsonResponse = {
+    MediaContainer?: {
+        Metadata?: PlexFavoriteSongJson[];
+        size?: number | string;
+        totalSize?: number | string;
+    };
+};
+
 axiosClient.interceptors.response.use(
     (response) => response,
     (error) => {
@@ -205,6 +251,62 @@ export const pxApiClient = (args: {
         }
     };
 
+    const requestJson = async <T>(config: {
+        body?: any;
+        method: Method;
+        params?: Record<string, boolean | number | string | undefined>;
+        path: string;
+    }): Promise<{ body: T; headers: any; status: number }> => {
+        try {
+            const queryParams: Record<string, string> = {};
+            if (config.params) {
+                for (const [key, value] of Object.entries(config.params)) {
+                    if (value !== undefined) {
+                        queryParams[key] = String(value);
+                    }
+                }
+            }
+
+            const result = await axiosClient.request({
+                data: config.body,
+                headers: {
+                    ...getPlexHeaders(token),
+                    Accept: 'application/json',
+                },
+                method: config.method,
+                params: queryParams,
+                responseType: 'json',
+                signal,
+                url: `${baseUrl}/${config.path}`,
+            });
+
+            return {
+                body: result.data as T,
+                headers: result.headers,
+                status: result.status,
+            };
+        } catch (e: any | AxiosError | Error) {
+            if (isAxiosError(e)) {
+                if (e.code === 'ERR_NETWORK') {
+                    throw new Error(
+                        i18n.t('error.networkError', {
+                            postProcess: 'sentenceCase',
+                        }) as string,
+                    );
+                }
+
+                const error = e as AxiosError;
+                const response = error.response as AxiosResponse;
+                return {
+                    body: response?.data as T,
+                    headers: response?.headers as any,
+                    status: response?.status,
+                };
+            }
+            throw e;
+        }
+    };
+
     return {
         authenticate: async (params: { password: string; username: string }) => {
             const authResponse = await axios.post('https://plex.tv/users/sign_in.xml', null, {
@@ -310,6 +412,26 @@ export const pxApiClient = (args: {
             const response = await request<PlexGenreListResponse>({
                 method: 'GET',
                 path: `library/sections/${params.sectionId}/genre`,
+            });
+
+            return response;
+        },
+
+        getGlobalFavoriteSongList: async (params: {
+            size?: number;
+            sort?: string;
+            start?: number;
+        }): ApiResponse<PlexFavoriteSongListJsonResponse> => {
+            const response = await requestJson<PlexFavoriteSongListJsonResponse>({
+                method: 'GET',
+                params: {
+                    sort: params.sort || 'titleSort',
+                    type: 10,
+                    userRating: 10,
+                    'X-Plex-Container-Size': params.size || 1000,
+                    'X-Plex-Container-Start': params.start || 0,
+                },
+                path: 'library/all',
             });
 
             return response;
