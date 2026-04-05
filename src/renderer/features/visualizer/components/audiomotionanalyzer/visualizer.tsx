@@ -11,8 +11,10 @@ import {
     useFullScreenPlayerStore,
     useFullScreenPlayerStoreActions,
 } from '/@/renderer/store/full-screen-player.store';
+import { usePlayerStatus } from '/@/renderer/store/player.store';
 import { ActionIcon } from '/@/shared/components/action-icon/action-icon';
 import { Group } from '/@/shared/components/group/group';
+import { PlayerStatus, PlayerType } from '/@/shared/types/types';
 
 const VisualizerInner = () => {
     const { webAudio } = useWebAudio();
@@ -24,6 +26,9 @@ const VisualizerInner = () => {
     const [motion, setMotion] = useState<any>();
     const [libraryLoaded, setLibraryLoaded] = useState(false);
     const AudioMotionAnalyzerRef = useRef<any>(null);
+    const pauseTimerRef = useRef<NodeJS.Timeout | undefined>(undefined);
+    const playerStatus = usePlayerStatus();
+    const isPlaying = playerStatus === PlayerStatus.PLAYING;
 
     useEffect(() => {
         let isMounted = true;
@@ -218,8 +223,19 @@ const VisualizerInner = () => {
     useEffect(() => {
         const { context } = webAudio || {};
         const inputNodes = getVisualizerAudioNodes(webAudio, playbackType);
+        const shouldRunForWebPlayback = playbackType === PlayerType.WEB && isPlaying;
+        const shouldRunForMpvLoopback =
+            playbackType === PlayerType.LOCAL && isPlaying && inputNodes.length > 0;
+
         let audioMotion: any | undefined;
-        if (inputNodes.length > 0 && context && canvasRef.current && !motion && libraryLoaded) {
+        if (
+            inputNodes.length > 0 &&
+            context &&
+            canvasRef.current &&
+            !motion &&
+            libraryLoaded &&
+            (shouldRunForWebPlayback || shouldRunForMpvLoopback)
+        ) {
             const AudioMotionAnalyzer = AudioMotionAnalyzerRef.current;
             if (!AudioMotionAnalyzer) return;
 
@@ -257,7 +273,11 @@ const VisualizerInner = () => {
 
         return () => {
             if (motion) {
-                motion.destroy();
+                try {
+                    motion.destroy();
+                } catch {
+                    // ignore (e.g. already destroyed by idle timer)
+                }
                 setMotion(undefined);
             }
         };
@@ -272,7 +292,42 @@ const VisualizerInner = () => {
         isCustomGradient,
         motion,
         libraryLoaded,
+        isPlaying,
     ]);
+
+    // Kill visualizer after 5 seconds of pause
+    useEffect(() => {
+        if (isPlaying) {
+            if (pauseTimerRef.current) {
+                clearTimeout(pauseTimerRef.current);
+                pauseTimerRef.current = undefined;
+            }
+            return;
+        }
+
+        if (!motion) return;
+
+        pauseTimerRef.current = setTimeout(() => {
+            setMotion((current) => {
+                if (current) {
+                    try {
+                        current.destroy();
+                    } catch {
+                        // ignore
+                    }
+                }
+                return undefined;
+            });
+            pauseTimerRef.current = undefined;
+        }, 5000);
+
+        return () => {
+            if (pauseTimerRef.current) {
+                clearTimeout(pauseTimerRef.current);
+                pauseTimerRef.current = undefined;
+            }
+        };
+    }, [isPlaying, motion]);
 
     // Re-register custom gradients when they change
     useEffect(() => {

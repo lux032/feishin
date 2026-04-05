@@ -422,8 +422,12 @@ export const PlaylistQueryEditor = ({
                                 minRows={8}
                                 onChange={(value) => setJsonText(value)}
                                 placeholder='{ "all": [], "limit": 100, "sort": "+dateAdded" }'
+                                size="lg"
                                 spellCheck={false}
-                                style={{ flex: 1, minHeight: 0 }}
+                                style={{
+                                    flex: 1,
+                                    minHeight: 0,
+                                }}
                                 value={jsonText}
                             />
                         </ScrollArea>

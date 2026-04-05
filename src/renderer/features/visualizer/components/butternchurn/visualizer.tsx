@@ -62,9 +62,9 @@ const VisualizerInner = () => {
     const { setSettings } = useSettingsStoreActions();
     const playerStatus = usePlayerStatus();
     const isPlaying = playerStatus === PlayerStatus.PLAYING;
-    const [webInitGeneration, setWebInitGeneration] = useState(0);
+    const [resumeInitGeneration, setResumeInitGeneration] = useState(0);
     const wasPlayingRef = useRef(false);
-    const isFirstWebMountRef = useRef(true);
+    const isFirstMountRef = useRef(true);
     const prevPlaybackTypeRef = useRef(playbackType);
 
     useEffect(() => {
@@ -99,14 +99,8 @@ const VisualizerInner = () => {
     useEffect(() => {
         const prevType = prevPlaybackTypeRef.current;
 
-        if (playbackType !== PlayerType.WEB) {
-            prevPlaybackTypeRef.current = playbackType;
-            wasPlayingRef.current = isPlaying;
-            return;
-        }
-
-        if (isFirstWebMountRef.current) {
-            isFirstWebMountRef.current = false;
+        if (isFirstMountRef.current) {
+            isFirstMountRef.current = false;
             wasPlayingRef.current = isPlaying;
             prevPlaybackTypeRef.current = playbackType;
             return;
@@ -115,8 +109,8 @@ const VisualizerInner = () => {
         const wasPlaying = wasPlayingRef.current;
         wasPlayingRef.current = isPlaying;
 
-        if (isPlaying && (!wasPlaying || prevType !== PlayerType.WEB)) {
-            setWebInitGeneration((g) => g + 1);
+        if (isPlaying && (!wasPlaying || prevType !== playbackType)) {
+            setResumeInitGeneration((g) => g + 1);
         }
 
         prevPlaybackTypeRef.current = playbackType;
@@ -157,7 +151,8 @@ const VisualizerInner = () => {
         const container = containerRef.current;
 
         const shouldRunForWebPlayback = playbackType === PlayerType.WEB && isPlaying;
-        const shouldRunForMpvLoopback = playbackType === PlayerType.LOCAL && inputNodes.length > 0;
+        const shouldRunForMpvLoopback =
+            playbackType === PlayerType.LOCAL && isPlaying && inputNodes.length > 0;
 
         const needsInitialization =
             context &&
@@ -229,18 +224,10 @@ const VisualizerInner = () => {
             cleanupVisualizer();
         };
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [webAudio, playbackType, librariesLoaded, webInitGeneration]);
+    }, [webAudio, playbackType, librariesLoaded, resumeInitGeneration]);
 
     // Kill visualizer after 5 seconds of pause
     useEffect(() => {
-        if (playbackType === PlayerType.LOCAL) {
-            if (pauseTimerRef.current) {
-                clearTimeout(pauseTimerRef.current);
-                pauseTimerRef.current = undefined;
-            }
-            return;
-        }
-
         if (isPlaying) {
             // Clear pause timer if player resumes
             if (pauseTimerRef.current) {
