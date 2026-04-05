@@ -2,6 +2,8 @@
 
 # Feishin
 
+> **This is a fork of [Feishin](https://github.com/jeffvli/feishin) with added Plex Media Server support.**
+
   <p align="center">
     <a href="https://github.com/jeffvli/feishin/blob/main/LICENSE">
       <img src="https://img.shields.io/github/license/jeffvli/feishin?style=flat-square&color=brightgreen"
