@@ -447,10 +447,18 @@ ipcMain.on('player-mute', async (_event, mute: boolean) => {
 
 ipcMain.handle('player-get-time', async (): Promise<number | undefined> => {
     try {
-        return getMpvInstance()?.getTimePosition();
+        const mpv = getMpvInstance();
+        if (!mpv) {
+            return undefined;
+        }
+        return await mpv.getTimePosition();
     } catch (err: any | NodeMpvError) {
+        // Err 3: IPC command invalid — e.g. time-pos unavailable when idle / between tracks
+        if (err?.errcode === 3) {
+            return undefined;
+        }
         mpvLog({ action: `Failed to get current time` }, err);
-        return 0;
+        return undefined;
     }
 });
 

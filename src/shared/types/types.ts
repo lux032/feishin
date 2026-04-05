@@ -291,4 +291,5 @@ export interface UniqueId {
 export type WebAudio = {
     context: AudioContext;
     gains: GainNode[];
+    visualizerInputs?: AudioNode[];
 };

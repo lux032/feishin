@@ -1,13 +1,13 @@
 import clsx from 'clsx';
 import isElectron from 'is-electron';
-import { lazy } from 'react';
 
 import styles from './default-layout.module.css';
 
 import { ContextMenuController } from '/@/renderer/features/context-menu/context-menu-controller';
 import { MainContent } from '/@/renderer/layouts/default-layout/main-content';
 import { PlayerBar } from '/@/renderer/layouts/default-layout/player-bar';
-import { useSettingsStore, useWindowSettings } from '/@/renderer/store/settings.store';
+import { WindowBar } from '/@/renderer/layouts/window-bar';
+import { useSettingsStore, useWindowBarStyle } from '/@/renderer/store/settings.store';
 import { Platform, PlayerType } from '/@/shared/types/types';
 
 if (!isElectron()) {
@@ -18,18 +18,12 @@ if (!isElectron()) {
     });
 }
 
-const WindowBar = lazy(() =>
-    import('/@/renderer/layouts/window-bar').then((module) => ({
-        default: module.WindowBar,
-    })),
-);
-
 interface DefaultLayoutProps {
     shell?: boolean;
 }
 
 export const DefaultLayout = ({ shell }: DefaultLayoutProps) => {
-    const { windowBarStyle } = useWindowSettings();
+    const windowBarStyle = useWindowBarStyle();
 
     return (
         <>

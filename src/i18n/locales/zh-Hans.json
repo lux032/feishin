@@ -19,7 +19,10 @@
         "goToPage": "前往页面",
         "openIn": {
             "lastfm": "在 Last.fm 中打开",
-            "musicbrainz": "在 MusicBrainz 中打开"
+            "musicbrainz": "在 MusicBrainz 中打开",
+            "listenbrainz": "在 ListenBrainz 中打开",
+            "qobuz": "在 Qobuz 中打开",
+            "spotify": "在 Spotify 中打开"
         },
         "moveToNext": "移至下一首",
         "downloadStarted": "开始下载 {{count}} 个项目",
@@ -158,7 +161,9 @@
         "mood": "氛围",
         "rename": "重命名",
         "filter_multiple": "多项",
-        "newVersionAvailable": "新版本现已可用"
+        "newVersionAvailable": "新版本现已可用",
+        "numberOfResults": "{{numberOfResults}} 结果",
+        "grouping": "分组"
     },
     "entity": {
         "albumArtist_other": "专辑艺术家",
@@ -449,7 +454,7 @@
         "discordServeImage": "从服务器提供 {{discord}} 图像",
         "discordServeImage_description": "从服务器本身分享 {{discord}} rich presence 的封面艺术，仅适用于 Jellyfin 和 Navidrome。 {{discord}} 使用机器人来获取图像，因此您的服务器必须可通过公共互联网访问",
         "musicbrainz": "显示 MusicBrainz 链接",
-        "musicbrainz_description": "在存在 MusicBrainz ID 的艺术家/专辑页面上显示 MusicBrainz 的链接",
+        "musicbrainz_description": "在艺术家/专辑页面上显示 MusicBrainz 链接（如果存在 MusicBrainz ID）",
         "lastfm": "显示 last.fm 链接",
         "lastfm_description": "在艺术家/专辑页面上显示 Last.fm 的链接",
         "preferLocalLyrics_description": "优先选择本地歌词（如有），而不是远程歌词",
@@ -594,7 +599,21 @@
         "primaryShade": "主色调",
         "primaryShade_description": "覆盖按钮、链接和其他主色元素使用的主色调（0-9）",
         "playerItemConfiguration_description": "配置全屏播放器上显示的项目及其显示顺序",
-        "playerItemConfiguration": "播放器项目配置"
+        "playerItemConfiguration": "播放器项目配置",
+        "listenbrainz_description": "在艺术家/专辑页面上显示 ListenBrainz 链接",
+        "listenbrainz": "显示 ListenBrainz 链接",
+        "qobuz_description": "在艺术家/专辑页面上显示 Qobuz 链接",
+        "qobuz": "显示 Qobuz 链接",
+        "spotify_description": "在艺术家/专辑页面上显示 Spotify 链接",
+        "spotify": "显示 Spotify 链接",
+        "nativeSpotify_description": "在 Spotify 应用中打开，而不是在浏览器中打开",
+        "nativeSpotify": "使用 Spotify 应用",
+        "sidePlayQueueLayout": "侧边播放队列布局",
+        "sidePlayQueueLayout_description": "设置附加侧边播放队列的布局",
+        "sidePlayQueueLayout_optionHorizontal": "水平",
+        "sidePlayQueueLayout_optionVertical": "垂直",
+        "waveformLoadingDelay": "波形加载延迟",
+        "waveformLoadingDelay_description": "加载波形前的延迟时间（秒）。如果在使用网页播放器时遇到卡顿现象，请增加此值。"
     },
     "error": {
         "remotePortWarning": "重启服务器使新端口生效",
@@ -951,8 +970,7 @@
         "editPlaylist": {
             "title": "编辑$t(entity.playlist, {\"count\": 1})",
             "publicJellyfinNote": "Jellyfin 出于某种原因不会显示播放列表是否公开。如果您希望保持公开，请选择以下输入",
-            "success": "$t(entity.playlist, {\"count\": 1})更新成功",
-            "editNote": "不建议对大型播放列表进行手动编辑，你确定接受新播放列表覆盖已有播放列表可能导致的数据丢失风险吗？"
+            "success": "$t(entity.playlist, {\"count\": 1})更新成功"
         },
         "lyricSearch": {
             "title": "搜索歌词",

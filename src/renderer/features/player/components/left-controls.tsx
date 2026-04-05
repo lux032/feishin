@@ -8,10 +8,16 @@ import { shallow } from 'zustand/shallow';
 import styles from './left-controls.module.css';
 
 import { ItemImage } from '/@/renderer/components/item-image/item-image';
-import { JoinedArtists } from '/@/renderer/features/albums/components/joined-artists';
+import {
+    JOINED_ARTISTS_MUTED_PROPS,
+    JoinedArtists,
+} from '/@/renderer/features/albums/components/joined-artists';
 import { ContextMenuController } from '/@/renderer/features/context-menu/context-menu-controller';
 import { RadioMetadataDisplay } from '/@/renderer/features/player/components/radio-metadata-display';
-import { useIsRadioActive } from '/@/renderer/features/radio/hooks/use-radio-player';
+import {
+    useIsRadioActive,
+    useRadioPlayer,
+} from '/@/renderer/features/radio/hooks/use-radio-player';
 import { AppRoute } from '/@/renderer/router/routes';
 import {
     useAppStore,
@@ -34,7 +40,10 @@ import { LibraryItem } from '/@/shared/types/domain-types';
 export const LeftControls = () => {
     const { t } = useTranslation();
     const { setSideBar } = useAppStoreActions();
-    const { expanded: isFullScreenPlayerExpanded } = useFullScreenPlayerStore();
+    const {
+        expanded: isFullScreenPlayerExpanded,
+        visualizerExpanded: isFullScreenVisualizerExpanded,
+    } = useFullScreenPlayerStore();
     const setFullScreenPlayerStore = useSetFullScreenPlayerStore();
 
     const { collapsed, image } = useAppStore(
@@ -47,9 +56,11 @@ export const LeftControls = () => {
 
     const currentSong = usePlayerSong();
     const isRadioActive = useIsRadioActive();
+    const { currentStationArt } = useRadioPlayer();
     const { bindings } = useHotkeySettings();
 
     const isRadioMode = isRadioActive;
+    const hasRadioStationImage = Boolean(currentStationArt?.imageId || currentStationArt?.imageUrl);
     const hideImage = image && !collapsed;
     const isSongDefined = Boolean(currentSong?.id) && !isRadioMode;
     const title = currentSong?.name;
@@ -62,7 +73,14 @@ export const LeftControls = () => {
         }
 
         e?.stopPropagation();
-        setFullScreenPlayerStore({ expanded: !isFullScreenPlayerExpanded });
+
+        const shouldClose = isFullScreenPlayerExpanded || isFullScreenVisualizerExpanded;
+
+        if (shouldClose) {
+            setFullScreenPlayerStore({ expanded: false, visualizerExpanded: false });
+        } else {
+            setFullScreenPlayerStore({ expanded: true });
+        }
     };
 
     const handleToggleSidebarImage = (e?: MouseEvent<HTMLButtonElement>) => {
@@ -118,7 +136,22 @@ export const LeftControls = () => {
                                     })}
                                     openDelay={0}
                                 >
-                                    {isRadioMode ? (
+                                    {isRadioMode && hasRadioStationImage ? (
+                                        <ItemImage
+                                            className={clsx(
+                                                styles.playerbarImage,
+                                                PlaybackSelectors.playerCoverArt,
+                                            )}
+                                            enableDebounce={false}
+                                            enableViewport={false}
+                                            fetchPriority="high"
+                                            id={currentStationArt?.imageId ?? undefined}
+                                            itemType={LibraryItem.RADIO_STATION}
+                                            serverId={currentStationArt?.serverId}
+                                            src={currentStationArt?.imageUrl ?? ''}
+                                            type="table"
+                                        />
+                                    ) : isRadioMode ? (
                                         <Center
                                             className={clsx(
                                                 styles.playerbarImage,
@@ -236,6 +269,14 @@ export const LeftControls = () => {
                                 <JoinedArtists
                                     artistName={currentSong?.artistName || ''}
                                     artists={artists || []}
+                                    linkProps={{
+                                        ...JOINED_ARTISTS_MUTED_PROPS.linkProps,
+                                        size: 'md',
+                                    }}
+                                    rootTextProps={{
+                                        ...JOINED_ARTISTS_MUTED_PROPS.rootTextProps,
+                                        size: 'md',
+                                    }}
                                 />
                             </div>
                             <div

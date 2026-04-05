@@ -1,3 +1,4 @@
+import axios from 'axios';
 import { set } from 'idb-keyval';
 import orderBy from 'lodash/orderBy';
 
@@ -5,13 +6,17 @@ import { ndApiClient } from '/@/renderer/api/navidrome/navidrome-api';
 import { ssApiClient } from '/@/renderer/api/subsonic/subsonic-api';
 import { SubsonicController } from '/@/renderer/api/subsonic/subsonic-controller';
 import { ndNormalize } from '/@/shared/api/navidrome/navidrome-normalize';
-import { NDSongListSort } from '/@/shared/api/navidrome/navidrome-types';
+import { NDRadioListSort, NDSongListSort } from '/@/shared/api/navidrome/navidrome-types';
 import { ssNormalize } from '/@/shared/api/subsonic/subsonic-normalize';
 import { getFeatures, hasFeature, hasFeatureWithVersion, VersionInfo } from '/@/shared/api/utils';
 import {
     albumArtistListSortMap,
     albumListSortMap,
     AuthenticationResponse,
+    DeleteInternetRadioStationImageArgs,
+    DeleteInternetRadioStationImageResponse,
+    DeletePlaylistImageArgs,
+    DeletePlaylistImageResponse,
     genreListSortMap,
     InternalControllerEndpoint,
     playlistListSortMap,
@@ -23,6 +28,10 @@ import {
     SortOrder,
     sortOrderMap,
     tagListSortMap,
+    UploadInternetRadioStationImageArgs,
+    UploadInternetRadioStationImageResponse,
+    UploadPlaylistImageArgs,
+    UploadPlaylistImageResponse,
     userListSortMap,
 } from '/@/shared/types/domain-types';
 import { ServerFeature } from '/@/shared/types/features-types';
@@ -30,6 +39,13 @@ import { ServerFeature } from '/@/shared/types/features-types';
 const VERSION_INFO: VersionInfo = [
     // Why 2? Subsonic controller will return 1 for its own implementation
     // Use 2 to denote that Navidrome's own API has a different endpoint
+    [
+        '0.61.0',
+        {
+            [ServerFeature.INTERNET_RADIO_IMAGE_UPLOAD]: [1],
+            [ServerFeature.PLAYLIST_IMAGE_UPLOAD]: [1],
+        },
+    ],
     ['0.60.4', { [ServerFeature.TRACK_YES_NO_RATING_FILTER]: [1] }],
     ['0.57.0', { [ServerFeature.SERVER_PLAY_QUEUE]: [2] }],
     ['0.56.0', { [ServerFeature.TRACK_ALBUM_ARTIST_SEARCH]: [1] }],
@@ -171,7 +187,38 @@ export const NavidromeController: InternalControllerEndpoint = {
         };
     },
     deleteFavorite: SubsonicController.deleteFavorite,
-    deleteInternetRadioStation: SubsonicController.deleteInternetRadioStation,
+    deleteInternetRadioStation: async (args) => {
+        const { apiClientProps, query } = args;
+
+        const res = await ndApiClient(apiClientProps).deleteInternetRadioStation({
+            params: {
+                id: query.id,
+            },
+        });
+
+        if (res.status !== 200) {
+            throw new Error('Failed to delete internet radio station');
+        }
+
+        return null;
+    },
+    deleteInternetRadioStationImage: async (
+        args: DeleteInternetRadioStationImageArgs,
+    ): Promise<DeleteInternetRadioStationImageResponse> => {
+        const { apiClientProps, query } = args;
+
+        const res = await ndApiClient(apiClientProps as any).deleteInternetRadioStationImage({
+            params: {
+                id: query.id,
+            },
+        });
+
+        if (res.status !== 200) {
+            throw new Error('Failed to delete internet radio station image');
+        }
+
+        return res.body.data.status === 'ok';
+    },
     deletePlaylist: async (args) => {
         const { apiClientProps, query } = args;
 
@@ -186,6 +233,23 @@ export const NavidromeController: InternalControllerEndpoint = {
         }
 
         return null;
+    },
+    deletePlaylistImage: async (
+        args: DeletePlaylistImageArgs,
+    ): Promise<DeletePlaylistImageResponse> => {
+        const { apiClientProps, query } = args;
+
+        const res = await ndApiClient(apiClientProps as any).deletePlaylistImage({
+            params: {
+                id: query.id,
+            },
+        });
+
+        if (res.status !== 200) {
+            throw new Error('Failed to delete playlist image');
+        }
+
+        return res.body.data.status === 'ok';
     },
     getAlbumArtistDetail: async (args) => {
         const { apiClientProps, query } = args;
@@ -233,8 +297,8 @@ export const NavidromeController: InternalControllerEndpoint = {
             similarArtists:
                 artistInfo?.similarArtist?.map((artist) => ({
                     id: artist.id,
-                    imageId: null,
-                    imageUrl: artist?.artistImageUrl?.replace(/\?size=\d+/, '') ?? null,
+                    imageId: artist.id,
+                    imageUrl: null,
                     name: artist.name,
                     userFavorite: Boolean(artist.starred) || false,
                     userRating: artist.userRating ?? null,
@@ -547,7 +611,24 @@ export const NavidromeController: InternalControllerEndpoint = {
     },
     getImageRequest: SubsonicController.getImageRequest,
     getImageUrl: SubsonicController.getImageUrl,
-    getInternetRadioStations: SubsonicController.getInternetRadioStations,
+    getInternetRadioStations: async (args) => {
+        const { apiClientProps } = args;
+
+        const res = await ndApiClient(apiClientProps).getRadioList({
+            query: {
+                _end: -1,
+                _order: 'ASC',
+                _sort: NDRadioListSort.NAME,
+                _start: 0,
+            },
+        });
+
+        if (res.status !== 200) {
+            throw new Error('Failed to get internet radio stations');
+        }
+
+        return res.body.data.map((station) => ndNormalize.internetRadioStation(station));
+    },
     getLyrics: SubsonicController.getLyrics,
     getMusicFolderList: SubsonicController.getMusicFolderList,
     getPlaylistDetail: async (args) => {
@@ -604,6 +685,7 @@ export const NavidromeController: InternalControllerEndpoint = {
             query: {
                 _end: -1,
                 _order: 'ASC',
+                _sort: NDSongListSort.ID,
                 _start: 0,
                 ...excludeMissing(apiClientProps.server),
             },
@@ -745,7 +827,6 @@ export const NavidromeController: InternalControllerEndpoint = {
             args.context?.pathReplaceWith,
         );
     },
-
     getSongList: async (args) => {
         const { apiClientProps, query } = args;
 
@@ -819,6 +900,7 @@ export const NavidromeController: InternalControllerEndpoint = {
             totalRecordCount: albums.totalRecordCount,
         };
     },
+
     getSongListCount: async ({ apiClientProps, query }) =>
         NavidromeController.getSongList({
             apiClientProps,
@@ -1011,6 +1093,7 @@ export const NavidromeController: InternalControllerEndpoint = {
             query: {
                 _end: -1,
                 _order: 'ASC',
+                _sort: NDSongListSort.ID,
                 _start: 0,
                 ...excludeMissing(apiClientProps.server),
             },
@@ -1121,6 +1204,7 @@ export const NavidromeController: InternalControllerEndpoint = {
     },
     scrobble: SubsonicController.scrobble,
     search: SubsonicController.search,
+    setPlaylistSongs: SubsonicController.setPlaylistSongs,
     setRating: SubsonicController.setRating,
     shareItem: async (args) => {
         const { apiClientProps, body } = args;
@@ -1143,7 +1227,26 @@ export const NavidromeController: InternalControllerEndpoint = {
             id: res.body.data.id,
         };
     },
-    updateInternetRadioStation: SubsonicController.updateInternetRadioStation,
+    updateInternetRadioStation: async (args) => {
+        const { apiClientProps, body, query } = args;
+
+        const res = await ndApiClient(apiClientProps).updateInternetRadioStation({
+            body: {
+                homePageUrl: body.homepageUrl ?? '',
+                name: body.name,
+                streamUrl: body.streamUrl,
+            },
+            params: {
+                id: query.id,
+            },
+        });
+
+        if (res.status !== 200) {
+            throw new Error('Failed to update internet radio station');
+        }
+
+        return null;
+    },
     updatePlaylist: async (args) => {
         const { apiClientProps, body, query } = args;
 
@@ -1167,5 +1270,77 @@ export const NavidromeController: InternalControllerEndpoint = {
         }
 
         return null;
+    },
+    uploadInternetRadioStationImage: async (
+        args: UploadInternetRadioStationImageArgs,
+    ): Promise<UploadInternetRadioStationImageResponse> => {
+        const { apiClientProps, body, query } = args;
+
+        const server = apiClientProps.server;
+        const serverUrl = server?.url?.replace(/\/$/, '');
+
+        if (!serverUrl) {
+            throw new Error('Server is required');
+        }
+
+        const form = new FormData();
+        const bytes = body.image as Uint8Array<ArrayBuffer>;
+        const fileLike =
+            typeof File !== 'undefined'
+                ? new File([bytes], 'image', { type: 'application/octet-stream' })
+                : new Blob([bytes], { type: 'application/octet-stream' });
+        form.append('image', fileLike as any);
+
+        const res = await axios.post(`${serverUrl}/api/radio/${query.id}/image`, form, {
+            headers: {
+                'Content-Type': 'multipart/form-data',
+                ...(server?.ndCredential && {
+                    'x-nd-authorization': `Bearer ${server.ndCredential}`,
+                }),
+            },
+            signal: apiClientProps.signal,
+        });
+
+        if (res.status !== 200) {
+            throw new Error('Failed to upload internet radio station image');
+        }
+
+        return res.data?.status === 'ok';
+    },
+    uploadPlaylistImage: async (
+        args: UploadPlaylistImageArgs,
+    ): Promise<UploadPlaylistImageResponse> => {
+        const { apiClientProps, body, query } = args;
+
+        const server = apiClientProps.server;
+        const serverUrl = server?.url?.replace(/\/$/, '');
+
+        if (!serverUrl) {
+            throw new Error('Server is required');
+        }
+
+        const form = new FormData();
+        const bytes = body.image as Uint8Array<ArrayBuffer>;
+        const fileLike =
+            typeof File !== 'undefined'
+                ? new File([bytes], 'image', { type: 'application/octet-stream' })
+                : new Blob([bytes], { type: 'application/octet-stream' });
+        form.append('image', fileLike as any);
+
+        const res = await axios.post(`${serverUrl}/api/playlist/${query.id}/image`, form, {
+            headers: {
+                'Content-Type': 'multipart/form-data',
+                ...(server?.ndCredential && {
+                    'x-nd-authorization': `Bearer ${server.ndCredential}`,
+                }),
+            },
+            signal: apiClientProps.signal,
+        });
+
+        if (res.status !== 200) {
+            throw new Error('Failed to upload playlist image');
+        }
+
+        return res.data?.status === 'ok';
     },
 };

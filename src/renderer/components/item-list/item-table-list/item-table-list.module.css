@@ -178,6 +178,10 @@
     height: 100%;
 }
 
+.item-table-container :global(.os-scrollbar) {
+    z-index: 2;
+}
+
 .item-table-pinned-header-shadow {
     position: absolute;
     top: 100%;

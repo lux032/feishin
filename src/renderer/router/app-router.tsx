@@ -173,11 +173,11 @@ const ShareItemContextModal = (props: any) => (
 );
 
 const LazyVisualizerSettingsContextModal = lazy(() =>
-    import(
-        '/@/renderer/features/visualizer/components/audiomotionanalyzer/visualizer-settings-modal'
-    ).then((module) => ({
-        default: module.VisualizerSettingsContextModal,
-    })),
+    import('/@/renderer/features/visualizer/components/audiomotionanalyzer/visualizer-settings-modal').then(
+        (module) => ({
+            default: module.VisualizerSettingsContextModal,
+        }),
+    ),
 );
 
 const VisualizerSettingsContextModal = (props: any) => (
@@ -186,22 +186,22 @@ const VisualizerSettingsContextModal = (props: any) => (
     </Suspense>
 );
 
+const appRouterModals = {
+    addToPlaylist: AddToPlaylistContextModal,
+    base: BaseContextModal,
+    lyricsSettings: LyricsSettingsContextModal,
+    saveAndReplace: SaveAndReplaceContextModal,
+    settings: SettingsContextModal,
+    shareItem: ShareItemContextModal,
+    shuffleAll: ShuffleAllContextModal,
+    updatePlaylist: UpdatePlaylistContextModal,
+    visualizerSettings: VisualizerSettingsContextModal,
+};
+
 export const AppRouter = () => {
     const router = (
-        <HashRouter>
-            <ModalsProvider
-                modals={{
-                    addToPlaylist: AddToPlaylistContextModal,
-                    base: BaseContextModal,
-                    lyricsSettings: LyricsSettingsContextModal,
-                    saveAndReplace: SaveAndReplaceContextModal,
-                    settings: SettingsContextModal,
-                    shareItem: ShareItemContextModal,
-                    shuffleAll: ShuffleAllContextModal,
-                    updatePlaylist: UpdatePlaylistContextModal,
-                    visualizerSettings: VisualizerSettingsContextModal,
-                }}
-            >
+        <HashRouter unstable_useTransitions={false}>
+            <ModalsProvider modals={appRouterModals}>
                 <RouterErrorBoundary>
                     <Routes>
                         <Route element={<AuthenticationOutlet />}>
@@ -341,5 +341,5 @@ export const AppRouter = () => {
         </HashRouter>
     );
 
-    return <Suspense fallback={<></>}>{router}</Suspense>;
+    return router;
 };

@@ -70,7 +70,10 @@
         "removeFromFavorites": "retirer des $t(entity.favorite, {\"count\": 2})",
         "openIn": {
             "lastfm": "Ouvrir dans Last.fm",
-            "musicbrainz": "Ouvrir dans MusicBrainz"
+            "musicbrainz": "Ouvrir dans MusicBrainz",
+            "listenbrainz": "Ouvrir dans ListenBrainz",
+            "qobuz": "Ouvrir dans Qobuz",
+            "spotify": "Ouvrir dans Spotify"
         },
         "moveToNext": "passer au suivant",
         "downloadStarted": "téléchargement de {{count}} éléments en cours",
@@ -180,6 +183,7 @@
         "albumPeak": "crête de l'album",
         "close": "fermer",
         "mbid": "Identifiant MusicBrainz",
+        "grouping": "regroupement",
         "preview": "aperçu",
         "share": "partager",
         "reload": "recharger",
@@ -217,7 +221,8 @@
         "filter_single": "unique",
         "filter_multiple": "multiple",
         "rename": "renommer",
-        "newVersionAvailable": "une nouvelle version est disponible"
+        "newVersionAvailable": "une nouvelle version est disponible",
+        "numberOfResults": "{{numberOfResults}} résultats"
     },
     "error": {
         "remotePortWarning": "redémarrer le serveur pour appliquer le nouveau port",
@@ -238,7 +243,7 @@
         "mpvRequired": "MPV requis",
         "audioDeviceFetchError": "une erreur s’est produite lors de la tentative d’obtenir les périphériques audio",
         "invalidServer": "serveur invalide",
-        "loginRateError": "trop de tentative de connexion, merci de réessayer dans quelques secondes",
+        "loginRateError": "trop de tentatives de connexion, merci de réessayer dans quelques secondes",
         "openError": "impossible d'ouvrir le fichier",
         "networkError": "une erreur de réseau est survenue",
         "badAlbum": "vous voyez cette page parce que ce titre ne fait pas parti d'un album. vous rencontrez probablement cette erreur si vous avez un titre à la racine de votre dossier musique. Jellyfin gère les chansons uniquement si elles sont dans un sous-dossier, qui est lui-même dans un dossier \"Musique(s)\"",
@@ -874,7 +879,21 @@
         "hotkey_listPlayNext": "lire ensuite",
         "hotkey_listPlayNow": "lire maintenant",
         "playerItemConfiguration_description": "configurer les éléments affichés et leur ordre dans le lecteur plein écran",
-        "playerItemConfiguration": "configuration des éléments du lecteur"
+        "playerItemConfiguration": "configuration des éléments du lecteur",
+        "listenbrainz_description": "afficher les liens vers ListenBrainz sur les pages d'artiste/album",
+        "listenbrainz": "afficher les liens ListenBrainz",
+        "qobuz_description": "afficher les liens vers Qobuz sur les pages d'artiste/album",
+        "qobuz": "afficher les liens Qobuz",
+        "spotify_description": "afficher les liens vers Spotify sur les pages d'artiste/album",
+        "spotify": "afficher les liens Spotify",
+        "nativeSpotify_description": "ouvrir dans l'application Spotify plutôt que le navigateur",
+        "nativeSpotify": "utiliser l'application Spotify",
+        "sidePlayQueueLayout": "disposition de la file d'attente",
+        "sidePlayQueueLayout_description": "définit la disposition de la file d'attente attaché",
+        "sidePlayQueueLayout_optionHorizontal": "horizontal",
+        "sidePlayQueueLayout_optionVertical": "vertical",
+        "waveformLoadingDelay": "délai de chargement de la forme d'onde",
+        "waveformLoadingDelay_description": "délai en secondes avant le chargement de l'onde. augmentez cette valeur si vous rencontrez des saccades lors de l'utilisation du lecteur web."
     },
     "form": {
         "deletePlaylist": {
@@ -932,8 +951,7 @@
         "editPlaylist": {
             "title": "modifier $t(entity.playlist, {\"count\": 1})",
             "publicJellyfinNote": "Jellyfin n'indique pas si une liste de lecture est publique ou non. Si vous souhaitez que cette liste de lecture reste publique, veuillez sélectionner l'entrée suivante",
-            "success": "$t(entity.playlist, {\"count\": 1}) mis à jour avec succès",
-            "editNote": "les modifications manuelles ne sont pas recommandées pour les listes de lecture volumineuses. êtes-vous sûre d'accepter le risque d'une perte de données en écrasant la liste de lecture existante ?"
+            "success": "$t(entity.playlist, {\"count\": 1}) mis à jour avec succès"
         },
         "lyricSearch": {
             "title": "recherche de paroles",
@@ -1074,7 +1092,7 @@
                 "pagination_itemsPerPage": "entrées par page",
                 "pagination_infinite": "infini",
                 "pagination_paginate": "paginé",
-                "alternateRowColors": "alterner les couleurs des lignes",
+                "alternateRowColors": "alterner la couleur des lignes",
                 "horizontalBorders": "bordures de ligne",
                 "rowHoverHighlight": "surligner les lignes au survol",
                 "verticalBorders": "bordure de colonne",
@@ -1216,12 +1234,12 @@
     },
     "visualizer": {
         "visualizerType": "type de visualisateur",
-        "cyclePresets": "cycle les préréglages",
-        "cycleTime": "temps de cycle (secondes)",
+        "cyclePresets": "cycler les préréglages",
+        "cycleTime": "durée d'un cycle (secondes)",
         "includeAllPresets": "inclure tous les préréglages",
         "ignoredPresets": "préréglages ignorés",
-        "selectedPresets": "préréglages sélectionné",
-        "randomizeNextPreset": "randomiser le préréglage suivant",
+        "selectedPresets": "préréglages sélectionnés",
+        "randomizeNextPreset": "préréglage suivant aléatoire",
         "blendTime": "temps de mélange",
         "presets": "préréglages",
         "selectPreset": "sélectionner un préréglage",
@@ -1231,7 +1249,7 @@
         "copyConfiguration": "copier la configuration",
         "pasteConfiguration": "coller la configuration",
         "pasteConfigurationPlaceholder": "coller ici la configuration JSON...",
-        "pasteFromClipboard": "coller depuis le presse-papier",
+        "pasteFromClipboard": "coller depuis le presse-papiers",
         "applyConfiguration": "appliquer la configuration",
         "configCopied": "configuration copiée dans le presse-papiers",
         "configCopyFailed": "échec de la copie de la configuration",
@@ -1256,7 +1274,7 @@
         "gradientNamePlaceholder": "nom du dégradé",
         "vertical": "verticale",
         "horizontal": "horizontale",
-        "colorStops": "couleur d'arrêts",
+        "colorStops": "Points de Couleur",
         "addColor": "ajouter un couleur",
         "position": "position",
         "level": "niveau",

@@ -1,8 +1,8 @@
 import { closeAllModals, openModal } from '@mantine/modals';
-import { useQuery } from '@tanstack/react-query';
+import { useSuspenseQuery } from '@tanstack/react-query';
 import { Suspense, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { generatePath, useLocation, useNavigate, useParams } from 'react-router';
+import { generatePath, useNavigate, useParams } from 'react-router';
 
 import { ListContext, useListContext } from '/@/renderer/context/list-context';
 import { playlistsQueries } from '/@/renderer/features/playlists/api/playlists-api';
@@ -72,20 +72,23 @@ const PlaylistSongListFiltersSidebar = () => {
 const PlaylistDetailSongListRoute = () => {
     const { t } = useTranslation();
     const navigate = useNavigate();
-    const location = useLocation();
     const { playlistId } = useParams() as { playlistId: string };
     const server = useCurrentServer();
 
-    const detailQuery = useQuery({
+    const detailQuery = useSuspenseQuery({
         ...playlistsQueries.detail({ query: { id: playlistId }, serverId: server?.id }),
-        placeholderData: location.state?.item,
     });
     const deletePlaylistMutation = useDeletePlaylist({});
     const updatePlaylistMutation = useUpdatePlaylist({});
 
     const handleSave = (
         filter: Record<string, any>,
-        extraFilters: { limit?: number; sortBy?: string[]; sortOrder?: string },
+        extraFilters: {
+            limit?: number;
+            limitPercent?: number;
+            sortBy?: string[];
+            sortOrder?: string;
+        },
     ) => {
         if (!detailQuery?.data) return;
 
@@ -96,7 +99,8 @@ const PlaylistDetailSongListRoute = () => {
 
         const rules = {
             ...filter,
-            limit: extraFilters.limit || undefined,
+            limit: extraFilters.limit ?? undefined,
+            limitPercent: extraFilters.limitPercent ?? undefined,
             sort: sortValue,
         };
 
@@ -123,7 +127,12 @@ const PlaylistDetailSongListRoute = () => {
 
     const handleSaveAs = (
         filter: Record<string, any>,
-        extraFilters: { limit?: number; sortBy?: string[]; sortOrder?: string },
+        extraFilters: {
+            limit?: number;
+            limitPercent?: number;
+            sortBy?: string[];
+            sortOrder?: string;
+        },
     ) => {
         if (!detailQuery?.data) return;
 
@@ -134,7 +143,8 @@ const PlaylistDetailSongListRoute = () => {
 
         const rules = {
             ...filter,
-            limit: extraFilters.limit || undefined,
+            limit: extraFilters.limit ?? undefined,
+            limitPercent: extraFilters.limitPercent ?? undefined,
             sort: sortValue,
         };
 
@@ -200,9 +210,7 @@ const PlaylistDetailSongListRoute = () => {
     };
 
     const isSmartPlaylist = Boolean(
-        !detailQuery?.isLoading &&
-            detailQuery?.data?.rules &&
-            server?.type === ServerType.NAVIDROME,
+        detailQuery?.data?.rules && server?.type === ServerType.NAVIDROME,
     );
 
     const [showQueryBuilder, setShowQueryBuilder] = useState(false);
