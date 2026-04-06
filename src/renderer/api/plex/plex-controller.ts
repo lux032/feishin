@@ -621,16 +621,24 @@ export const PlexController: InternalControllerEndpoint = {
         const token = getPlexToken(apiClientProps.server);
 
         const apiClient = pxApiClient(apiClientProps);
-        const albumMetadataRes = await apiClient.getMetadata<PlexAlbumMetadataResponse>(query.id);
-        const albumMetadata = albumMetadataRes.body?.MediaContainer?.Directory?.[0];
 
-        const albumRes = await apiClient.getAlbumTracks(query.id);
-        if (albumRes.status !== 200) {
+        // Run the album metadata and tracks fetches in parallel. For albums with many
+        // tracks (e.g. OST/compilation albums with 100+ songs), the XML tracks response
+        // can be several MB and parsing it via fast-xml-parser blocks the main thread
+        // for seconds, freezing the UI. We use the JSON variant for tracks since V8's
+        // native JSON.parse is dramatically faster than the XML parser.
+        const [albumMetadataRes, tracksRes] = await Promise.all([
+            apiClient.getMetadata<PlexAlbumMetadataResponse>(query.id),
+            apiClient.getAlbumTracksJson(query.id),
+        ]);
+
+        if (tracksRes.status !== 200) {
             throw new Error('Failed to get album detail');
         }
 
-        const tracksContainer = albumRes.body?.MediaContainer;
-        const tracks = tracksContainer?.Track || [];
+        const albumMetadata = albumMetadataRes.body?.MediaContainer?.Directory?.[0];
+        const jsonTracks = tracksRes.body?.MediaContainer?.Metadata || [];
+        const tracks = jsonTracks.map(toPlexTrackFromFavoriteJson);
 
         const songs = tracks.map((track) =>
             pxNormalize.song(track, apiClientProps.server, serverUrl, token),
@@ -1278,19 +1286,17 @@ export const PlexController: InternalControllerEndpoint = {
                     };
                 });
         } else if (singleAlbumId) {
-            rawResult = await apiClient.getAlbumTracks(singleAlbumId).then((res) => {
+            rawResult = await apiClient.getAlbumTracksJson(singleAlbumId).then((res) => {
                 if (res.status !== 200) {
                     throw new Error('Failed to get song list');
                 }
 
-                const container = res.body?.MediaContainer;
+                const jsonTracks = res.body?.MediaContainer?.Metadata || [];
+                const items = jsonTracks.map(toPlexTrackFromFavoriteJson);
 
                 return {
-                    items: container?.Track || [],
-                    totalRecordCount: getPlexTotalRecordCount(
-                        container,
-                        (container?.Track || []).length,
-                    ),
+                    items,
+                    totalRecordCount: items.length,
                 };
             });
         } else if (shouldFetchAllPages) {

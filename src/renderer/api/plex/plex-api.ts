@@ -87,6 +87,10 @@ const axiosClient = axios.create({});
 
 type ApiResponse<T> = Promise<{ body: T; headers?: any; status: number }>;
 
+// Plex returns the same Track JSON shape from `library/metadata/{id}/children`
+// as it does from the favorites endpoint, so we reuse the type.
+type PlexAlbumTracksJsonResponse = PlexFavoriteSongListJsonResponse;
+
 type PlexFavoriteSongJson = {
     addedAt?: number | string;
     duration?: number | string;
@@ -365,6 +369,28 @@ export const pxApiClient = (args: {
         getAlbumTracks: async (albumRatingKey: string): ApiResponse<PlexAlbumTracksResponse> => {
             const response = await request<PlexAlbumTracksResponse>({
                 method: 'GET',
+                path: `library/metadata/${albumRatingKey}/children`,
+            });
+
+            return response;
+        },
+
+        // JSON variant of getAlbumTracks. For albums with many tracks (e.g. OST/compilation
+        // albums with 100+ songs), the XML response from Plex can be several megabytes and
+        // parsing it via fast-xml-parser blocks the main thread for seconds, freezing the UI.
+        // JSON is parsed natively by V8 and is significantly faster, so we prefer it for
+        // album detail loading.
+        getAlbumTracksJson: async (
+            albumRatingKey: string,
+        ): ApiResponse<PlexAlbumTracksJsonResponse> => {
+            // Plex JSON mode defaults to a very small container size (often just 3 items).
+            // We must explicitly request all tracks via X-Plex-Container-Size.
+            const response = await requestJson<PlexAlbumTracksJsonResponse>({
+                method: 'GET',
+                params: {
+                    'X-Plex-Container-Size': 10000,
+                    'X-Plex-Container-Start': 0,
+                },
                 path: `library/metadata/${albumRatingKey}/children`,
             });
 
