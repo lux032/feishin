@@ -1372,7 +1372,7 @@ export const PlexController: InternalControllerEndpoint = {
             query: { ...query, limit: 1, startIndex: 0 },
         }).then((result) => result?.totalRecordCount ?? 0),
 
-    getStreamUrl: ({ apiClientProps: { server }, query }) => {
+    getStreamUrl: async ({ apiClientProps: { server }, query }) => {
         const serverUrl = getServerUrl(server);
         // Plex audio playback needs the downloadable media endpoint; the `/media`
         // metadata route is not a playable source and returns 404 on some servers.
@@ -1473,6 +1473,10 @@ export const PlexController: InternalControllerEndpoint = {
     },
 
     updateInternetRadioStation: async () => {
+        throw new Error('Not implemented for Plex');
+    },
+
+    setPlaylistSongs: async () => {
         throw new Error('Not implemented for Plex');
     },
 
