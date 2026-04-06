@@ -5,6 +5,7 @@ import {
     app,
     BrowserWindow,
     BrowserWindowConstructorOptions,
+    desktopCapturer,
     globalShortcut,
     ipcMain,
     Menu,
@@ -29,7 +30,7 @@ import packageJson from '../../package.json';
 import { disableMediaKeys, enableMediaKeys } from './features/core/player/media-keys';
 import { shutdownServer } from './features/core/remote';
 import { store } from './features/core/settings';
-import MenuBuilder from './menu';
+import MenuBuilder, { MenuPlaybackState } from './menu';
 import {
     autoUpdaterLogInterface,
     createLog,
@@ -41,7 +42,7 @@ import {
 } from './utils';
 import './features';
 
-import { PlayerType, TitleTheme } from '/@/shared/types/types';
+import { PlayerRepeat, PlayerStatus, PlayerType, TitleTheme } from '/@/shared/types/types';
 
 const ALPHA_UPDATER_CONFIG: {
     bucket: string;
@@ -272,16 +273,18 @@ if (isLinux() && !process.argv.some((a) => a.startsWith('--password-store='))) {
     app.commandLine.appendSwitch('password-store', passwordStore);
 }
 
-// Handle fractional scaling issue from Wayland https://github.com/jeffvli/feishin/issues/1271#issuecomment-4063326712
-if (isLinux()) {
-    app.commandLine.appendSwitch('disable-features', 'WaylandFractionalScaleV1');
-}
-
 let mainWindow: BrowserWindow | null = null;
 let tray: null | Tray = null;
 let exitFromTray = false;
 let forceQuit = false;
 let powerSaveBlockerId: null | number = null;
+let menuBuilder: MenuBuilder | null = null;
+let currentPlaybackStatus: PlayerStatus = PlayerStatus.PAUSED;
+let currentPrivateMode = false;
+let currentRepeatMode: PlayerRepeat = PlayerRepeat.NONE;
+let currentSidebarCollapsed = false;
+let currentShuffleEnabled = false;
+let playbackMenuAccelerators: MenuPlaybackState['accelerators'] = {};
 
 if (process.env.NODE_ENV === 'production') {
     import('source-map-support').then((sourceMapSupport) => {
@@ -336,6 +339,23 @@ const getAssetPath = (...paths: string[]): string => {
 
 export const getMainWindow = () => {
     return mainWindow;
+};
+
+const rebuildMainMenu = () => {
+    if (!menuBuilder || !mainWindow) return;
+
+    menuBuilder.buildMenu({
+        accelerators: playbackMenuAccelerators,
+        playbackStatus: currentPlaybackStatus,
+        privateMode: currentPrivateMode,
+        repeatMode: currentRepeatMode,
+        shuffleEnabled: currentShuffleEnabled,
+        sidebarCollapsed: currentSidebarCollapsed,
+    });
+
+    if (process.platform !== 'darwin') {
+        Menu.setApplicationMenu(null);
+    }
 };
 
 export const sendToastToRenderer = ({
@@ -436,19 +456,21 @@ const createTray = () => {
         },
     ]);
 
-    tray.on('click', () => {
-        if (store.get('window_minimize_to_tray')) {
-            if (mainWindow?.isVisible()) {
-                mainWindow?.hide();
+    if (!isMacOS()) {
+        tray.on('click', () => {
+            if (store.get('window_minimize_to_tray')) {
+                if (mainWindow?.isVisible()) {
+                    mainWindow?.hide();
+                } else {
+                    mainWindow?.show();
+                    createWinThumbarButtons();
+                }
             } else {
                 mainWindow?.show();
                 createWinThumbarButtons();
             }
-        } else {
-            mainWindow?.show();
-            createWinThumbarButtons();
-        }
-    });
+        });
+    }
 
     tray.setToolTip('Feishin');
     tray.setContextMenu(contextMenu);
@@ -702,17 +724,29 @@ async function createWindow(first = true): Promise<void> {
         });
     }
 
-    const menuBuilder = new MenuBuilder(mainWindow);
-    menuBuilder.buildMenu();
-
-    if (process.platform !== 'darwin') {
-        Menu.setApplicationMenu(null);
-    }
+    menuBuilder = new MenuBuilder(mainWindow);
+    rebuildMainMenu();
 
     // Open URLs in the user's browser
     mainWindow.webContents.setWindowOpenHandler((edata) => {
         shell.openExternal(edata.url);
         return { action: 'deny' };
+    });
+
+    mainWindow.webContents.session.setDisplayMediaRequestHandler((_request, callback) => {
+        desktopCapturer
+            .getSources({ types: ['screen'] })
+            .then((sources) => {
+                if (sources.length > 0) {
+                    callback({ audio: 'loopback', video: sources[0] });
+                } else {
+                    callback({});
+                }
+            })
+            .catch((err) => {
+                log.warn('desktopCapturer.getSources failed', err);
+                callback({});
+            });
     });
 
     if (!disableAutoUpdates() && store.get('disable_auto_updates') !== true) {
@@ -745,11 +779,17 @@ const playbackType = store.get('playbackType', PlayerType.WEB) as PlayerType;
 const shouldDisableMediaFeatures =
     isLinux() || !enableMediaSession || playbackType !== PlayerType.WEB;
 
+const chromiumDisabledFeatures: string[] = [];
+// Fractional scaling on Wayland: https://github.com/jeffvli/feishin/issues/1271#issuecomment-4063326712
+if (isLinux()) {
+    chromiumDisabledFeatures.push('WaylandFractionalScaleV1');
+}
 if (shouldDisableMediaFeatures) {
-    app.commandLine.appendSwitch(
-        'disable-features',
-        'HardwareMediaKeyHandling,MediaSessionService',
-    );
+    chromiumDisabledFeatures.push('HardwareMediaKeyHandling', 'MediaSessionService');
+}
+
+if (chromiumDisabledFeatures.length > 0) {
+    app.commandLine.appendSwitch('disable-features', chromiumDisabledFeatures.join(','));
 }
 
 // https://github.com/electron/electron/issues/46538#issuecomment-2808806722
@@ -778,6 +818,17 @@ enum BindingActions {
     VOLUME_DOWN = 'volumeDown',
     VOLUME_UP = 'volumeUp',
 }
+
+const getMenuAccelerator = (
+    data: Record<BindingActions, { allowGlobal: boolean; hotkey: string; isGlobal: boolean }>,
+    action: BindingActions,
+) => {
+    const hotkey = data[action]?.hotkey;
+
+    if (!hotkey) return undefined;
+
+    return hotkeyToElectronAccelerator(hotkey);
+};
 
 const HOTKEY_ACTIONS: Record<BindingActions, () => void> = {
     [BindingActions.GLOBAL_SEARCH]: () => {},
@@ -830,6 +881,26 @@ ipcMain.on(
                     HOTKEY_ACTIONS[shortcut as BindingActions]();
                 });
             }
+        }
+
+        playbackMenuAccelerators = {
+            next: getMenuAccelerator(data, BindingActions.NEXT),
+            playPause:
+                getMenuAccelerator(data, BindingActions.PLAY_PAUSE) ||
+                getMenuAccelerator(data, BindingActions.PLAY) ||
+                getMenuAccelerator(data, BindingActions.PAUSE),
+            previous: getMenuAccelerator(data, BindingActions.PREVIOUS),
+            repeat: getMenuAccelerator(data, BindingActions.TOGGLE_REPEAT),
+            seekBackward: getMenuAccelerator(data, BindingActions.SKIP_BACKWARD),
+            seekForward: getMenuAccelerator(data, BindingActions.SKIP_FORWARD),
+            shuffle: getMenuAccelerator(data, BindingActions.SHUFFLE),
+            stop: getMenuAccelerator(data, BindingActions.STOP),
+            volumeDown: getMenuAccelerator(data, BindingActions.VOLUME_DOWN),
+            volumeUp: getMenuAccelerator(data, BindingActions.VOLUME_UP),
+        };
+
+        if (isMacOS()) {
+            rebuildMainMenu();
         }
 
         const globalMediaKeysEnabled = store.get('global_media_hotkeys', true) as boolean;
@@ -972,3 +1043,43 @@ if (!ipcMain.eventNames().includes('open-application-directory')) {
         shell.openPath(userDataPath);
     });
 }
+
+ipcMain.on('update-playback', (_event, status: PlayerStatus) => {
+    currentPlaybackStatus = status;
+
+    if (!isMacOS()) return;
+
+    rebuildMainMenu();
+});
+
+ipcMain.on('update-repeat', (_event, repeat: PlayerRepeat) => {
+    currentRepeatMode = repeat;
+
+    if (!isMacOS()) return;
+
+    rebuildMainMenu();
+});
+
+ipcMain.on('update-shuffle', (_event, shuffle: boolean) => {
+    currentShuffleEnabled = shuffle;
+
+    if (!isMacOS()) return;
+
+    rebuildMainMenu();
+});
+
+ipcMain.on('update-private-mode', (_event, privateMode: boolean) => {
+    currentPrivateMode = privateMode;
+
+    if (!isMacOS()) return;
+
+    rebuildMainMenu();
+});
+
+ipcMain.on('update-sidebar-collapsed', (_event, collapsedSidebar: boolean) => {
+    currentSidebarCollapsed = collapsedSidebar;
+
+    if (!isMacOS()) return;
+
+    rebuildMainMenu();
+});

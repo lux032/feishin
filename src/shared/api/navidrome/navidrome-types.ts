@@ -72,12 +72,24 @@ export const NDSongQueryFields = [
     { label: 'Album Artist', type: 'string', value: 'albumartist' },
     { label: 'Album Artists', type: 'string', value: 'albumartists' },
     { label: 'Album Comment', type: 'string', value: 'albumcomment' },
+    { label: 'Album Date Favorited', type: 'date', value: 'albumdateloved' },
+    { label: 'Album Date Last Played', type: 'date', value: 'albumlastplayed' },
+    { label: 'Album Date Rated', type: 'date', value: 'albumdaterated' },
+    { label: 'Album Is Favorite', type: 'boolean', value: 'albumloved' },
+    { label: 'Album Play Count', type: 'number', value: 'albumplaycount' },
+    { label: 'Album Rating', type: 'number', value: 'albumrating' },
     { label: 'Album Type', type: 'string', value: 'albumtype' },
     { label: 'Album Version', type: 'string', value: 'albumversion' },
     { label: 'Arranger', type: 'string', value: 'arranger' },
     { label: 'Artist', type: 'string', value: 'artist' },
+    { label: 'Artist Date Favorited', type: 'date', value: 'artistdateloved' },
+    { label: 'Artist Date Last Played', type: 'date', value: 'artistlastplayed' },
+    { label: 'Artist Date Rated', type: 'date', value: 'artistdaterated' },
+    { label: 'Artist Is Favorite', type: 'boolean', value: 'artistloved' },
+    { label: 'Artist Play Count', type: 'number', value: 'artistplaycount' },
     { label: 'Artists', type: 'string', value: 'artists' },
     { label: 'ASIN', type: 'string', value: 'asin' },
+    { label: 'Average Rating', type: 'number', value: 'averagerating' },
     { label: 'Barcode', type: 'string', value: 'barcode' },
     { label: 'Bit Depth', type: 'number', value: 'bitdepth' },
     { label: 'Bitrate', type: 'number', value: 'bitrate' },
@@ -86,6 +98,7 @@ export const NDSongQueryFields = [
     { label: 'Channels', type: 'number', value: 'channels' },
     { label: 'Comment', type: 'string', value: 'comment' },
     { label: 'Composer', type: 'string', value: 'composer' },
+    { label: 'Codec', type: 'string', value: 'codec' },
     { label: 'Conductor', type: 'string', value: 'conductor' },
     { label: 'Copyright', type: 'string', value: 'copyright' },
     { label: 'Date Added', type: 'date', value: 'dateadded' },
@@ -117,6 +130,7 @@ export const NDSongQueryFields = [
     { label: 'Lyricist', type: 'string', value: 'lyricist' },
     { label: 'Lyrics', type: 'string', value: 'lyrics' },
     { label: 'Media', type: 'string', value: 'media' },
+    { label: 'Missing', type: 'boolean', value: 'missing' },
     { label: 'Mixer', type: 'string', value: 'mixer' },
     { label: 'Mood', type: 'string', value: 'mood' },
     { label: 'Movement', type: 'string', value: 'movement' },
@@ -164,6 +178,7 @@ export const NDSongQueryFields = [
     { label: 'ReplayGain Track Peak', type: 'number', value: 'replaygain_track_peak' },
     { label: 'Remixer', type: 'string', value: 'remixer' },
     { label: 'Script', type: 'string', value: 'script' },
+    { label: 'Sample Rate', type: 'number', value: 'sampleRate' },
     { label: 'Size', type: 'number', value: 'size' },
     { label: 'Sort Album', type: 'string', value: 'albumsort' },
     { label: 'Sort Album Artist', type: 'string', value: 'albumartistsort' },
@@ -588,6 +603,14 @@ const songListParameters = paginationParameters.extend({
     year: z.number().optional(),
 });
 
+const playlistRules = z
+    .object({
+        limit: z.number().optional(),
+        limitPercent: z.number().optional(),
+        sort: z.string().optional(),
+    })
+    .catchall(z.any());
+
 const playlist = z.object({
     comment: z.string(),
     createdAt: z.string(),
@@ -599,11 +622,12 @@ const playlist = z.object({
     ownerName: z.string(),
     path: z.string(),
     public: z.boolean(),
-    rules: z.record(z.string(), z.any()),
+    rules: playlistRules,
     size: z.number(),
     songCount: z.number(),
     sync: z.boolean(),
     updatedAt: z.string(),
+    uploadedImage: z.string().optional(),
 });
 
 const playlistList = z.array(playlist);
@@ -631,7 +655,7 @@ const createPlaylistParameters = z.object({
     name: z.string(),
     ownerId: z.string().optional(),
     public: z.boolean().optional(),
-    rules: z.record(z.any()).optional(),
+    rules: playlistRules.optional(),
     sync: z.boolean().optional(),
 });
 
@@ -639,7 +663,31 @@ const updatePlaylist = playlist;
 
 const updatePlaylistParameters = createPlaylistParameters.partial();
 
+const updateInternetRadioStationParameters = z.object({
+    homePageUrl: z.string().optional(),
+    name: z.string(),
+    streamUrl: z.string(),
+});
+
+const uploadPlaylistImage = z.object({
+    status: z.string(),
+});
+
+const uploadPlaylistImageParameters = z.object({
+    image: z.instanceof(Uint8Array),
+});
+
+const deletePlaylistImage = z.object({
+    status: z.string(),
+});
+
+const uploadInternetRadioStationImage = uploadPlaylistImage;
+const uploadInternetRadioStationImageParameters = uploadPlaylistImageParameters;
+const deleteInternetRadioStationImage = deletePlaylistImage;
+
 const deletePlaylist = z.null();
+
+const deleteInternetRadioStation = deletePlaylist;
 
 const addToPlaylist = z.object({
     added: z.number(),
@@ -715,12 +763,35 @@ const queue = z.object({
     userId: z.string(),
 });
 
+export enum NDRadioListSort {
+    NAME = 'name',
+}
+
+const radioStation = z.object({
+    createdAt: z.string(),
+    homePageUrl: z.string().optional(),
+    id: z.string(),
+    name: z.string(),
+    streamUrl: z.string(),
+    updatedAt: z.string(),
+    uploadedImage: z.string().optional(),
+});
+
+const radioList = z.array(radioStation);
+
+const updateInternetRadioStation = radioStation;
+
+const radioListParameters = optionalPaginationParameters.extend({
+    _sort: z.nativeEnum(NDRadioListSort).optional(),
+});
+
 export const ndType = {
     _enum: {
         albumArtistList: NDAlbumArtistListSort,
         albumList: NDAlbumListSort,
         genreList: genreListSort,
         playlistList: NDPlaylistListSort,
+        radioList: NDRadioListSort,
         songList: NDSongListSort,
         tagList: NDTagListSort,
         userList: ndUserListSort,
@@ -734,12 +805,16 @@ export const ndType = {
         genreList: genreListParameters,
         moveItem: moveItemParameters,
         playlistList: playlistListParameters,
+        radioList: radioListParameters,
         removeFromPlaylist: removeFromPlaylistParameters,
         saveQueue: saveQueueParameters,
         shareItem: shareItemParameters,
         songList: songListParameters,
         tagList: tagListParameters,
+        updateInternetRadioStation: updateInternetRadioStationParameters,
         updatePlaylist: updatePlaylistParameters,
+        uploadInternetRadioStationImage: uploadInternetRadioStationImageParameters,
+        uploadPlaylistImage: uploadPlaylistImageParameters,
         userList: userListParameters,
     },
     _response: {
@@ -750,7 +825,10 @@ export const ndType = {
         albumList,
         authenticate,
         createPlaylist,
+        deleteInternetRadioStation,
+        deleteInternetRadioStationImage,
         deletePlaylist,
+        deletePlaylistImage,
         error,
         genre,
         genreList,
@@ -760,13 +838,18 @@ export const ndType = {
         playlistSong,
         playlistSongList,
         queue,
+        radioList,
+        radioStation,
         removeFromPlaylist,
         saveQueue,
         shareItem,
         song,
         songList,
         tagList,
+        updateInternetRadioStation,
         updatePlaylist,
+        uploadInternetRadioStationImage,
+        uploadPlaylistImage,
         user,
         userList,
     },

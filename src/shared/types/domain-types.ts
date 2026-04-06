@@ -202,12 +202,12 @@ export type Album = {
     mbzId: null | string;
     mbzReleaseGroupId: null | string;
     name: string;
-    originalDate: null | string;
-    originalYear: null | number;
+    originalDate: null | PartialIsoDateString;
+    originalYear: number;
     participants: null | Record<string, RelatedArtist[]>;
     playCount: null | number;
     recordLabels: string[];
-    releaseDate: null | string;
+    releaseDate: null | PartialIsoDateString;
     releaseType: null | string;
     releaseTypes: string[];
     releaseYear: null | number;
@@ -340,6 +340,8 @@ export type MusicFolder = {
 
 export type MusicFoldersResponse = MusicFolder[];
 
+export type PartialIsoDateString = string;
+
 export type Playlist = {
     _itemType: LibraryItem.PLAYLIST;
     _serverId: string;
@@ -354,10 +356,11 @@ export type Playlist = {
     owner: null | string;
     ownerId: null | string;
     public: boolean | null;
-    rules?: null | Record<string, any>;
+    rules?: null | PlaylistRules;
     size: null | number;
     songCount: null | number;
     sync?: boolean | null;
+    uploadedImage?: string;
 };
 
 export type RelatedAlbumArtist = {
@@ -411,7 +414,7 @@ export type Song = {
     peak: GainInfo | null;
     playCount: number;
     playlistItemId?: string;
-    releaseDate: null | string;
+    releaseDate: null | PartialIsoDateString;
     releaseYear: null | number;
     sampleRate: null | number;
     size: number;
@@ -425,16 +428,18 @@ export type Song = {
     userRating: null | number;
 };
 
+type ApiContext = {
+    pathReplace?: string;
+    pathReplaceWith?: string;
+};
+
 type BaseEndpointArgs = {
     apiClientProps: {
         server?: null | ServerListItemWithCredential;
         serverId: string;
         signal?: AbortSignal;
     };
-    context?: {
-        pathReplace?: string;
-        pathReplaceWith?: string;
-    };
+    context?: ApiContext;
 };
 
 type GenreListSortMap = {
@@ -1036,7 +1041,7 @@ export type CreatePlaylistBody = {
     name: string;
     ownerId?: string;
     public?: boolean;
-    queryBuilderRules?: Record<string, any>;
+    queryBuilderRules?: PlaylistRules;
     sync?: boolean;
 };
 
@@ -1047,6 +1052,16 @@ export type DeleteInternetRadioStationArgs = BaseEndpointArgs & {
     query: DeleteInternetRadioStationQuery;
 };
 
+export type DeleteInternetRadioStationImageArgs = BaseEndpointArgs & {
+    query: DeleteInternetRadioStationImageQuery;
+};
+
+export type DeleteInternetRadioStationImageQuery = {
+    id: string;
+};
+
+export type DeleteInternetRadioStationImageResponse = boolean;
+
 export type DeleteInternetRadioStationQuery = {
     id: string;
 };
@@ -1056,6 +1071,16 @@ export type DeleteInternetRadioStationResponse = null | undefined;
 export type DeletePlaylistArgs = BaseEndpointArgs & {
     query: DeletePlaylistQuery;
 };
+
+export type DeletePlaylistImageArgs = BaseEndpointArgs & {
+    query: DeletePlaylistImageQuery;
+};
+
+export type DeletePlaylistImageQuery = {
+    id: string;
+};
+
+export type DeletePlaylistImageResponse = boolean;
 
 export type DeletePlaylistQuery = { id: string };
 
@@ -1077,10 +1102,13 @@ export type GetInternetRadioStationsArgs = BaseEndpointArgs;
 export type GetInternetRadioStationsResponse = InternetRadioStation[];
 
 export type InternetRadioStation = {
-    homepageUrl?: null | string;
+    homepageUrl: null | string;
     id: string;
+    imageId?: null | string;
+    imageUrl?: null | string;
     name: string;
     streamUrl: string;
+    uploadedImage?: null | string;
 };
 
 export type PlaylistListArgs = BaseEndpointArgs & { query: PlaylistListQuery };
@@ -1097,6 +1125,12 @@ export interface PlaylistListQuery extends BaseQuery<PlaylistListSort> {
 
 // Playlist List
 export type PlaylistListResponse = BasePaginatedResponse<Playlist[]>;
+
+export type PlaylistRules = Record<string, any> & {
+    limit?: number;
+    limitPercent?: number;
+    sort?: string;
+};
 
 export type RatingQuery = {
     id: string[];
@@ -1175,11 +1209,10 @@ export type UpdatePlaylistArgs = BaseEndpointArgs & {
 export type UpdatePlaylistBody = {
     _custom?: Record<string, any>;
     comment?: string;
-    genres?: Genre[];
     name: string;
     ownerId?: string;
     public?: boolean;
-    queryBuilderRules?: Record<string, any>;
+    queryBuilderRules?: PlaylistRules;
     sync?: boolean;
 };
 
@@ -1189,6 +1222,36 @@ export type UpdatePlaylistQuery = {
 
 // Update Playlist
 export type UpdatePlaylistResponse = null | undefined;
+
+export type UploadInternetRadioStationImageArgs = BaseEndpointArgs & {
+    body: UploadInternetRadioStationImageBody;
+    query: UploadInternetRadioStationImageQuery;
+};
+
+export type UploadInternetRadioStationImageBody = {
+    image: Uint8Array;
+};
+
+export type UploadInternetRadioStationImageQuery = {
+    id: string;
+};
+
+export type UploadInternetRadioStationImageResponse = boolean;
+
+export type UploadPlaylistImageArgs = BaseEndpointArgs & {
+    body: UploadPlaylistImageBody;
+    query: UploadPlaylistImageQuery;
+};
+
+export type UploadPlaylistImageBody = {
+    image: Uint8Array;
+};
+
+export type UploadPlaylistImageQuery = {
+    id: string;
+};
+
+export type UploadPlaylistImageResponse = boolean;
 
 type PlaylistListSortMap = {
     jellyfin: Record<PlaylistListSort, JFPlaylistListSort | undefined>;
@@ -1483,7 +1546,11 @@ export type ControllerEndpoint = {
     deleteInternetRadioStation: (
         args: DeleteInternetRadioStationArgs,
     ) => Promise<DeleteInternetRadioStationResponse>;
+    deleteInternetRadioStationImage?: (
+        args: DeleteInternetRadioStationImageArgs,
+    ) => Promise<DeleteInternetRadioStationImageResponse>;
     deletePlaylist: (args: DeletePlaylistArgs) => Promise<DeletePlaylistResponse>;
+    deletePlaylistImage?: (args: DeletePlaylistImageArgs) => Promise<DeletePlaylistImageResponse>;
     getAlbumArtistDetail: (args: AlbumArtistDetailArgs) => Promise<AlbumArtistDetailResponse>;
     getAlbumArtistInfo?: (args: AlbumArtistInfoArgs) => Promise<AlbumArtistInfoResponse | null>;
     getAlbumArtistList: (args: AlbumArtistListArgs) => Promise<AlbumArtistListResponse>;
@@ -1518,11 +1585,10 @@ export type ControllerEndpoint = {
     getSongDetail: (args: SongDetailArgs) => Promise<SongDetailResponse>;
     getSongList: (args: SongListArgs) => Promise<SongListResponse>;
     getSongListCount: (args: SongListCountArgs) => Promise<number>;
-    getStreamUrl: (args: StreamArgs) => string;
+    getStreamUrl: (args: StreamArgs) => Promise<string>;
     getStructuredLyrics?: (args: StructuredLyricsArgs) => Promise<StructuredLyric[]>;
     getTagList?: (args: TagListArgs) => Promise<TagListResponse>;
     getTopSongs: (args: TopSongListArgs) => Promise<TopSongListResponse>;
-    // getArtistInfo?: (args: any) => void;
     getUserInfo: (args: UserInfoArgs) => Promise<UserInfoResponse>;
     getUserList?: (args: UserListArgs) => Promise<UserListResponse>;
     movePlaylistItem?: (args: MoveItemArgs) => Promise<void>;
@@ -1531,12 +1597,17 @@ export type ControllerEndpoint = {
     savePlayQueue: (args: SaveQueueArgs) => Promise<void>;
     scrobble: (args: ScrobbleArgs) => Promise<ScrobbleResponse>;
     search: (args: SearchArgs) => Promise<SearchResponse>;
+    setPlaylistSongs: (args: SetPlaylistSongsArgs) => Promise<SetPlaylistSongsResponse>;
     setRating?: (args: SetRatingArgs) => Promise<RatingResponse>;
     shareItem?: (args: ShareItemArgs) => Promise<ShareItemResponse>;
     updateInternetRadioStation: (
         args: UpdateInternetRadioStationArgs,
     ) => Promise<UpdateInternetRadioStationResponse>;
     updatePlaylist: (args: UpdatePlaylistArgs) => Promise<UpdatePlaylistResponse>;
+    uploadInternetRadioStationImage?: (
+        args: UploadInternetRadioStationImageArgs,
+    ) => Promise<UploadInternetRadioStationImageResponse>;
+    uploadPlaylistImage?: (args: UploadPlaylistImageArgs) => Promise<UploadPlaylistImageResponse>;
 };
 
 export type DownloadArgs = BaseEndpointArgs & {
@@ -1606,9 +1677,15 @@ export type InternalControllerEndpoint = {
     deleteInternetRadioStation: (
         args: ReplaceApiClientProps<DeleteInternetRadioStationArgs>,
     ) => Promise<DeleteInternetRadioStationResponse>;
+    deleteInternetRadioStationImage?: (
+        args: ReplaceApiClientProps<DeleteInternetRadioStationImageArgs>,
+    ) => Promise<DeleteInternetRadioStationImageResponse>;
     deletePlaylist: (
         args: ReplaceApiClientProps<DeletePlaylistArgs>,
     ) => Promise<DeletePlaylistResponse>;
+    deletePlaylistImage?: (
+        args: ReplaceApiClientProps<DeletePlaylistImageArgs>,
+    ) => Promise<DeletePlaylistImageResponse>;
     getAlbumArtistDetail: (
         args: ReplaceApiClientProps<AlbumArtistDetailArgs>,
     ) => Promise<AlbumArtistDetailResponse>;
@@ -1664,7 +1741,7 @@ export type InternalControllerEndpoint = {
     getSongDetail: (args: ReplaceApiClientProps<SongDetailArgs>) => Promise<SongDetailResponse>;
     getSongList: (args: ReplaceApiClientProps<SongListArgs>) => Promise<SongListResponse>;
     getSongListCount: (args: ReplaceApiClientProps<SongListCountArgs>) => Promise<number>;
-    getStreamUrl: (args: ReplaceApiClientProps<StreamArgs>) => string;
+    getStreamUrl: (args: ReplaceApiClientProps<StreamArgs>) => Promise<string>;
     getStructuredLyrics?: (
         args: ReplaceApiClientProps<StructuredLyricsArgs>,
     ) => Promise<StructuredLyric[]>;
@@ -1682,6 +1759,9 @@ export type InternalControllerEndpoint = {
     savePlayQueue: (args: ReplaceApiClientProps<SaveQueueArgs>) => Promise<void>;
     scrobble: (args: ReplaceApiClientProps<ScrobbleArgs>) => Promise<ScrobbleResponse>;
     search: (args: ReplaceApiClientProps<SearchArgs>) => Promise<SearchResponse>;
+    setPlaylistSongs: (
+        args: ReplaceApiClientProps<SetPlaylistSongsArgs>,
+    ) => Promise<SetPlaylistSongsResponse>;
     setRating?: (args: ReplaceApiClientProps<SetRatingArgs>) => Promise<RatingResponse>;
     shareItem?: (args: ReplaceApiClientProps<ShareItemArgs>) => Promise<ShareItemResponse>;
     updateInternetRadioStation: (
@@ -1690,6 +1770,12 @@ export type InternalControllerEndpoint = {
     updatePlaylist: (
         args: ReplaceApiClientProps<UpdatePlaylistArgs>,
     ) => Promise<UpdatePlaylistResponse>;
+    uploadInternetRadioStationImage?: (
+        args: ReplaceApiClientProps<UploadInternetRadioStationImageArgs>,
+    ) => Promise<UploadInternetRadioStationImageResponse>;
+    uploadPlaylistImage?: (
+        args: ReplaceApiClientProps<UploadPlaylistImageArgs>,
+    ) => Promise<UploadPlaylistImageResponse>;
 };
 
 export type LyricGetQuery = {
@@ -1738,6 +1824,15 @@ export type ServerInfo = {
 
 export type ServerInfoArgs = BaseEndpointArgs;
 
+export type SetPlaylistSongsArgs = BaseEndpointArgs & { body: SetPlaylistSongsQuery };
+
+export type SetPlaylistSongsQuery = {
+    id: string;
+    songIds: string[];
+};
+
+export type SetPlaylistSongsResponse = null;
+
 export type SimilarSongsArgs = BaseEndpointArgs & {
     query: SimilarSongsQuery;
 };
@@ -1756,6 +1851,9 @@ export type StreamQuery = {
     bitrate?: number;
     format?: string;
     id: string;
+    mediaType?: 'podcast' | 'song';
+    offset?: number;
+    skipAutoTranscode?: boolean;
     transcode: boolean;
 };
 
@@ -1800,6 +1898,50 @@ export type TagListResponse = {
     tags?: Tag[];
 };
 
+export type TranscodeDecisionArgs = BaseEndpointArgs & {
+    body?: TranscodeDecisionRequestBody;
+    query: TranscodeDecisionQuery;
+};
+
+export type TranscodeDecisionQuery = {
+    id: string;
+    type: 'song';
+};
+
+export type TranscodeDecisionRequestBody = {
+    codecProfiles?: Array<{
+        limitations?: Array<{
+            comparison: string;
+            name: string;
+            required?: boolean;
+            values: string[];
+        }>;
+        name: string;
+        type: string;
+    }>;
+    directPlayProfiles?: Array<{
+        audioCodecs: string[];
+        containers: string[];
+        maxAudioChannels?: number;
+        protocols: string[];
+    }>;
+    maxAudioBitrate?: number;
+    maxTranscodingAudioBitrate?: number;
+    name: string;
+    platform: string;
+    transcodingProfiles?: Array<{
+        audioCodec: string;
+        container: string;
+        maxAudioChannels?: number;
+        protocol: string;
+    }>;
+};
+
+export type TranscodeDecisionResponse = {
+    decision: 'direct' | 'transcode';
+    transcodeParams?: string;
+};
+
 export type UserInfoArgs = BaseEndpointArgs & { query: UserInfoQuery };
 
 export type UserInfoQuery = {
@@ -1819,8 +1961,5 @@ type BaseEndpointArgsWithServer = {
         serverId: string;
         signal?: AbortSignal;
     };
-    context?: {
-        pathReplace?: string;
-        pathReplaceWith?: string;
-    };
+    context?: ApiContext;
 };

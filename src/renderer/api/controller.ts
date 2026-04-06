@@ -11,6 +11,8 @@ import {
     ControllerEndpoint,
     InternalControllerEndpoint,
     ServerType,
+    SetPlaylistSongsArgs,
+    SetPlaylistSongsResponse,
 } from '/@/shared/types/domain-types';
 
 type ApiController = {
@@ -70,6 +72,7 @@ const getPathReplaceSettings = () => {
 
 const addContext = <T extends { apiClientProps: any; context?: any }>(args: T): T => {
     const pathSettings = getPathReplaceSettings();
+
     return {
         ...args,
         context: {
@@ -175,6 +178,20 @@ export const controller: GeneralController = {
             server.type,
         )?.(addContext({ ...args, apiClientProps: { ...args.apiClientProps, server } }));
     },
+    deleteInternetRadioStationImage(args) {
+        const server = getServerById(args.apiClientProps.serverId);
+
+        if (!server) {
+            throw new Error(
+                `${i18n.t('error.apiRouteError', { postProcess: 'sentenceCase' })}: deleteInternetRadioStationImage`,
+            );
+        }
+
+        return apiController(
+            'deleteInternetRadioStationImage',
+            server.type,
+        )?.(addContext({ ...args, apiClientProps: { ...args.apiClientProps, server } }));
+    },
     deletePlaylist(args) {
         const server = getServerById(args.apiClientProps.serverId);
 
@@ -186,6 +203,20 @@ export const controller: GeneralController = {
 
         return apiController(
             'deletePlaylist',
+            server.type,
+        )?.(addContext({ ...args, apiClientProps: { ...args.apiClientProps, server } }));
+    },
+    deletePlaylistImage(args) {
+        const server = getServerById(args.apiClientProps.serverId);
+
+        if (!server) {
+            throw new Error(
+                `${i18n.t('error.apiRouteError', { postProcess: 'sentenceCase' })}: deletePlaylistImage`,
+            );
+        }
+
+        return apiController(
+            'deletePlaylistImage',
             server.type,
         )?.(addContext({ ...args, apiClientProps: { ...args.apiClientProps, server } }));
     },
@@ -720,7 +751,9 @@ export const controller: GeneralController = {
         const server = getServerById(args.apiClientProps.serverId);
 
         if (!server) {
-            return '';
+            throw new Error(
+                `${i18n.t('error.apiRouteError', { postProcess: 'sentenceCase' })}: getStreamUrl`,
+            );
         }
 
         return apiController(
@@ -888,6 +921,20 @@ export const controller: GeneralController = {
             }),
         );
     },
+    setPlaylistSongs: function (args: SetPlaylistSongsArgs): Promise<SetPlaylistSongsResponse> {
+        const server = getServerById(args.apiClientProps.serverId);
+
+        if (!server) {
+            throw new Error(
+                `${i18n.t('error.apiRouteError', { postProcess: 'sentenceCase' })}: setPlaylistSongs`,
+            );
+        }
+
+        return apiController(
+            'setPlaylistSongs',
+            server.type,
+        )?.(addContext({ ...args, apiClientProps: { ...args.apiClientProps, server } }));
+    },
     setRating(args) {
         const server = getServerById(args.apiClientProps.serverId);
 
@@ -941,6 +988,34 @@ export const controller: GeneralController = {
 
         return apiController(
             'updatePlaylist',
+            server.type,
+        )?.(addContext({ ...args, apiClientProps: { ...args.apiClientProps, server } }));
+    },
+    uploadInternetRadioStationImage(args) {
+        const server = getServerById(args.apiClientProps.serverId);
+
+        if (!server) {
+            throw new Error(
+                `${i18n.t('error.apiRouteError', { postProcess: 'sentenceCase' })}: uploadInternetRadioStationImage`,
+            );
+        }
+
+        return apiController(
+            'uploadInternetRadioStationImage',
+            server.type,
+        )?.(addContext({ ...args, apiClientProps: { ...args.apiClientProps, server } }));
+    },
+    uploadPlaylistImage(args) {
+        const server = getServerById(args.apiClientProps.serverId);
+
+        if (!server) {
+            throw new Error(
+                `${i18n.t('error.apiRouteError', { postProcess: 'sentenceCase' })}: uploadPlaylistImage`,
+            );
+        }
+
+        return apiController(
+            'uploadPlaylistImage',
             server.type,
         )?.(addContext({ ...args, apiClientProps: { ...args.apiClientProps, server } }));
     },

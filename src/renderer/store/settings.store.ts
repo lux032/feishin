@@ -305,6 +305,7 @@ const PlayerbarSliderSchema = z.object({
     barGap: z.number(),
     barRadius: z.number(),
     barWidth: z.number(),
+    loadingDelay: z.number(),
     type: PlayerbarSliderTypeSchema,
 });
 
@@ -1148,6 +1149,7 @@ const initialState: SettingsState = {
             barGap: 1,
             barRadius: 4,
             barWidth: 2,
+            loadingDelay: 2,
             type: PlayerbarSliderType.SLIDER,
         },
         playerItems,
@@ -2419,7 +2421,25 @@ export const usePlayButtonBehavior = () =>
 
 export const useWindowSettings = () => useSettingsStore((state) => state.window, shallow);
 
+export const useWindowBarStyle = () =>
+    useSettingsStore((state) => state.window.windowBarStyle, shallow);
+
 export const useHotkeySettings = () => useSettingsStore((state) => state.hotkeys, shallow);
+
+export const useHotkeyBindings = () => useSettingsStore((state) => state.hotkeys.bindings, shallow);
+
+export const useLayoutHotkeyBindings = () =>
+    useSettingsStore(
+        (state) => ({
+            browserBack: state.hotkeys.bindings.browserBack,
+            browserForward: state.hotkeys.bindings.browserForward,
+            globalSearch: state.hotkeys.bindings.globalSearch,
+            navigateHome: state.hotkeys.bindings.navigateHome,
+            zoomIn: state.hotkeys.bindings.zoomIn,
+            zoomOut: state.hotkeys.bindings.zoomOut,
+        }),
+        shallow,
+    );
 
 export const useMpvSettings = () =>
     useSettingsStore((state) => state.playback.mpvProperties, shallow);

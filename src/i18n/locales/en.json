@@ -110,6 +110,7 @@
         "minimize": "minimize",
         "modified": "modified",
         "mbid": "MusicBrainz ID",
+        "grouping": "grouping",
         "mood": "mood",
         "name": "name",
         "no": "no",
@@ -369,6 +370,9 @@
             "input_name": "name",
             "input_streamUrl": "stream url"
         },
+        "editRadioStation": {
+            "success": "radio station updated successfully"
+        },
         "deletePlaylist": {
             "input_confirm": "type the name of the $t(entity.playlist, {\"count\": 1}) to confirm",
             "success": "$t(entity.playlist, {\"count\": 1}) deleted successfully",
@@ -376,7 +380,6 @@
         },
         "editPlaylist": {
             "publicJellyfinNote": "Jellyfin for some reason does not expose whether a playlist is public or not. If you wish for this to remain public, please have the following input selected",
-            "editNote": "manual edits are not recommended for large playlists. are you sure you accept the risk of data loss incurred by overwriting the existing playlist?",
             "success": "$t(entity.playlist, {\"count\": 1}) updated successfully",
             "title": "edit $t(entity.playlist, {\"count\": 1})"
         },
@@ -1088,6 +1091,8 @@
         "volumeWheelStep": "volume wheel step",
         "volumeWidth_description": "the width of the volume slider",
         "volumeWidth": "volume slider width",
+        "waveformLoadingDelay": "waveform loading delay",
+        "waveformLoadingDelay_description": "delay in seconds before loading waveform. increase this value if you are experiencing stutters when using the web player.",
         "webAudio_description": "use web audio. this enables advanced features like replaygain. disable if you experience otherwise",
         "webAudio": "use web audio",
         "windowBarStyle_description": "select the style of the window bar",
@@ -1215,6 +1220,12 @@
         "mainText": "drop a file here"
     },
     "visualizer": {
+        "systemAudioConsentAllow": "Allow",
+        "systemAudioConsentBody": "The visualizer requires access to the system audio to work",
+        "systemAudioConsentDecline": "Deny",
+        "systemAudioConsentTitle": "Allow access to system audio?",
+        "systemAudioCaptureFailed": "Could not start capture: {{message}}",
+        "systemAudioNoAudioTrack": "No audio track was returned. Ensure audio capture is enabled when prompted.",
         "visualizerType": "Visualizer Type",
         "cyclePresets": "Cycle Presets",
         "cycleTime": "Cycle Time (seconds)",

@@ -1,6 +1,7 @@
 import merge from 'lodash/merge';
 import { nanoid } from 'nanoid';
-import { createJSONStorage, persist, subscribeWithSelector } from 'zustand/middleware';
+import { useMemo } from 'react';
+import { persist, subscribeWithSelector } from 'zustand/middleware';
 import { immer } from 'zustand/middleware/immer';
 import { useShallow } from 'zustand/react/shallow';
 import { createWithEqualityFn } from 'zustand/traditional';
@@ -12,7 +13,7 @@ import {
     setTimestamp as setTimestampStore,
     useTimestampStoreBase,
 } from '/@/renderer/store/timestamp.store';
-import { idbStateStorage } from '/@/renderer/store/utils';
+import { migratePlayerStorePersist, playerStoreStorage } from '/@/renderer/store/utils';
 import { shuffleInPlace } from '/@/renderer/utils/shuffle';
 import { PlayerData, QueueData, QueueSong, ServerType, Song } from '/@/shared/types/domain-types';
 import {
@@ -58,7 +59,11 @@ interface Actions {
     mediaSeekToTimestamp: (timestamp: number) => void;
     mediaSkipBackward: (offset?: number) => void;
     mediaSkipForward: (offset?: number) => void;
-    mediaStop: () => void;
+    /**
+     * @param options.reset - When true (default), sets seekToTimestamp(0) so the engine seeks to start.
+     * Timestamp display is always cleared to 0. Use false when the engine is already idle (e.g. mpv `stopped`) to skip that seek.
+     */
+    mediaStop: (options?: { reset?: boolean }) => void;
     mediaToggleMute: () => void;
     mediaTogglePlayPause: () => void;
     moveSelectedTo: (items: QueueSong[], uniqueId: string, edge: 'bottom' | 'top') => void;
@@ -87,6 +92,7 @@ interface GroupedQueue {
 }
 
 interface State {
+    hydrated: boolean;
     player: {
         crossfadeDuration: number;
         crossfadeStyle: CrossfadeStyle;
@@ -292,6 +298,7 @@ function regenerateShuffledIndexesIfNeeded(state: {
 }
 
 const initialState: State = {
+    hydrated: false,
     player: {
         crossfadeDuration: 5,
         crossfadeStyle: CrossfadeStyle.EQUAL_POWER,
@@ -1163,11 +1170,14 @@ export const usePlayerStoreBase = createWithEqualityFn<PlayerState>()(
                         state.player.seekToTimestamp = uniqueSeekToTimestamp(newTimestamp);
                     });
                 },
-                mediaStop: () => {
+                mediaStop: (options?: { reset?: boolean }) => {
+                    const reset = options?.reset !== false;
                     set((state) => {
                         state.player.status = PlayerStatus.PAUSED;
-                        state.player.seekToTimestamp = uniqueSeekToTimestamp(0);
                         setTimestampStore(0);
+                        if (reset) {
+                            state.player.seekToTimestamp = uniqueSeekToTimestamp(0);
+                        }
                     });
                 },
                 mediaToggleMute: () => {
@@ -1543,14 +1553,22 @@ export const usePlayerStoreBase = createWithEqualityFn<PlayerState>()(
             merge: (persistedState: any, currentState: any) => {
                 return merge(currentState, persistedState);
             },
-            migrate: (persistedState, version) => {
-                if (version <= 3) {
+            migrate: async (persistedState, oldVersion) => {
+                if (oldVersion < 3) {
                     return {} as PlayerState;
                 }
 
-                return persistedState;
+                if (oldVersion === 3) {
+                    await migratePlayerStorePersist('player-store');
+                    return persistedState as Partial<PlayerState>;
+                }
+
+                return persistedState as Partial<PlayerState>;
             },
             name: 'player-store',
+            onRehydrateStorage: () => () => {
+                usePlayerStoreBase.setState({ hydrated: true });
+            },
             partialize: (state) => {
                 const shouldRestorePlayQueue = useSettingsStore.getState().general.resume;
 
@@ -1564,53 +1582,22 @@ export const usePlayerStoreBase = createWithEqualityFn<PlayerState>()(
                     excludedPlayerKeys.push('index');
                 }
 
-                // Filter top-level state entries
-                const filteredStateEntries = Object.entries(state).filter(([key]) => {
-                    // Exclude queue if shouldRestorePlayQueue is false
-                    if (!shouldRestorePlayQueue && key === 'queue') {
-                        return false;
-                    }
-                    return true;
-                });
+                const player = Object.fromEntries(
+                    Object.entries(state.player).filter(
+                        ([key]) => !excludedPlayerKeys.includes(key),
+                    ),
+                ) as typeof state.player;
 
-                const filteredState = Object.fromEntries(
-                    filteredStateEntries,
-                ) as Partial<PlayerState>;
-
-                // Filter player object
-                if (filteredState.player) {
-                    filteredState.player = Object.fromEntries(
-                        Object.entries(filteredState.player).filter(
-                            ([key]) => !excludedPlayerKeys.includes(key),
-                        ),
-                    ) as typeof filteredState.player;
+                if (!shouldRestorePlayQueue) {
+                    return { player };
                 }
 
-                if (filteredState.queue) {
-                    const allQueueIds = new Set([
-                        ...(filteredState.queue.default || []),
-                        // shuffled now contains indexes, not uniqueIds, so we don't include it here
-                    ]);
-
-                    const songs = filteredState.queue.songs || {};
-                    const cleanedSongs: Record<string, QueueSong> = {};
-
-                    for (const [id, song] of Object.entries(songs)) {
-                        if (allQueueIds.has(id)) {
-                            cleanedSongs[id] = song;
-                        }
-                    }
-
-                    filteredState.queue = {
-                        ...filteredState.queue,
-                        songs: cleanedSongs,
-                    };
-                }
-
-                return filteredState;
+                // Queue pruning and IDB writes are handled in `playerStoreStorage` so we only
+                // serialize the large queue when the queue slice reference actually changes.
+                return { player, queue: state.queue };
             },
-            storage: createJSONStorage(() => idbStateStorage),
-            version: 3,
+            storage: playerStoreStorage,
+            version: 4,
         },
     ),
 );
@@ -1662,10 +1649,13 @@ export const usePlayerActions = () => {
         })),
     );
 
-    return {
-        ...actions,
-        setTimestamp: setTimestampStore,
-    };
+    return useMemo(
+        () => ({
+            ...actions,
+            setTimestamp: setTimestampStore,
+        }),
+        [actions],
+    );
 };
 
 export type AddToQueueByPlayType = Play;
@@ -1739,6 +1729,8 @@ export const subscribeNextSongInsertion = (onChange: (song: QueueSong | undefine
                 queueIndex = mapShuffledToQueueIndex(queueIndex, state.queue.shuffled);
             }
 
+            const currentSong = queue.items[queueIndex];
+
             // Calculate next song based on shuffle and repeat settings
             let nextSong: QueueSong | undefined;
             if (isShuffleEnabled(state)) {
@@ -1756,20 +1748,25 @@ export const subscribeNextSongInsertion = (onChange: (song: QueueSong | undefine
                 nextSong = calculateNextSong(queueIndex, queue.items, repeat);
             }
 
-            return { index: queueIndex, song: nextSong };
+            return {
+                currentUniqueId: currentSong?._uniqueId,
+                nextSong,
+            };
         },
         (current, prev) => {
-            // Only trigger if:
-            // 1. We have a previous value (not the first call)
-            // 2. Index hasn't changed (not a natural advance)
-            // 3. Next song has changed (song was inserted)
-            if (
-                prev &&
-                current.index === prev.index &&
-                current.song?._uniqueId !== prev.song?._uniqueId
-            ) {
-                // Index stayed the same but next song changed = insertion at next position
-                onChange(current.song);
+            if (!prev) {
+                return;
+            }
+
+            // Still on the same track, but the upcoming song changed (queue edit: insert, reorder, etc.).
+            // Do not require the current track's queue index to stay fixed — e.g. inserting *before* the
+            // current item shifts its index in `queue.default`, and the old check missed that case.
+            const sameTrackStillPlaying =
+                current.currentUniqueId !== undefined &&
+                current.currentUniqueId === prev.currentUniqueId;
+
+            if (sameTrackStillPlaying && current.nextSong?._uniqueId !== prev.nextSong?._uniqueId) {
+                onChange(current.nextSong);
             }
         },
         {
@@ -2037,6 +2034,10 @@ export const usePlayerShuffle = () => {
 
 export const usePlayerStatus = () => {
     return usePlayerStoreBase((state) => state.player.status);
+};
+
+export const usePlayerHydrated = () => {
+    return usePlayerStoreBase((state) => state.hydrated);
 };
 
 export const usePlayerVolume = () => {

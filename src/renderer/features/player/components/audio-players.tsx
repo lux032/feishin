@@ -25,6 +25,7 @@ import {
     useIsRadioActive,
 } from '/@/renderer/features/radio/hooks/use-radio-player';
 import { RemoteHook } from '/@/renderer/features/remote/hooks/use-remote';
+import { VisualizerSystemAudioBridgeHook } from '/@/renderer/features/visualizer/components/visualizer-system-audio-bridge';
 import {
     updateQueueFavorites,
     updateQueueRatings,
@@ -33,9 +34,75 @@ import {
     usePlaybackType,
     useSettingsStoreActions,
 } from '/@/renderer/store';
+import { logFn } from '/@/renderer/utils/logger';
 import { toast } from '/@/shared/components/toast/toast';
 import { LibraryItem } from '/@/shared/types/domain-types';
 import { PlayerType } from '/@/shared/types/types';
+
+const CODEC_PROBES = [
+    { codec: 'mp3', container: 'mp3', mime: 'audio/mpeg' },
+
+    { codec: 'aac', container: 'mp4', mime: 'audio/mp4; codecs="mp4a.40.2"' },
+    { codec: 'aac', container: 'aac', mime: 'audio/aac' },
+    { codec: 'aac', container: 'mp4', mime: 'audio/x-m4a' },
+
+    { codec: 'opus', container: 'ogg', mime: 'audio/ogg; codecs="opus"' },
+    { codec: 'opus', container: 'webm', mime: 'audio/webm; codecs="opus"' },
+
+    { codec: 'vorbis', container: 'ogg', mime: 'audio/ogg; codecs="vorbis"' },
+    { codec: 'vorbis', container: 'webm', mime: 'audio/webm; codecs="vorbis"' },
+
+    { codec: 'flac', container: 'flac', mime: 'audio/flac' },
+
+    { codec: ['pcm', 'wav'], container: 'wav', mime: 'audio/wav' },
+
+    { codec: 'alac', container: 'mp4', mime: 'audio/mp4; codecs="alac"' },
+];
+
+const DEFAULT_TRANSCODING_PROFILES = [
+    { audioCodec: 'opus', container: 'ogg', protocol: 'http' },
+    { audioCodec: 'mp3', container: 'mp3', protocol: 'http' },
+];
+
+const SAFARI_TRANSCODING_PROFILES = [{ audioCodec: 'mp3', container: 'mp3', protocol: 'http' }];
+
+const DIRECT_PLAY_PROFILES: {
+    audioCodecs: string[];
+    containers: string[];
+    protocols: string[];
+}[] = [];
+
+export function getDefaultTranscodingProfiles() {
+    return isSafari() ? SAFARI_TRANSCODING_PROFILES : DEFAULT_TRANSCODING_PROFILES;
+}
+
+export function getDirectPlayProfiles() {
+    return DIRECT_PLAY_PROFILES;
+}
+
+// Shamelessly taken from NavidromeUI
+function detectBrowserProfile() {
+    const audio = new Audio();
+
+    for (const { codec, container, mime } of CODEC_PROBES) {
+        if (audio.canPlayType(mime) === 'maybe' || audio.canPlayType(mime) === 'probably') {
+            DIRECT_PLAY_PROFILES.push({
+                audioCodecs: Array.isArray(codec) ? codec : [codec],
+                containers: [container],
+                protocols: ['http'],
+            });
+        }
+    }
+
+    logFn.info('DIRECT_PLAY_PROFILES', { meta: DIRECT_PLAY_PROFILES });
+
+    return DIRECT_PLAY_PROFILES;
+}
+
+function isSafari() {
+    const ua = navigator.userAgent;
+    return ua.includes('Safari') && !ua.includes('Chrome') && !ua.includes('Chromium');
+}
 
 export const AudioPlayers = () => {
     const playbackType = usePlaybackType();
@@ -48,6 +115,10 @@ export const AudioPlayers = () => {
         webAudio,
     } = usePlaybackSettings();
     const { setWebAudio, webAudio: audioContext } = useWebAudio();
+
+    useEffect(() => {
+        detectBrowserProfile();
+    }, []);
 
     return (
         <>
@@ -65,6 +136,7 @@ export const AudioPlayers = () => {
             <UpdateCurrentSongHook />
             <RadioAudioInstanceHook />
             <RadioMetadataHook />
+            <VisualizerSystemAudioBridgeHook />
             <AutosaveHook />
             <AudioPlayersContent
                 audioContext={audioContext}

@@ -118,7 +118,8 @@
         "filter_single": "單選",
         "filter_multiple": "複選",
         "newVersionAvailable": "有新的版本可供使用",
-        "numberOfResults": "{{numberOfResults}} 項結果"
+        "numberOfResults": "{{numberOfResults}} 項結果",
+        "grouping": "分組"
     },
     "error": {
         "endpointNotImplementedError": "{{serverType}} 尚未實現端點 {{endpoint}}",
@@ -792,7 +793,9 @@
         "listenbrainz_description": "在藝術家/專輯頁面上顯示 ListenBrainz 的連結",
         "listenbrainz": "顯示 ListenBrainz 連結",
         "qobuz_description": "在藝術家/專輯頁面上顯示 Qobuz 的連結",
-        "qobuz": "顯示 Qobuz 連結"
+        "qobuz": "顯示 Qobuz 連結",
+        "waveformLoadingDelay": "波形載入延遲",
+        "waveformLoadingDelay_description": "載入波形前的延遲（以秒為單位）。如果您在使用網頁播放器時遇到卡頓，請增加此值。"
     },
     "table": {
         "config": {
@@ -1081,8 +1084,7 @@
         "editPlaylist": {
             "title": "編輯$t(entity.playlist, {\"count\": 1})",
             "publicJellyfinNote": "Jellyfin 出於某種原因，不會顯示播放清單是否公開。如果您希望保持公開狀態，請選擇以下輸入",
-            "success": "$t(entity.playlist, {\"count\": 1}) 更新成功",
-            "editNote": "不建議手動編輯大型播放清單，你確定要承擔覆寫現有播放清單可能造成的資料遺失風險嗎？"
+            "success": "$t(entity.playlist, {\"count\": 1}) 更新成功"
         },
         "shareItem": {
             "allowDownloading": "允許下載",
@@ -1128,6 +1130,9 @@
             "export": "匯出歌詞",
             "input_synced": "匯出同步歌詞",
             "input_offset": "$t(setting.lyricOffset)"
+        },
+        "editRadioStation": {
+            "success": "電臺更新成功"
         }
     },
     "releaseType": {
@@ -1336,6 +1341,8 @@
                 "d": "D",
                 "z": "Z"
             }
-        }
+        },
+        "systemAudioCaptureFailed": "無法開始擷取：{{message}}",
+        "systemAudioNoAudioTrack": "沒有回傳任何音軌。確保在提示時啟用音訊擷取。"
     }
 }

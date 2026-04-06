@@ -1,4 +1,5 @@
-import { useMemo, useRef } from 'react';
+import { useQuery } from '@tanstack/react-query';
+import { useEffect, useRef } from 'react';
 
 import { api } from '/@/renderer/api';
 import { TranscodingConfig } from '/@/renderer/store';
@@ -12,64 +13,85 @@ export function useSongUrl(
 ): string | undefined {
     const prior = useRef(['', '']);
 
-    return useMemo(() => {
-        if (song?._serverId) {
-            // If we are the current track, we do not want a transcoding
-            // reconfiguration to force a restart.
-            if (current && prior.current[0] === song._uniqueId) {
-                return prior.current[1];
-            }
+    // Plex: use direct part URL for lossless playback, bypassing getStreamUrl entirely
+    const plexDirectUrl =
+        song?._serverType === ServerType.PLEX && song.streamUrl ? song.streamUrl : undefined;
 
-            // Plex direct part URLs are more reliable than the metadata download route.
-            // Prefer the normalized streamUrl whenever it is available.
-            if (song._serverType === ServerType.PLEX && song.streamUrl) {
-                prior.current = [song._uniqueId, song.streamUrl];
-                return song.streamUrl;
-            }
+    const shouldReusePrior = Boolean(
+        song?._serverId && current && prior.current[0] === song._uniqueId && prior.current[1],
+    );
 
-            const url = api.controller.getStreamUrl({
-                apiClientProps: { serverId: song._serverId },
+    const { data: queryStreamUrl } = useQuery({
+        enabled: Boolean(song?._serverId) && !shouldReusePrior && !plexDirectUrl,
+        queryFn: () =>
+            api.controller.getStreamUrl({
+                apiClientProps: { serverId: song!._serverId },
                 query: {
                     bitrate: transcode.bitrate,
                     format: transcode.format,
-                    id: song.id,
+                    id: song!.id,
                     transcode: transcode.enabled,
                 },
-            });
+            }),
+        queryKey: [
+            song?._serverId,
+            'stream-url',
+            song?.id,
+            shouldReusePrior ? 'reuse-prior' : transcode.bitrate,
+            shouldReusePrior ? 'reuse-prior' : transcode.format,
+            shouldReusePrior ? 'reuse-prior' : transcode.enabled,
+        ] as const,
+        staleTime: 60 * 1000,
+    });
 
-            // transcoding enabled; save the updated result
-            prior.current = [song._uniqueId, url];
-            return url;
+    useEffect(() => {
+        if (!song?._serverId) {
+            prior.current = ['', ''];
+            return;
         }
 
-        // no track; clear result
-        prior.current = ['', ''];
-        return undefined;
-    }, [
-        song?._serverId,
-        song?._serverType,
-        song?._uniqueId,
-        song?.id,
-        song?.streamUrl,
-        current,
-        transcode.bitrate,
-        transcode.format,
-        transcode.enabled,
-    ]);
+        if (plexDirectUrl) {
+            prior.current = [song._uniqueId, plexDirectUrl];
+            return;
+        }
+
+        if (!queryStreamUrl) {
+            return;
+        }
+
+        // Save resolved URL to avoid restarting current track on transcode setting changes.
+        prior.current = [song._uniqueId, queryStreamUrl];
+    }, [song?._serverId, song?._uniqueId, queryStreamUrl, plexDirectUrl]);
+
+    useEffect(() => {
+        if (!song?._serverId) {
+            prior.current = ['', ''];
+        }
+    }, [song?._serverId]);
+
+    return plexDirectUrl || (shouldReusePrior ? prior.current[1] : queryStreamUrl);
 }
 
-export const getSongUrl = (song: QueueSong, transcode: TranscodingConfig) => {
+export const getSongUrl = async (
+    song: QueueSong,
+    transcode: TranscodingConfig,
+    skipAutoTranscode?: boolean,
+) => {
+    // Plex: use direct part URL for lossless playback
     if (song._serverType === ServerType.PLEX && song.streamUrl) {
         return song.streamUrl;
     }
 
-    return api.controller.getStreamUrl({
+    const url = await api.controller.getStreamUrl({
         apiClientProps: { serverId: song._serverId },
         query: {
             bitrate: transcode.bitrate,
             format: transcode.format,
             id: song.id,
+            skipAutoTranscode,
             transcode: transcode.enabled,
         },
     });
+
+    return url;
 };

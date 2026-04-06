@@ -1,29 +1,57 @@
-import React, { createContext, useContext, useEffect, useMemo, useRef } from 'react';
+import type { ReactElement } from 'react';
+
+import React, {
+    createContext,
+    useCallback,
+    useContext,
+    useEffect,
+    useMemo,
+    useRef,
+    useState,
+} from 'react';
 import { useSyncExternalStore } from 'react';
+
+import type { TableItemProps } from './item-table-list';
 
 import { ItemListStateActions } from '/@/renderer/components/item-list/helpers/item-list-state';
 import { ItemControls, ItemTableListColumnConfig } from '/@/renderer/components/item-list/types';
 import { PlayerContext } from '/@/renderer/features/player/context/player-context';
 import { LibraryItem } from '/@/shared/types/domain-types';
 
-/**
- * Stage A/B: Provide table-scoped config + external stores so churny values can update
- * without forcing `cellProps` identity changes (and therefore without rerendering every visible cell).
- */
-
 export type ItemTableListConfig = {
     cellPadding: 'lg' | 'md' | 'sm' | 'xl' | 'xs';
     columns: ItemTableListColumnConfig[];
     controls: ItemControls;
+    enableAlternateRowColors: boolean;
+    enableColumnReorder: boolean;
+    enableColumnResize: boolean;
+    enableDrag: boolean;
+    enableExpansion: boolean;
     enableHeader: boolean;
+    enableHorizontalBorders: boolean;
     enableRowHoverHighlight: boolean;
     enableSelection: boolean;
+    enableVerticalBorders: boolean;
+    getRowHeight: (index: number, cellProps: TableItemProps) => number;
+    groups?: ItemTableListGroupHeader[];
     internalState: ItemListStateActions;
     itemType: LibraryItem;
     playerContext: PlayerContext;
+    playlistId?: string;
     size: 'compact' | 'default' | 'large';
     startRowIndex?: number;
     tableId: string;
+};
+
+export type ItemTableListGroupHeader = {
+    itemCount: number;
+    render: (props: {
+        data: unknown[];
+        groupIndex: number;
+        index: number;
+        internalState: ItemListStateActions;
+        startDataIndex: number;
+    }) => ReactElement;
 };
 
 const ItemTableListConfigContext = createContext<ItemTableListConfig | null>(null);
@@ -46,6 +74,69 @@ export const ItemTableListConfigProvider = ({
 
 export const useItemTableListConfig = (): ItemTableListConfig | null => {
     return useContext(ItemTableListConfigContext);
+};
+
+export type ItemTableListColumnResizeLiveContextValue = {
+    clearColumnResizePreview: () => void;
+    scheduleColumnResizePreview: (columnIndex: number, width: number) => void;
+};
+
+const ItemTableListColumnResizeLiveContext =
+    createContext<ItemTableListColumnResizeLiveContextValue | null>(null);
+
+export const ItemTableListColumnResizeLiveProvider = ({
+    children,
+    value,
+}: {
+    children: React.ReactNode;
+    value: ItemTableListColumnResizeLiveContextValue;
+}) => {
+    return (
+        <ItemTableListColumnResizeLiveContext.Provider value={value}>
+            {children}
+        </ItemTableListColumnResizeLiveContext.Provider>
+    );
+};
+
+export const useItemTableListColumnResizeLive =
+    (): ItemTableListColumnResizeLiveContextValue | null => {
+        return useContext(ItemTableListColumnResizeLiveContext);
+    };
+
+export const useItemTableListColumnResizeLiveState = () => {
+    const [columnResizePreview, setColumnResizePreview] = useState<null | {
+        columnIndex: number;
+        width: number;
+    }>(null);
+    const previewRafRef = useRef<null | number>(null);
+    const pendingPreviewRef = useRef<null | { columnIndex: number; width: number }>(null);
+
+    const scheduleColumnResizePreview = useCallback((columnIndex: number, width: number) => {
+        pendingPreviewRef.current = { columnIndex, width };
+        if (previewRafRef.current !== null) return;
+        previewRafRef.current = requestAnimationFrame(() => {
+            previewRafRef.current = null;
+            const pending = pendingPreviewRef.current;
+            if (pending) {
+                setColumnResizePreview(pending);
+            }
+        });
+    }, []);
+
+    const clearColumnResizePreview = useCallback(() => {
+        if (previewRafRef.current !== null) {
+            cancelAnimationFrame(previewRafRef.current);
+            previewRafRef.current = null;
+        }
+        pendingPreviewRef.current = null;
+        setColumnResizePreview(null);
+    }, []);
+
+    return {
+        clearColumnResizePreview,
+        columnResizePreview,
+        scheduleColumnResizePreview,
+    };
 };
 
 type ItemTableListStoreContextValue = {
