@@ -1461,6 +1461,10 @@ export const PlexController: InternalControllerEndpoint = {
         };
     },
 
+    setPlaylistSongs: async () => {
+        throw new Error('Not implemented for Plex');
+    },
+
     setRating: async (args) => {
         const { apiClientProps, query } = args;
         const apiClient = pxApiClient(apiClientProps);
@@ -1473,10 +1477,6 @@ export const PlexController: InternalControllerEndpoint = {
     },
 
     updateInternetRadioStation: async () => {
-        throw new Error('Not implemented for Plex');
-    },
-
-    setPlaylistSongs: async () => {
         throw new Error('Not implemented for Plex');
     },
 
