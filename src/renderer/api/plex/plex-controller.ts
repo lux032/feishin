@@ -662,7 +662,7 @@ export const PlexController: InternalControllerEndpoint = {
             mbzReleaseGroupId: null,
             name: firstTrack.album || '',
             originalDate: firstTrack.releaseDate,
-            originalYear: firstTrack.releaseYear,
+            originalYear: firstTrack.releaseYear ?? 0,
             participants: null,
             playCount: songs.reduce((acc, s) => acc + (s.playCount || 0), 0),
             recordLabels: [],

@@ -249,7 +249,7 @@ const normalizeAlbum = (
         mbzReleaseGroupId: null,
         name: item.$.title,
         originalDate: item.$.originallyAvailableAt || null,
-        originalYear: item.$.year ? Number(item.$.year) : null,
+        originalYear: item.$.year ? Number(item.$.year) : 0,
         participants: null,
         playCount: null,
         recordLabels: item.$.studio ? [item.$.studio] : [],
