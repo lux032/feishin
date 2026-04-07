@@ -60,6 +60,7 @@ const CODEC_PROBES = [
 ];
 
 const DEFAULT_TRANSCODING_PROFILES = [
+    { audioCodec: 'flac', container: 'flac', protocol: 'http' },
     { audioCodec: 'opus', container: 'ogg', protocol: 'http' },
     { audioCodec: 'mp3', container: 'mp3', protocol: 'http' },
 ];

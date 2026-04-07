@@ -428,6 +428,7 @@ const albumArtist = z.object({
     starredAt: z.string(),
     stats: z.record(z.string(), stats).optional(),
     updatedAt: z.string().optional(),
+    uploadedImage: z.string().optional(),
 });
 
 const albumArtistList = z.array(albumArtist);
@@ -683,6 +684,9 @@ const deletePlaylistImage = z.object({
 
 const uploadInternetRadioStationImage = uploadPlaylistImage;
 const uploadInternetRadioStationImageParameters = uploadPlaylistImageParameters;
+const uploadArtistImage = uploadPlaylistImage;
+const uploadArtistImageParameters = uploadPlaylistImageParameters;
+const deleteArtistImage = deletePlaylistImage;
 const deleteInternetRadioStationImage = deletePlaylistImage;
 
 const deletePlaylist = z.null();
@@ -813,6 +817,7 @@ export const ndType = {
         tagList: tagListParameters,
         updateInternetRadioStation: updateInternetRadioStationParameters,
         updatePlaylist: updatePlaylistParameters,
+        uploadArtistImage: uploadArtistImageParameters,
         uploadInternetRadioStationImage: uploadInternetRadioStationImageParameters,
         uploadPlaylistImage: uploadPlaylistImageParameters,
         userList: userListParameters,
@@ -825,6 +830,7 @@ export const ndType = {
         albumList,
         authenticate,
         createPlaylist,
+        deleteArtistImage,
         deleteInternetRadioStation,
         deleteInternetRadioStationImage,
         deletePlaylist,
@@ -848,6 +854,7 @@ export const ndType = {
         tagList,
         updateInternetRadioStation,
         updatePlaylist,
+        uploadArtistImage,
         uploadInternetRadioStationImage,
         uploadPlaylistImage,
         user,
