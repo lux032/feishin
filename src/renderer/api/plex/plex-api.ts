@@ -87,6 +87,51 @@ const axiosClient = axios.create({});
 
 type ApiResponse<T> = Promise<{ body: T; headers?: any; status: number }>;
 
+type PlexAlbumJson = {
+    addedAt?: number | string;
+    art?: string;
+    banner?: string;
+    childCount?: number | string;
+    composite?: string;
+    contentRating?: string;
+    Country?: PlexJsonTag[];
+    duration?: number | string;
+    Genre?: PlexJsonTag[];
+    guid?: string;
+    index?: number | string;
+    key?: string;
+    leafCount?: number | string;
+    originallyAvailableAt?: string;
+    parentGuid?: string;
+    parentKey?: string;
+    parentRatingKey?: string;
+    parentStudio?: string;
+    parentThumb?: string;
+    parentTitle?: string;
+    rating?: number | string;
+    ratingKey?: string;
+    Role?: PlexJsonRole[];
+    studio?: string;
+    summary?: string;
+    thumb?: string;
+    title?: string;
+    titleSort?: string;
+    type?: string;
+    updatedAt?: number | string;
+    userRating?: number | string;
+    viewedLeafCount?: number | string;
+    year?: number | string;
+};
+
+type PlexAlbumListJsonResponse = {
+    MediaContainer?: {
+        Metadata?: PlexAlbumJson[];
+        offset?: number | string;
+        size?: number | string;
+        totalSize?: number | string;
+    };
+};
+
 // Plex returns the same Track JSON shape from `library/metadata/{id}/children`
 // as it does from the favorites endpoint, so we reuse the type.
 type PlexAlbumTracksJsonResponse = PlexFavoriteSongListJsonResponse;
@@ -137,59 +182,14 @@ type PlexFavoriteSongListJsonResponse = {
     };
 };
 
-type PlexJsonTag = {
-    filter?: string | number;
-    id?: string | number;
-    tag?: string;
-};
-
-type PlexJsonRole = PlexJsonTag & {
-    role?: string;
-};
-
-type PlexAlbumJson = {
-    addedAt?: number | string;
-    art?: string;
-    banner?: string;
-    childCount?: number | string;
-    composite?: string;
-    contentRating?: string;
-    Country?: PlexJsonTag[];
+type PlexJsonMedia = {
+    audioChannels?: number | string;
+    audioCodec?: string;
+    bitrate?: number | string;
+    container?: string;
     duration?: number | string;
-    Genre?: PlexJsonTag[];
-    guid?: string;
-    index?: number | string;
-    key?: string;
-    leafCount?: number | string;
-    originallyAvailableAt?: string;
-    parentGuid?: string;
-    parentKey?: string;
-    parentRatingKey?: string;
-    parentStudio?: string;
-    parentThumb?: string;
-    parentTitle?: string;
-    rating?: number | string;
-    ratingKey?: string;
-    Role?: PlexJsonRole[];
-    studio?: string;
-    summary?: string;
-    thumb?: string;
-    title?: string;
-    titleSort?: string;
-    type?: string;
-    updatedAt?: number | string;
-    userRating?: number | string;
-    viewedLeafCount?: number | string;
-    year?: number | string;
-};
-
-type PlexAlbumListJsonResponse = {
-    MediaContainer?: {
-        Metadata?: PlexAlbumJson[];
-        offset?: number | string;
-        size?: number | string;
-        totalSize?: number | string;
-    };
+    id?: number | string;
+    Part?: PlexJsonMediaPart[];
 };
 
 type PlexJsonMediaPart = {
@@ -201,14 +201,25 @@ type PlexJsonMediaPart = {
     size?: number | string;
 };
 
-type PlexJsonMedia = {
-    audioChannels?: number | string;
-    audioCodec?: string;
-    bitrate?: number | string;
-    container?: string;
-    duration?: number | string;
+type PlexJsonRole = PlexJsonTag & {
+    role?: string;
+};
+
+type PlexJsonTag = {
+    filter?: number | string;
     id?: number | string;
-    Part?: PlexJsonMediaPart[];
+    tag?: string;
+};
+
+type PlexPlaylistMetadataJson = {
+    key?: string;
+    ratingKey?: number | string;
+};
+
+type PlexPlaylistMutationJsonResponse = {
+    MediaContainer?: {
+        Metadata?: PlexPlaylistMetadataJson[];
+    };
 };
 
 type PlexSongJson = {
@@ -254,17 +265,6 @@ type PlexSongListJsonResponse = {
         offset?: number | string;
         size?: number | string;
         totalSize?: number | string;
-    };
-};
-
-type PlexPlaylistMetadataJson = {
-    ratingKey?: string | number;
-    key?: string;
-};
-
-type PlexPlaylistMutationJsonResponse = {
-    MediaContainer?: {
-        Metadata?: PlexPlaylistMetadataJson[];
     };
 };
 
@@ -591,6 +591,21 @@ export const pxApiClient = (args: {
     };
 
     return {
+        addToPlaylist: async (params: {
+            playlistId: string;
+            uri: string;
+        }): ApiResponse<PlexPlaylistMutationJsonResponse> => {
+            const response = await requestJson<PlexPlaylistMutationJsonResponse>({
+                method: 'PUT',
+                params: {
+                    uri: params.uri,
+                },
+                path: `playlists/${params.playlistId}/items`,
+            });
+
+            return response;
+        },
+
         authenticate: async (params: { password: string; username: string }) => {
             const authResponse = await axios.post('https://plex.tv/users/sign_in.xml', null, {
                 auth: {
@@ -621,6 +636,22 @@ export const pxApiClient = (args: {
                 },
                 status: authResponse.status,
             };
+        },
+
+        createPlaylist: async (params: {
+            title: string;
+        }): ApiResponse<PlexPlaylistMutationJsonResponse> => {
+            const response = await requestJson<PlexPlaylistMutationJsonResponse>({
+                method: 'POST',
+                params: {
+                    smart: 0,
+                    title: params.title,
+                    type: 'audio',
+                },
+                path: 'playlists',
+            });
+
+            return response;
         },
 
         getAlbumList: async (params: {
@@ -771,37 +802,6 @@ export const pxApiClient = (args: {
                     playlistType: 'audio',
                 },
                 path: 'playlists',
-            });
-
-            return response;
-        },
-
-        createPlaylist: async (params: {
-            title: string;
-        }): ApiResponse<PlexPlaylistMutationJsonResponse> => {
-            const response = await requestJson<PlexPlaylistMutationJsonResponse>({
-                method: 'POST',
-                params: {
-                    smart: 0,
-                    title: params.title,
-                    type: 'audio',
-                },
-                path: 'playlists',
-            });
-
-            return response;
-        },
-
-        addToPlaylist: async (params: {
-            playlistId: string;
-            uri: string;
-        }): ApiResponse<PlexPlaylistMutationJsonResponse> => {
-            const response = await requestJson<PlexPlaylistMutationJsonResponse>({
-                method: 'PUT',
-                params: {
-                    uri: params.uri,
-                },
-                path: `playlists/${params.playlistId}/items`,
             });
 
             return response;
