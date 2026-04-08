@@ -137,6 +137,137 @@ type PlexFavoriteSongListJsonResponse = {
     };
 };
 
+type PlexJsonTag = {
+    filter?: string | number;
+    id?: string | number;
+    tag?: string;
+};
+
+type PlexJsonRole = PlexJsonTag & {
+    role?: string;
+};
+
+type PlexAlbumJson = {
+    addedAt?: number | string;
+    art?: string;
+    banner?: string;
+    childCount?: number | string;
+    composite?: string;
+    contentRating?: string;
+    Country?: PlexJsonTag[];
+    duration?: number | string;
+    Genre?: PlexJsonTag[];
+    guid?: string;
+    index?: number | string;
+    key?: string;
+    leafCount?: number | string;
+    originallyAvailableAt?: string;
+    parentGuid?: string;
+    parentKey?: string;
+    parentRatingKey?: string;
+    parentStudio?: string;
+    parentThumb?: string;
+    parentTitle?: string;
+    rating?: number | string;
+    ratingKey?: string;
+    Role?: PlexJsonRole[];
+    studio?: string;
+    summary?: string;
+    thumb?: string;
+    title?: string;
+    titleSort?: string;
+    type?: string;
+    updatedAt?: number | string;
+    userRating?: number | string;
+    viewedLeafCount?: number | string;
+    year?: number | string;
+};
+
+type PlexAlbumListJsonResponse = {
+    MediaContainer?: {
+        Metadata?: PlexAlbumJson[];
+        offset?: number | string;
+        size?: number | string;
+        totalSize?: number | string;
+    };
+};
+
+type PlexJsonMediaPart = {
+    container?: string;
+    duration?: number | string;
+    file?: string;
+    id?: number | string;
+    key?: string;
+    size?: number | string;
+};
+
+type PlexJsonMedia = {
+    audioChannels?: number | string;
+    audioCodec?: string;
+    bitrate?: number | string;
+    container?: string;
+    duration?: number | string;
+    id?: number | string;
+    Part?: PlexJsonMediaPart[];
+};
+
+type PlexSongJson = {
+    addedAt?: number | string;
+    art?: string;
+    contentRating?: string;
+    duration?: number | string;
+    Genre?: PlexJsonTag[];
+    grandparentGuid?: string;
+    grandparentKey?: string;
+    grandparentRatingKey?: string;
+    grandparentThumb?: string;
+    grandparentTitle?: string;
+    guid?: string;
+    index?: number | string;
+    key?: string;
+    lastViewedAt?: number | string;
+    Media?: PlexJsonMedia[];
+    originallyAvailableAt?: string;
+    parentGuid?: string;
+    parentIndex?: number | string;
+    parentKey?: string;
+    parentRatingKey?: string;
+    parentThumb?: string;
+    parentTitle?: string;
+    rating?: number | string;
+    ratingKey?: string;
+    studio?: string;
+    summary?: string;
+    thumb?: string;
+    title?: string;
+    titleSort?: string;
+    type?: string;
+    updatedAt?: number | string;
+    userRating?: number | string;
+    viewCount?: number | string;
+    year?: number | string;
+};
+
+type PlexSongListJsonResponse = {
+    MediaContainer?: {
+        Metadata?: PlexSongJson[];
+        offset?: number | string;
+        size?: number | string;
+        totalSize?: number | string;
+    };
+};
+
+type PlexPlaylistMetadataJson = {
+    ratingKey?: string | number;
+    key?: string;
+};
+
+type PlexPlaylistMutationJsonResponse = {
+    MediaContainer?: {
+        Metadata?: PlexPlaylistMetadataJson[];
+    };
+};
+
 axiosClient.interceptors.response.use(
     (response) => response,
     (error) => {
@@ -166,6 +297,154 @@ const decodeXmlResponse = (data: ArrayBuffer | string, headers?: Record<string, 
 
 const parseXmlResponse = (data: ArrayBuffer | string, headers?: Record<string, string>) => {
     return parser.parse(decodeXmlResponse(data, headers));
+};
+
+const toOptionalString = (value?: number | string) =>
+    value === undefined || value === null ? undefined : String(value);
+
+const toPlexTag = (tag: PlexJsonTag) => ({
+    $: {
+        filter: String(tag.filter ?? tag.id ?? tag.tag ?? ''),
+        id: String(tag.id ?? tag.filter ?? tag.tag ?? ''),
+        tag: tag.tag ?? String(tag.id ?? tag.filter ?? ''),
+    },
+});
+
+const toPlexRole = (role: PlexJsonRole) => ({
+    $: {
+        filter: String(role.filter ?? role.id ?? role.tag ?? ''),
+        id: String(role.id ?? role.filter ?? role.tag ?? ''),
+        role: role.role,
+        tag: role.tag ?? String(role.id ?? role.filter ?? ''),
+    },
+});
+
+const toPlexAlbumListResponse = (body: PlexAlbumListJsonResponse): PlexAlbumListResponse => {
+    const container = body?.MediaContainer;
+    const metadata = container?.Metadata || [];
+
+    return {
+        MediaContainer: {
+            $: {
+                offset: toOptionalString(container?.offset) || '0',
+                size: toOptionalString(container?.size) || String(metadata.length),
+                totalSize: toOptionalString(container?.totalSize),
+            },
+            Directory: metadata.map((item) => ({
+                $: {
+                    addedAt: toOptionalString(item.addedAt),
+                    art: item.art,
+                    banner: item.banner,
+                    childCount: toOptionalString(item.childCount),
+                    composite: item.composite,
+                    contentRating: item.contentRating,
+                    duration: toOptionalString(item.duration),
+                    guid: item.guid,
+                    index: toOptionalString(item.index),
+                    key: item.key || '',
+                    leafCount: toOptionalString(item.leafCount),
+                    originallyAvailableAt: item.originallyAvailableAt,
+                    parentGuid: item.parentGuid,
+                    parentKey: item.parentKey,
+                    parentRatingKey: item.parentRatingKey,
+                    parentStudio: item.parentStudio,
+                    parentThumb: item.parentThumb,
+                    parentTitle: item.parentTitle,
+                    rating: toOptionalString(item.rating),
+                    ratingKey: item.ratingKey || '',
+                    studio: item.studio,
+                    summary: item.summary,
+                    thumb: item.thumb,
+                    title: item.title || '',
+                    titleSort: item.titleSort,
+                    type: item.type || 'album',
+                    updatedAt: toOptionalString(item.updatedAt),
+                    userRating: toOptionalString(item.userRating),
+                    viewedLeafCount: toOptionalString(item.viewedLeafCount),
+                    year: toOptionalString(item.year),
+                },
+                Country: (item.Country || []).map(toPlexTag),
+                Genre: (item.Genre || []).map(toPlexTag),
+                Role: (item.Role || []).map(toPlexRole),
+            })),
+        },
+    };
+};
+
+const toPlexMediaPart = (part: PlexJsonMediaPart, index: number) => ({
+    $: {
+        container: part.container,
+        duration: toOptionalString(part.duration),
+        file: part.file,
+        id: toOptionalString(part.id) || String(index),
+        key: part.key || '',
+        size: toOptionalString(part.size),
+    },
+});
+
+const toPlexMedia = (media: PlexJsonMedia, index: number) => ({
+    $: {
+        audioChannels: toOptionalString(media.audioChannels),
+        audioCodec: media.audioCodec,
+        bitrate: toOptionalString(media.bitrate),
+        container: media.container,
+        duration: toOptionalString(media.duration),
+        id: toOptionalString(media.id) || String(index),
+    },
+    Part: (media.Part || []).map(toPlexMediaPart),
+});
+
+const toPlexSongListResponse = (body: PlexSongListJsonResponse): PlexSongListResponse => {
+    const container = body?.MediaContainer;
+    const metadata = container?.Metadata || [];
+
+    return {
+        MediaContainer: {
+            $: {
+                offset: toOptionalString(container?.offset) || '0',
+                size: toOptionalString(container?.size) || String(metadata.length),
+                totalSize: toOptionalString(container?.totalSize),
+            },
+            Track: metadata.map((item) => ({
+                $: {
+                    addedAt: toOptionalString(item.addedAt),
+                    art: item.art,
+                    contentRating: item.contentRating,
+                    duration: toOptionalString(item.duration),
+                    grandparentGuid: item.grandparentGuid,
+                    grandparentKey: item.grandparentKey,
+                    grandparentRatingKey: item.grandparentRatingKey,
+                    grandparentThumb: item.grandparentThumb,
+                    grandparentTitle: item.grandparentTitle,
+                    guid: item.guid,
+                    index: toOptionalString(item.index),
+                    key: item.key || '',
+                    lastViewedAt: toOptionalString(item.lastViewedAt),
+                    originallyAvailableAt: item.originallyAvailableAt,
+                    parentGuid: item.parentGuid,
+                    parentIndex: toOptionalString(item.parentIndex),
+                    parentKey: item.parentKey,
+                    parentRatingKey: item.parentRatingKey,
+                    parentThumb: item.parentThumb,
+                    parentTitle: item.parentTitle,
+                    rating: toOptionalString(item.rating),
+                    ratingKey: item.ratingKey || '',
+                    studio: item.studio,
+                    summary: item.summary,
+                    thumb: item.thumb,
+                    title: item.title || '',
+                    titleSort: item.titleSort,
+                    type: item.type || 'track',
+                    updatedAt: toOptionalString(item.updatedAt),
+                    userRating: toOptionalString(item.userRating),
+                    viewCount: toOptionalString(item.viewCount),
+                    year: toOptionalString(item.year),
+                },
+                Genre: (item.Genre || []).map(toPlexTag),
+                Media: (item.Media || []).map(toPlexMedia),
+            })),
+        },
+    };
 };
 
 const getPlexHeaders = (token?: string): Record<string, string> => {
@@ -351,7 +630,7 @@ export const pxApiClient = (args: {
             sort?: string;
             start?: number;
         }): ApiResponse<PlexAlbumListResponse> => {
-            const response = await request<PlexAlbumListResponse>({
+            const response = await requestJson<PlexAlbumListJsonResponse>({
                 method: 'GET',
                 params: {
                     'artist.id': params.artistId,
@@ -363,7 +642,11 @@ export const pxApiClient = (args: {
                 path: `library/sections/${params.sectionId}/all`,
             });
 
-            return response;
+            return {
+                body: toPlexAlbumListResponse(response.body),
+                headers: response.headers,
+                status: response.status,
+            };
         },
 
         getAlbumTracks: async (albumRatingKey: string): ApiResponse<PlexAlbumTracksResponse> => {
@@ -493,6 +776,37 @@ export const pxApiClient = (args: {
             return response;
         },
 
+        createPlaylist: async (params: {
+            title: string;
+        }): ApiResponse<PlexPlaylistMutationJsonResponse> => {
+            const response = await requestJson<PlexPlaylistMutationJsonResponse>({
+                method: 'POST',
+                params: {
+                    smart: 0,
+                    title: params.title,
+                    type: 'audio',
+                },
+                path: 'playlists',
+            });
+
+            return response;
+        },
+
+        addToPlaylist: async (params: {
+            playlistId: string;
+            uri: string;
+        }): ApiResponse<PlexPlaylistMutationJsonResponse> => {
+            const response = await requestJson<PlexPlaylistMutationJsonResponse>({
+                method: 'PUT',
+                params: {
+                    uri: params.uri,
+                },
+                path: `playlists/${params.playlistId}/items`,
+            });
+
+            return response;
+        },
+
         getPlaylistTracks: async (
             playlistRatingKey: string,
         ): ApiResponse<PlexPlaylistTracksResponse> => {
@@ -577,7 +891,7 @@ export const pxApiClient = (args: {
             sort?: string;
             start?: number;
         }): ApiResponse<PlexSongListResponse> => {
-            const response = await request<PlexSongListResponse>({
+            const response = await requestJson<PlexSongListJsonResponse>({
                 method: 'GET',
                 params: {
                     'album.id': params.albumId,
@@ -591,7 +905,11 @@ export const pxApiClient = (args: {
                 path: `library/sections/${params.sectionId}/all`,
             });
 
-            return response;
+            return {
+                body: toPlexSongListResponse(response.body),
+                headers: response.headers,
+                status: response.status,
+            };
         },
 
         reportTimeline: async (params: {

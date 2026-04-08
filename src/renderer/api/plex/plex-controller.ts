@@ -339,6 +339,21 @@ const getPlexServerUrl = (server: null | ServerListItemWithCredential) =>
 
 const getPlexToken = (server: null | ServerListItemWithCredential) => server?.credential || '';
 
+const getPlexMachineIdentifier = (server: null | ServerListItemWithCredential) =>
+    server?.userId || '';
+
+const buildPlexPlaylistItemUri = (machineIdentifier: string, songIds: string[]) => {
+    const ids = songIds
+        .map((songId) => songId?.trim())
+        .filter((songId): songId is string => Boolean(songId));
+
+    if (!machineIdentifier || ids.length === 0) {
+        throw new Error('Missing Plex playlist item identifiers');
+    }
+
+    return `server://${machineIdentifier}/com.plexapp.plugins.library/library/metadata/${ids.join(',')}`;
+};
+
 const getPlexTimelineState = (
     event?: 'pause' | 'start' | 'stop' | 'timeupdate' | 'unpause',
 ): 'paused' | 'playing' | 'stopped' => {
@@ -438,8 +453,20 @@ const getPlexGenreArtistIds = async ({
 };
 
 export const PlexController: InternalControllerEndpoint = {
-    addToPlaylist: async () => {
-        throw new Error('Not implemented for Plex');
+    addToPlaylist: async (args) => {
+        const { apiClientProps, body, query } = args;
+        const machineIdentifier = getPlexMachineIdentifier(apiClientProps.server);
+
+        const res = await pxApiClient(apiClientProps).addToPlaylist({
+            playlistId: query.id,
+            uri: buildPlexPlaylistItemUri(machineIdentifier, body.songId),
+        });
+
+        if (res.status !== 200) {
+            throw new Error('Failed to add to playlist');
+        }
+
+        return null;
     },
 
     authenticate: async (url, body) => {
@@ -499,8 +526,26 @@ export const PlexController: InternalControllerEndpoint = {
         throw new Error('Not implemented for Plex');
     },
 
-    createPlaylist: async () => {
-        throw new Error('Not implemented for Plex');
+    createPlaylist: async (args) => {
+        const { apiClientProps, body } = args;
+
+        const res = await pxApiClient(apiClientProps).createPlaylist({
+            title: body.name,
+        });
+
+        if (res.status !== 200) {
+            throw new Error('Failed to create playlist');
+        }
+
+        const playlistId = res.body?.MediaContainer?.Metadata?.[0]?.ratingKey;
+
+        if (!playlistId) {
+            throw new Error('Failed to create playlist');
+        }
+
+        return {
+            id: String(playlistId),
+        };
     },
 
     deleteFavorite: async (args) => {
