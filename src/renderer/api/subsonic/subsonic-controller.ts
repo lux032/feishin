@@ -2017,8 +2017,12 @@ export const SubsonicController: InternalControllerEndpoint = {
                 },
             });
 
+            // If the server returns an error for transcodeDecision, fall back to direct stream so that we don't break the player
             if (transcodeDecision.status !== 200) {
-                throw new Error('Failed to get transcode decision');
+                logFn.error(
+                    `Failed to get transcode decision for song ${id}, falling back to direct stream`,
+                );
+                return streamUrl;
             }
 
             const td = transcodeDecision.body.transcodeDecision;
