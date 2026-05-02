@@ -1052,7 +1052,8 @@
             "success": "新增 $t(entity.trackWithCount, {\"count\": {{message}} }) 到 $t(entity.playlistWithCount, {\"count\": {{numOfPlaylists}} })",
             "title": "新增到$t(entity.playlist, {\"count\": 1})",
             "create": "建立 $t(entity.playlist, {\"count\": 1}) {{playlist}}",
-            "searchOrCreate": "搜尋$t(entity.playlist, {\"count\": 2}) 或輸入內容以建立新項目"
+            "searchOrCreate": "搜尋$t(entity.playlist, {\"count\": 2}) 或輸入內容以建立新項目",
+            "noneAdded": "沒有曲目新增到 $t(entity.playlist, {\"count\": 1}) '{{playlist}}'"
         },
         "createPlaylist": {
             "input_description": "$t(common.description)",
