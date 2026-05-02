@@ -16,6 +16,8 @@ import {
 } from '/@/shared/api/plex/plex-types';
 import { sortAlbumList, sortSongList } from '/@/shared/api/utils';
 import {
+    AlbumArtistListSort,
+    albumArtistListSortMap,
     AlbumListSort,
     albumListSortMap,
     ArtistListSort,
@@ -297,6 +299,26 @@ const filterPlexFolderSongs = (songs: Song[], searchTerm: string) => {
     });
 };
 
+const filterPlexSongs = (songs: Song[], searchTerm?: string) => {
+    if (!searchTerm) return songs;
+
+    const search = searchTerm.toLowerCase();
+
+    return songs.filter((song) => {
+        const name = song.name?.toLowerCase() || '';
+        const album = song.album?.toLowerCase() || '';
+        const artist = song.artistName?.toLowerCase() || '';
+        const albumArtist = song.albumArtistName?.toLowerCase() || '';
+
+        return (
+            name.includes(search) ||
+            album.includes(search) ||
+            artist.includes(search) ||
+            albumArtist.includes(search)
+        );
+    });
+};
+
 const getPlexImageRequest = ({
     apiClientProps: { server },
     baseUrl,
@@ -405,6 +427,17 @@ const getPlexSongSort = (sortBy?: SongListSort, sortOrder?: SortOrder) => {
 const getPlexArtistSort = (sortBy?: ArtistListSort, sortOrder?: SortOrder) => {
     const plexSortOrder = sortOrder ? sortOrderMap.plex[sortOrder] : undefined;
     const mappedSort = sortBy ? artistListSortMap.plex[sortBy] : undefined;
+
+    if (!mappedSort) {
+        return undefined;
+    }
+
+    return `${mappedSort}:${plexSortOrder || sortOrderMap.plex[SortOrder.ASC]}`;
+};
+
+const getPlexAlbumArtistSort = (sortBy?: AlbumArtistListSort, sortOrder?: SortOrder) => {
+    const plexSortOrder = sortOrder ? sortOrderMap.plex[sortOrder] : undefined;
+    const mappedSort = sortBy ? albumArtistListSortMap.plex[sortBy] : undefined;
 
     if (!mappedSort) {
         return undefined;
@@ -605,8 +638,10 @@ export const PlexController: InternalControllerEndpoint = {
                   errorMessage: 'Failed to get album artist list',
                   fetchPage: (start, size) =>
                       apiClient.getArtistList({
+                          searchTerm: query.searchTerm,
                           sectionId,
                           size,
+                          sort: getPlexAlbumArtistSort(query.sortBy, query.sortOrder),
                           start,
                       }),
                   getItems: (body) => body?.MediaContainer?.Directory || [],
@@ -615,8 +650,10 @@ export const PlexController: InternalControllerEndpoint = {
               })
             : await apiClient
                   .getArtistList({
+                      searchTerm: query.searchTerm,
                       sectionId,
                       size: query.limit || 50,
+                      sort: getPlexAlbumArtistSort(query.sortBy, query.sortOrder),
                       start: query.startIndex || 0,
                   })
                   .then((res) => {
@@ -769,6 +806,7 @@ export const PlexController: InternalControllerEndpoint = {
                         fetchPage: (start, size) =>
                             apiClient.getAlbumList({
                                 artistId: genreArtistId,
+                                searchTerm: query.searchTerm,
                                 sectionId,
                                 size,
                                 sort: getPlexAlbumSort(query.sortBy, query.sortOrder),
@@ -812,6 +850,7 @@ export const PlexController: InternalControllerEndpoint = {
                   fetchPage: (start, size) =>
                       apiClient.getAlbumList({
                           artistId,
+                          searchTerm: query.searchTerm,
                           sectionId,
                           size,
                           sort: getPlexAlbumSort(query.sortBy, query.sortOrder),
@@ -824,6 +863,7 @@ export const PlexController: InternalControllerEndpoint = {
             : await apiClient
                   .getAlbumList({
                       artistId,
+                      searchTerm: query.searchTerm,
                       sectionId,
                       size: query.limit || 50,
                       sort: getPlexAlbumSort(query.sortBy, query.sortOrder),
@@ -908,6 +948,7 @@ export const PlexController: InternalControllerEndpoint = {
 
         const apiClient = pxApiClient(apiClientProps);
         const res = await apiClient.getArtistList({
+            searchTerm: query.searchTerm,
             sectionId,
             size: query.limit || 50,
             sort: getPlexArtistSort(query.sortBy, query.sortOrder),
@@ -1223,7 +1264,11 @@ export const PlexController: InternalControllerEndpoint = {
             (query.artistIds?.length === 1 ? query.artistIds[0] : undefined) ||
             (query.albumArtistIds?.length === 1 ? query.albumArtistIds[0] : undefined);
         const shouldUseGlobalFavoriteSongs =
-            query.favorite === true && !genreId && !singleAlbumId && !singleArtistId;
+            query.favorite === true &&
+            !query.searchTerm &&
+            !genreId &&
+            !singleAlbumId &&
+            !singleArtistId;
         const shouldFetchAllPages =
             query.favorite === true || query.limit === -1 || genreId !== undefined;
 
@@ -1250,6 +1295,7 @@ export const PlexController: InternalControllerEndpoint = {
                             apiClient.getSongList({
                                 artistId: genreArtistId,
                                 favorite: query.favorite,
+                                searchTerm: query.searchTerm,
                                 sectionId,
                                 size,
                                 sort: getPlexSongSort(query.sortBy, query.sortOrder),
@@ -1315,6 +1361,7 @@ export const PlexController: InternalControllerEndpoint = {
                         fetchPage: (start, size) =>
                             apiClient.getSongList({
                                 favorite: true,
+                                searchTerm: query.searchTerm,
                                 sectionId,
                                 size,
                                 sort: getPlexSongSort(query.sortBy, query.sortOrder),
@@ -1351,6 +1398,7 @@ export const PlexController: InternalControllerEndpoint = {
                     apiClient.getSongList({
                         artistId: singleArtistId,
                         favorite: query.favorite,
+                        searchTerm: query.searchTerm,
                         sectionId,
                         size,
                         sort: getPlexSongSort(query.sortBy, query.sortOrder),
@@ -1365,6 +1413,7 @@ export const PlexController: InternalControllerEndpoint = {
                 .getSongList({
                     artistId: singleArtistId,
                     favorite: query.favorite,
+                    searchTerm: query.searchTerm,
                     sectionId,
                     size: query.limit || 50,
                     sort: getPlexSongSort(query.sortBy, query.sortOrder),
@@ -1390,6 +1439,10 @@ export const PlexController: InternalControllerEndpoint = {
         let items = rawResult.items.map((item) =>
             pxNormalize.song(item, apiClientProps.server, serverUrl, token),
         );
+
+        if (singleAlbumId && query.searchTerm) {
+            items = filterPlexSongs(items, query.searchTerm);
+        }
 
         if (query.favorite === true) {
             items = items.filter((item) => item.userFavorite);
@@ -1504,11 +1557,71 @@ export const PlexController: InternalControllerEndpoint = {
         return null;
     },
 
-    search: async () => {
+    search: async (args) => {
+        const { apiClientProps, query } = args;
+        const searchTerm = query.query?.trim();
+
+        if (!searchTerm) {
+            return {
+                albumArtists: [],
+                albums: [],
+                songs: [],
+            };
+        }
+
+        const serverUrl = getPlexServerUrl(apiClientProps.server);
+        const token = getPlexToken(apiClientProps.server);
+        const sectionId = getLibraryId(query.musicFolderId) || '1';
+        const apiClient = pxApiClient(apiClientProps);
+
+        const [albumArtistsRes, albumsRes, songsRes] = await Promise.all([
+            query.albumArtistLimit
+                ? apiClient.getArtistList({
+                      searchTerm,
+                      sectionId,
+                      size: query.albumArtistLimit,
+                      sort: 'titleSort:asc',
+                      start: query.albumArtistStartIndex || 0,
+                  })
+                : Promise.resolve(null),
+            query.albumLimit
+                ? apiClient.getAlbumList({
+                      searchTerm,
+                      sectionId,
+                      size: query.albumLimit,
+                      sort: 'titleSort:asc',
+                      start: query.albumStartIndex || 0,
+                  })
+                : Promise.resolve(null),
+            query.songLimit
+                ? apiClient.getSongList({
+                      searchTerm,
+                      sectionId,
+                      size: query.songLimit,
+                      sort: 'titleSort:asc',
+                      start: query.songStartIndex || 0,
+                  })
+                : Promise.resolve(null),
+        ]);
+
+        if (
+            (albumArtistsRes && albumArtistsRes.status !== 200) ||
+            (albumsRes && albumsRes.status !== 200) ||
+            (songsRes && songsRes.status !== 200)
+        ) {
+            throw new Error('Failed to search');
+        }
+
         return {
-            albumArtists: [],
-            albums: [],
-            songs: [],
+            albumArtists: (albumArtistsRes?.body?.MediaContainer?.Directory || []).map((item) =>
+                pxNormalize.albumArtist(item, apiClientProps.server, serverUrl, token),
+            ),
+            albums: (albumsRes?.body?.MediaContainer?.Directory || []).map((item) =>
+                pxNormalize.album(item, apiClientProps.server, serverUrl, token),
+            ),
+            songs: (songsRes?.body?.MediaContainer?.Track || []).map((item) =>
+                pxNormalize.song(item, apiClientProps.server, serverUrl, token),
+            ),
         };
     },
 

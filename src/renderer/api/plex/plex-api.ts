@@ -136,6 +136,39 @@ type PlexAlbumListJsonResponse = {
 // as it does from the favorites endpoint, so we reuse the type.
 type PlexAlbumTracksJsonResponse = PlexFavoriteSongListJsonResponse;
 
+type PlexArtistJson = {
+    addedAt?: number | string;
+    art?: string;
+    banner?: string;
+    childCount?: number | string;
+    composite?: string;
+    duration?: number | string;
+    Genre?: PlexJsonTag[];
+    guid?: string;
+    index?: number | string;
+    key?: string;
+    leafCount?: number | string;
+    originallyAvailableAt?: string;
+    ratingKey?: string;
+    summary?: string;
+    thumb?: string;
+    title?: string;
+    titleSort?: string;
+    type?: string;
+    updatedAt?: number | string;
+    userRating?: number | string;
+    viewedLeafCount?: number | string;
+};
+
+type PlexArtistListJsonResponse = {
+    MediaContainer?: {
+        Metadata?: PlexArtistJson[];
+        offset?: number | string;
+        size?: number | string;
+        totalSize?: number | string;
+    };
+};
+
 type PlexFavoriteSongJson = {
     addedAt?: number | string;
     duration?: number | string;
@@ -366,6 +399,46 @@ const toPlexAlbumListResponse = (body: PlexAlbumListJsonResponse): PlexAlbumList
                 Country: (item.Country || []).map(toPlexTag),
                 Genre: (item.Genre || []).map(toPlexTag),
                 Role: (item.Role || []).map(toPlexRole),
+            })),
+        },
+    };
+};
+
+const toPlexArtistListResponse = (body: PlexArtistListJsonResponse): PlexArtistListResponse => {
+    const container = body?.MediaContainer;
+    const metadata = container?.Metadata || [];
+
+    return {
+        MediaContainer: {
+            $: {
+                offset: toOptionalString(container?.offset) || '0',
+                size: toOptionalString(container?.size) || String(metadata.length),
+                totalSize: toOptionalString(container?.totalSize),
+            },
+            Directory: metadata.map((item) => ({
+                $: {
+                    addedAt: toOptionalString(item.addedAt),
+                    art: item.art,
+                    banner: item.banner,
+                    childCount: toOptionalString(item.childCount),
+                    composite: item.composite,
+                    duration: toOptionalString(item.duration),
+                    guid: item.guid,
+                    index: toOptionalString(item.index),
+                    key: item.key || '',
+                    leafCount: toOptionalString(item.leafCount),
+                    originallyAvailableAt: item.originallyAvailableAt,
+                    ratingKey: item.ratingKey || '',
+                    summary: item.summary,
+                    thumb: item.thumb,
+                    title: item.title || '',
+                    titleSort: item.titleSort,
+                    type: item.type || 'artist',
+                    updatedAt: toOptionalString(item.updatedAt),
+                    userRating: toOptionalString(item.userRating),
+                    viewedLeafCount: toOptionalString(item.viewedLeafCount),
+                },
+                Genre: (item.Genre || []).map(toPlexTag),
             })),
         },
     };
@@ -656,6 +729,7 @@ export const pxApiClient = (args: {
 
         getAlbumList: async (params: {
             artistId?: string;
+            searchTerm?: string;
             sectionId: string;
             size?: number;
             sort?: string;
@@ -665,12 +739,15 @@ export const pxApiClient = (args: {
                 method: 'GET',
                 params: {
                     'artist.id': params.artistId,
+                    query: params.searchTerm,
                     sort: params.sort || 'titleSort',
                     type: 9,
                     'X-Plex-Container-Size': params.size || 50,
                     'X-Plex-Container-Start': params.start || 0,
                 },
-                path: `library/sections/${params.sectionId}/all`,
+                path: params.searchTerm
+                    ? `library/sections/${params.sectionId}/search`
+                    : `library/sections/${params.sectionId}/all`,
             });
 
             return {
@@ -713,11 +790,33 @@ export const pxApiClient = (args: {
 
         getArtistList: async (params: {
             genreId?: string;
+            searchTerm?: string;
             sectionId: string;
             size?: number;
             sort?: string;
             start?: number;
         }): ApiResponse<PlexArtistListResponse> => {
+            if (params.searchTerm) {
+                const response = await requestJson<PlexArtistListJsonResponse>({
+                    method: 'GET',
+                    params: {
+                        genre: params.genreId,
+                        query: params.searchTerm,
+                        sort: params.sort || 'titleSort',
+                        type: 8,
+                        'X-Plex-Container-Size': params.size || 50,
+                        'X-Plex-Container-Start': params.start || 0,
+                    },
+                    path: `library/sections/${params.sectionId}/search`,
+                });
+
+                return {
+                    body: toPlexArtistListResponse(response.body),
+                    headers: response.headers,
+                    status: response.status,
+                };
+            }
+
             const response = await request<PlexArtistListResponse>({
                 method: 'GET',
                 params: {
@@ -886,6 +985,7 @@ export const pxApiClient = (args: {
             albumId?: string;
             artistId?: string;
             favorite?: boolean;
+            searchTerm?: string;
             sectionId: string;
             size?: number;
             sort?: string;
@@ -896,13 +996,16 @@ export const pxApiClient = (args: {
                 params: {
                     'album.id': params.albumId,
                     'artist.id': params.artistId,
+                    query: params.searchTerm,
                     sort: params.sort || 'titleSort',
                     type: 10,
                     'userRating>=': params.favorite ? 10 : undefined,
                     'X-Plex-Container-Size': params.size || 50,
                     'X-Plex-Container-Start': params.start || 0,
                 },
-                path: `library/sections/${params.sectionId}/all`,
+                path: params.searchTerm
+                    ? `library/sections/${params.sectionId}/search`
+                    : `library/sections/${params.sectionId}/all`,
             });
 
             return {
