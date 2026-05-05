@@ -427,7 +427,9 @@
         "waveformLoadingDelay": "Retraso de carga de la forma de onda",
         "waveformLoadingDelay_description": "Retraso en segundos antes de cargar la forma de onda. Incrementa este valor si estás experimentando tartamudeos al usar el reproductor web.",
         "playerbarWaveformStretch": "Estiramiento de la forma de onda",
-        "playerbarWaveformStretch_description": "Estira la forma de onda para rellenar el espacio disponible"
+        "playerbarWaveformStretch_description": "Estira la forma de onda para rellenar el espacio disponible",
+        "preventSuspendOnPlayback": "Evitar la suspensión durante la reproducción",
+        "preventSuspendOnPlayback_description": "Evita que la aplicación se suspenda mientras se reproduce música"
     },
     "action": {
         "editPlaylist": "editar $t(entity.playlist, {\"count\": 1})",
@@ -936,7 +938,8 @@
             "input_skipDuplicates": "saltar duplicados",
             "input_playlists": "$t(entity.playlist, {\"count\": 2})",
             "create": "Crear $t(entity.playlist, {\"count\": 1}) {{playlist}}",
-            "searchOrCreate": "Buscar $t(entity.playlist, {\"count\": 2}) o escribir para crear uno nuevo"
+            "searchOrCreate": "Buscar $t(entity.playlist, {\"count\": 2}) o escribir para crear uno nuevo",
+            "noneAdded": "Ninguna pista fue añadida a $t(entity.playlist, {\"count\": 1}) '{{playlist}}'"
         },
         "updateServer": {
             "title": "actualizar servidor",

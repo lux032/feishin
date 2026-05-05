@@ -427,7 +427,9 @@
         "waveformLoadingDelay": "zpoždění načítání vlnové křivky",
         "waveformLoadingDelay_description": "zpoždění v sekundách před načtením vlnové křivky. zvyšte, pokud jste během používání webového přehrávače zaznamenali záseky.",
         "playerbarWaveformStretch": "natáhnutí vlnové křivky",
-        "playerbarWaveformStretch_description": "natáhně vlnovou křivku tak, aby vyplnila dostupný prostor"
+        "playerbarWaveformStretch_description": "natáhně vlnovou křivku tak, aby vyplnila dostupný prostor",
+        "preventSuspendOnPlayback_description": "zabránit aplikaci v uspání během přehrávání hudby",
+        "preventSuspendOnPlayback": "zabránit uspání při přehrávání"
     },
     "action": {
         "editPlaylist": "upravit $t(entity.playlist, {\"count\": 1})",
@@ -1045,7 +1047,8 @@
             "input_skipDuplicates": "přeskočit duplicity",
             "input_playlists": "$t(entity.playlist, {\"count\": 2})",
             "create": "vytvořit $t(entity.playlist, {\"count\": 1}) {{playlist}}",
-            "searchOrCreate": "vyhledejte $t(entity.playlist, {\"count\": 2}) nebo pište pro vytvoření nového"
+            "searchOrCreate": "vyhledejte $t(entity.playlist, {\"count\": 2}) nebo pište pro vytvoření nového",
+            "noneAdded": "do $t(entity.playlist, {\"count\": 1}) '{{playlist}}' nebyly přidány žádné skladby"
         },
         "updateServer": {
             "title": "upravit server",

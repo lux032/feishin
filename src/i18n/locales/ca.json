@@ -409,7 +409,8 @@
             "input_skipDuplicates": "salta't els duplicats",
             "success": "s'ha afegit $t(entity.trackWithCount, {\"count\": {{message}} }) a $t(entity.playlistWithCount, {\"count\": {{numOfPlaylists}} })",
             "create": "crea $t(entity.playlist, {\"count\": 1}) {{playlist}}",
-            "searchOrCreate": "cerca $t(entity.playlist, {\"count\": 2}) o escriu per crear-ne una de nova"
+            "searchOrCreate": "cerca $t(entity.playlist, {\"count\": 2}) o escriu per crear-ne una de nova",
+            "noneAdded": "no s'han afegit pistes a la $t(entity.playlist, {\"count\": 1}) '{{playlist}}'"
         },
         "createPlaylist": {
             "input_description": "$t(common.description)",
@@ -935,7 +936,9 @@
         "sidePlayQueueLayout_optionHorizontal": "horitzontal",
         "sidePlayQueueLayout_optionVertical": "vertical",
         "waveformLoadingDelay": "demora de càrrega de la forma d'ona",
-        "waveformLoadingDelay_description": "demora en segons abans de carregar la forma d'ona. incrementeu aquest valor si patiu interrupcions en fer servir el reproductor web."
+        "waveformLoadingDelay_description": "demora en segons abans de carregar la forma d'ona. incrementeu aquest valor si patiu interrupcions en fer servir el reproductor web.",
+        "preventSuspendOnPlayback_description": "evita que l'aplicació quedi suspesa mentre es reprodueix música",
+        "preventSuspendOnPlayback": "evita la suspensió durant la reproducció"
     },
     "table": {
         "column": {

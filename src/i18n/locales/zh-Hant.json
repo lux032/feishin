@@ -799,7 +799,9 @@
         "waveformLoadingDelay": "波形載入延遲",
         "waveformLoadingDelay_description": "載入波形前的延遲（以秒為單位）。如果您在使用網頁播放器時遇到卡頓，請增加此值。",
         "playerbarWaveformStretch": "波形拉伸",
-        "playerbarWaveformStretch_description": "拉伸波形來填補可用空間"
+        "playerbarWaveformStretch_description": "拉伸波形來填補可用空間",
+        "preventSuspendOnPlayback_description": "音樂播放時防止應用程式進入休眠",
+        "preventSuspendOnPlayback": "在播放時防止應用程式暫停"
     },
     "table": {
         "config": {
