@@ -547,7 +547,11 @@ const PlaylistTableItem = memo(
 
         return (
             <Box className={styles.container} w="100%">
-                <Grid align="center" gutter="xs" w="100%">
+                <Grid
+                    align="center"
+                    styles={{ inner: { gap: 'var(--theme-spacing-xs)' } }}
+                    w="100%"
+                >
                     <Grid.Col span="content">
                         <Flex align="center" justify="center" px="sm">
                             <ItemImage

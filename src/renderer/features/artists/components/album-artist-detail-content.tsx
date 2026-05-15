@@ -1190,7 +1190,7 @@ export const AlbumArtistDetailContent = ({
                     artistSongsLink={artistSongsLink}
                     onArtistRadio={handleArtistRadio}
                 />
-                <Grid gutter="2xl">
+                <Grid styles={{ inner: { gap: 'var(--theme-spacing-2xl)' } }}>
                     <AlbumArtistMetadataGenres
                         genres={detailQuery.data?.genres}
                         order={genresOrder}

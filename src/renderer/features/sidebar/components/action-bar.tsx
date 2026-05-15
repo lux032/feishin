@@ -20,9 +20,9 @@ export const ActionBar = () => {
         <div className={styles.container}>
             <Grid
                 display="flex"
-                gutter="sm"
                 styles={{
                     inner: {
+                        gap: 'var(--theme-spacing-sm)',
                         width: '100%',
                     },
                     root: {
