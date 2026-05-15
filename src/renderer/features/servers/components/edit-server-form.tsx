@@ -36,7 +36,7 @@ interface EditServerFormProps {
 
 const ModifiedFieldIndicator = () => {
     return (
-        <Tooltip label={i18n.t('common.modified', { postProcess: 'titleCase' }) as string}>
+        <Tooltip label={i18n.t('common.modified') as string}>
             <Icon color="warn" icon="info" />
         </Tooltip>
     );
@@ -90,7 +90,7 @@ export const EditServerForm = ({ isUpdate, onCancel, password, server }: EditSer
                 const existingServer = getServerById(server.id);
                 if (!existingServer) {
                     return toast.error({
-                        message: t('error.invalidServer', { postProcess: 'sentenceCase' }),
+                        message: t('error.invalidServer'),
                     });
                 }
 
@@ -107,7 +107,7 @@ export const EditServerForm = ({ isUpdate, onCancel, password, server }: EditSer
 
                 if (!authFunction) {
                     return toast.error({
-                        message: t('error.invalidServer', { postProcess: 'sentenceCase' }),
+                        message: t('error.invalidServer'),
                     });
                 }
 
@@ -124,7 +124,7 @@ export const EditServerForm = ({ isUpdate, onCancel, password, server }: EditSer
 
                 if (!data) {
                     return toast.error({
-                        message: t('error.authenticationFailed', { postProcess: 'sentenceCase' }),
+                        message: t('error.authenticationFailed'),
                     });
                 }
 
@@ -165,7 +165,7 @@ export const EditServerForm = ({ isUpdate, onCancel, password, server }: EditSer
 
             updateServer(server.id, serverItem);
             toast.success({
-                message: t('form.updateServer.title', { postProcess: 'sentenceCase' }),
+                message: t('form.updateServer.title'),
             });
 
             // Handle password saving in local settings
@@ -184,7 +184,6 @@ export const EditServerForm = ({ isUpdate, onCancel, password, server }: EditSer
                             toast.error({
                                 message: t('form.addServer.error', {
                                     context: 'savePassword',
-                                    postProcess: 'sentenceCase',
                                 }),
                             });
                         }
@@ -210,7 +209,6 @@ export const EditServerForm = ({ isUpdate, onCancel, password, server }: EditSer
                 <TextInput
                     label={t('form.addServer.input', {
                         context: 'name',
-                        postProcess: 'titleCase',
                     })}
                     required
                     rightSection={form.isDirty('name') && <ModifiedFieldIndicator />}
@@ -219,7 +217,6 @@ export const EditServerForm = ({ isUpdate, onCancel, password, server }: EditSer
                 <TextInput
                     label={t('form.addServer.input', {
                         context: 'url',
-                        postProcess: 'titleCase',
                     })}
                     required
                     rightSection={form.isDirty('url') && <ModifiedFieldIndicator />}
@@ -228,11 +225,9 @@ export const EditServerForm = ({ isUpdate, onCancel, password, server }: EditSer
                 <TextInput
                     label={t('form.addServer.input', {
                         context: 'remoteUrl',
-                        postProcess: 'titleCase',
                     })}
                     placeholder={t('form.addServer.input', {
                         context: 'remoteUrlPlaceholder',
-                        postProcess: 'sentenceCase',
                     })}
                     rightSection={form.isDirty('remoteUrl') && <ModifiedFieldIndicator />}
                     {...form.getInputProps('remoteUrl')}
@@ -242,7 +237,6 @@ export const EditServerForm = ({ isUpdate, onCancel, password, server }: EditSer
                         <Checkbox
                             label={t('form.addServer.input', {
                                 context: 'preferRemoteUrl',
-                                postProcess: 'titleCase',
                             })}
                             {...form.getInputProps('preferRemoteUrl', {
                                 type: 'checkbox',
@@ -255,7 +249,6 @@ export const EditServerForm = ({ isUpdate, onCancel, password, server }: EditSer
                     <TextInput
                         label={t('form.addServer.input', {
                             context: 'username',
-                            postProcess: 'titleCase',
                         })}
                         required
                         rightSection={form.isDirty('username') && <ModifiedFieldIndicator />}
@@ -268,7 +261,6 @@ export const EditServerForm = ({ isUpdate, onCancel, password, server }: EditSer
                         isPlex
                             ? t('form.addServer.input', {
                                   context: 'tokenDescription',
-                                  postProcess: 'sentenceCase',
                               })
                             : undefined
                     }
@@ -276,11 +268,9 @@ export const EditServerForm = ({ isUpdate, onCancel, password, server }: EditSer
                         isPlex
                             ? t('form.addServer.input', {
                                   context: 'token',
-                                  postProcess: 'titleCase',
                               })
                             : t('form.addServer.input', {
                                   context: 'password',
-                                  postProcess: 'titleCase',
                               })
                     }
                     {...form.getInputProps('password')}
@@ -289,7 +279,6 @@ export const EditServerForm = ({ isUpdate, onCancel, password, server }: EditSer
                     <Checkbox
                         label={t('form.addServer.input', {
                             context: 'savePassword',
-                            postProcess: 'titleCase',
                         })}
                         {...form.getInputProps('savePassword', {
                             type: 'checkbox',
@@ -300,7 +289,6 @@ export const EditServerForm = ({ isUpdate, onCancel, password, server }: EditSer
                     <Checkbox
                         label={t('form.addServer.input', {
                             context: 'legacyAuthentication',
-                            postProcess: 'titleCase',
                         })}
                         {...form.getInputProps('legacyAuth', {
                             type: 'checkbox',
@@ -311,11 +299,9 @@ export const EditServerForm = ({ isUpdate, onCancel, password, server }: EditSer
                     <Checkbox
                         description={t('form.addServer.input', {
                             context: 'preferInstantMixDescription',
-                            postProcess: 'sentenceCase',
                         })}
                         label={t('form.addServer.input', {
                             context: 'preferInstantMix',
-                            postProcess: 'titleCase',
                         })}
                         {...form.getInputProps('preferInstantMix', {
                             type: 'checkbox',
