@@ -48,7 +48,8 @@
         "sleepTimer_timeRemaining": "{{time}} restante(s)",
         "sleepTimer_setCustom": "Définir le minuteur",
         "sleepTimer_cancel": "Annuler le minuteur",
-        "albumRadio": "Radio d'album"
+        "albumRadio": "Radio d'album",
+        "scrobbleForceSubmit": "Forcer le scrobble"
     },
     "action": {
         "editPlaylist": "Éditer $t(entity.playlist, {\"count\": 1})",
@@ -92,7 +93,9 @@
         "selectRangeOfItems": "Sélectionner une plage d'entrées",
         "selectAll": "Tout sélectionner",
         "openApplicationDirectory": "Ouvrir le répertoire de l'application",
-        "goToCurrent": "Aller à la piste en cours"
+        "goToCurrent": "Aller à la piste en cours",
+        "collapseAllFolders": "Réduire tous les dossiers",
+        "expandAllFolders": "Développer tous les dossiers"
     },
     "common": {
         "backward": "En arrière",
@@ -222,7 +225,8 @@
         "filter_multiple": "Multiple",
         "rename": "Renommer",
         "newVersionAvailable": "Une nouvelle version est disponible",
-        "numberOfResults": "{{numberOfResults}} résultats"
+        "numberOfResults": "{{numberOfResults}} résultats",
+        "back": "Retour"
     },
     "error": {
         "remotePortWarning": "Redémarrer le serveur pour appliquer le nouveau port",
@@ -699,7 +703,7 @@
         "transcodeFormat_description": "Sélectionne le format du transcodage. laisser vide pour laisser le serveur décider",
         "volumeWidth": "Largeur de la barre de volume",
         "volumeWidth_description": "La largeur de la barre de volume",
-        "customCssEnable": "Active le CSS personnalisé",
+        "customCssEnable": "Activer le CSS personnalisé",
         "customCssEnable_description": "Permet l'écriture de CSS personnalisé",
         "customCssNotice": "Attention : bien qu'il y ait un certain assainissement (blocage de URL() et de content :), l'utilisation de CSS personnalisé peut toujours présenter des risques en modifiant l'interface",
         "customCss": "Css personnalisé",
@@ -895,7 +899,24 @@
         "sidePlayQueueLayout_optionHorizontal": "Horizontal",
         "sidePlayQueueLayout_optionVertical": "Vertical",
         "waveformLoadingDelay": "Délai de chargement de la forme d'onde",
-        "waveformLoadingDelay_description": "Délai en secondes avant le chargement de l'onde. augmentez cette valeur si vous rencontrez des saccades lors de l'utilisation du lecteur web."
+        "waveformLoadingDelay_description": "Délai en secondes avant le chargement de l'onde. augmentez cette valeur si vous rencontrez des saccades lors de l'utilisation du lecteur web.",
+        "sidebarPlaylistMode_optionExpanded": "Étendu",
+        "hotkey_listShowPlayingSong": "Affiche le titre en cours dans la liste",
+        "preventSuspendOnPlayback_description": "Empêcher la suspension de l'application lors de la lecture de musique",
+        "preventSuspendOnPlayback": "Empêcher la suspension lors de la lecture",
+        "sidebarPlaylistFolders_description": "Crée une vue de dossier pour les listes de lecture dont le nom inclut le séparateur configuré",
+        "sidebarPlaylistFolders": "Activer les dossiers",
+        "sidebarPlaylistFolderSeparator_description": "Caractère (ou chaîne de caractères) servant à séparer les niveaux de dossiers dans le nom d'une liste de lecture",
+        "sidebarPlaylistFolderSeparator": "Séparateur de dossiers",
+        "sidebarPlaylistFolderView_description": "Comment les dossiers sont affichés dans la barre latérale",
+        "sidebarPlaylistFolderView": "Affichage des dossiers",
+        "sidebarPlaylistFolderView_optionSingle": "Dossier unique",
+        "sidebarPlaylistFolderView_optionTree": "Vue arborescente",
+        "sidebarPlaylistFolderView_optionNavigation": "Vue de navigation",
+        "sidebarPlaylistFolderTreeIndent": "Indentation de l'arbre",
+        "sidebarPlaylistMode_description": "Comment chaque liste de lecture est affichée dans la barre latérale",
+        "sidebarPlaylistMode": "Mode de liste de lecture de la barre latérale",
+        "sidebarPlaylistMode_optionCompact": "Compacte"
     },
     "form": {
         "deletePlaylist": {
@@ -922,12 +943,13 @@
             "input_remoteUrlPlaceholder": "Optionnel : URL publique pour les fonctionnalités externes"
         },
         "addToPlaylist": {
-            "success": "$t(entity.trackWithCount, {\"count\" : {{message}} }) ajouté à $t(entity.playlistWithCount, {\"count\" : {{numOfPlaylists}} })",
+            "success": "$t(entity.trackWithCount, {\"count\": {{message}} }) ajouté à $t(entity.playlistWithCount, {\"count\": {{numOfPlaylists}} })",
             "title": "Ajouter à $t(entity.playlist, {\"count\": 1})",
             "input_skipDuplicates": "Sauter les doublons",
             "input_playlists": "$t(entity.playlist, {\"count\": 2})",
             "create": "Créer $t(entity.playlist, {\"count\": 1}) {{playlist}}",
-            "searchOrCreate": "Rechercher $t(entity.playlist, {\"count\": 2}) ou tapez pour en créer une nouvelle"
+            "searchOrCreate": "Rechercher $t(entity.playlist, {\"count\": 2}) ou tapez pour en créer une nouvelle",
+            "noneAdded": "Aucune piste n'a été ajoutée à $t(entity.playlist, {\"count\": 1}) {{playlist}}"
         },
         "createPlaylist": {
             "title": "Créer une $t(entity.playlist, {\"count\": 1})",

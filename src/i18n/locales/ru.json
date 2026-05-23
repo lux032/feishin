@@ -41,7 +41,9 @@
         "viewMore": "Посмотреть больше",
         "openApplicationDirectory": "Открыть папку приложения",
         "selectRangeOfItems": "Выбрать диапазон элементов",
-        "goToCurrent": "Перейти к текущему элементу"
+        "goToCurrent": "Перейти к текущему элементу",
+        "collapseAllFolders": "Свернуть все папки",
+        "expandAllFolders": "Развернуть все папки"
     },
     "common": {
         "backward": "Назад",
@@ -171,7 +173,8 @@
         "externalLinks": "Внешние ссылки",
         "explicitStatus": "Признак нецензурного контента",
         "newVersionAvailable": "Доступна новая версия",
-        "numberOfResults": "{{numberOfResults}} результатов"
+        "numberOfResults": "{{numberOfResults}} результатов",
+        "back": "Назад"
     },
     "entity": {
         "album_one": "Альбом",
@@ -430,7 +433,8 @@
         "sleepTimer_timeRemaining": "{{time}} осталось",
         "sleepTimer_setCustom": "Установить таймер",
         "sleepTimer_custom": "Пользовательский",
-        "sleepTimer_cancel": "Отменить таймер"
+        "sleepTimer_cancel": "Отменить таймер",
+        "scrobbleForceSubmit": "Принудительная скробблинг"
     },
     "page": {
         "sidebar": {
@@ -491,7 +495,8 @@
             "selectMusicFolder": "Выбрать папку с музыкой",
             "noMusicFolder": "Папка с музыкой не выбрана",
             "multipleMusicFolders": "{{count}} выбрано музыкальных папок",
-            "commandPalette": "открыть командную строку"
+            "commandPalette": "открыть командную строку",
+            "settings": "$t(common.setting, {\"count\": 2})"
         },
         "manageServers": {
             "title": "Сервера",
@@ -569,7 +574,8 @@
         },
         "genreList": {
             "showAlbums": "показать $t(entity.genre, {\"count\": 1}) $t(entity.album, {\"count\": 2})",
-            "showTracks": "показать $t(entity.genre, {\"count\": 1}) $t(entity.track, {\"count\": 2})"
+            "showTracks": "показать $t(entity.genre, {\"count\": 1}) $t(entity.track, {\"count\": 2})",
+            "title": "$t(entity.genre, {\"count\": 2})"
         },
         "trackList": {
             "artistTracks": "Треки {{artist}}",
@@ -681,7 +687,8 @@
             "input_skipDuplicates": "не добавлять дубликаты",
             "create": "создать $t(entity.playlist, {\"count\": 1}) {{playlist}}",
             "searchOrCreate": "для создания нового списка выполните поиск по $t(entity.playlist, {\"count\": 2}) или введите соответствующий текст",
-            "input_playlists": "$t(entity.playlist, {\"count\": 2})"
+            "input_playlists": "$t(entity.playlist, {\"count\": 2})",
+            "noneAdded": "Ни один трек не добавлен в $t(entity.playlist, {\"count\": 1}) '{{playlist}}'"
         },
         "updateServer": {
             "title": "Обновление сервера",

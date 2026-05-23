@@ -1,7 +1,7 @@
 {
     "page": {
         "sidebar": {
-            "myLibrary": "La meva llibreria",
+            "myLibrary": "La meva mediateca",
             "albumArtists": "$t(entity.albumArtist, {\"count\": 2})",
             "albums": "$t(entity.album, {\"count\": 2})",
             "artists": "$t(entity.artist, {\"count\": 2})",
@@ -340,7 +340,8 @@
         "filter_multiple": "Multi",
         "rename": "Reanomena",
         "newVersionAvailable": "Hi ha una nova versió disponible",
-        "numberOfResults": "{{numberOfResults}} resultats"
+        "numberOfResults": "{{numberOfResults}} resultats",
+        "back": "Enrere"
     },
     "entity": {
         "album_one": "Àlbum",
@@ -557,7 +558,9 @@
         "selectRangeOfItems": "Selecciona un interval d'elements",
         "selectAll": "Selecciona-ho tot",
         "openApplicationDirectory": "Obre el directori de l'aplicació",
-        "goToCurrent": "Anar a l'element actual"
+        "goToCurrent": "Anar a l'element actual",
+        "collapseAllFolders": "Replega totes les carpetes",
+        "expandAllFolders": "Expandeix totes les carpetes"
     },
     "setting": {
         "language_description": "Estableix l'idioma de l'aplicació ($t(common.restartRequired))",
@@ -921,8 +924,8 @@
         "primaryShade_description": "Substitueix el to primari (0–9) utilitzat per a botons, enllaços i altres elements de color primari",
         "playerItemConfiguration_description": "Configurar quins elements es mostren i en quin ordre al reproductor de pantalla completa",
         "playerItemConfiguration": "Configuració d'elements del jugador",
-        "listenbrainz_description": "mostra enllaços a ListenBrainz a les pàgines d'artista/àlbum",
-        "listenbrainz": "mostra enllaços a ListenBrainz",
+        "listenbrainz_description": "Mostra enllaços a ListenBrainz a les pàgines d'artista/àlbum",
+        "listenbrainz": "Mostra enllaços a ListenBrainz",
         "qobuz_description": "Mostra enllaços a Qobuz a les pàgines d'artista/àlbum",
         "qobuz": "Mostra enllaços a Qobuz",
         "spotify_description": "Mostra enllaços a Spotify a les pàgines d'artista/àlbum",
@@ -930,25 +933,43 @@
         "nativeSpotify_description": "Obre amb Spotify en lloc del vostre navegador",
         "nativeSpotify": "Fes servir Spotify",
         "playerbarWaveformStretch": "Extensió de la forma d'ona",
-        "playerbarWaveformStretch_description": "estén la forma d'ona per omplir l'espai disponible",
+        "playerbarWaveformStretch_description": "Estén la forma d'ona per omplir l'espai disponible",
         "sidePlayQueueLayout": "Disposició de la cua de reproducció lateral",
-        "sidePlayQueueLayout_description": "estableix la disposició de la cua de reproducció lateral adjunta",
-        "sidePlayQueueLayout_optionHorizontal": "horitzontal",
-        "sidePlayQueueLayout_optionVertical": "vertical",
+        "sidePlayQueueLayout_description": "Estableix la disposició de la cua de reproducció lateral adjunta",
+        "sidePlayQueueLayout_optionHorizontal": "Horitzontal",
+        "sidePlayQueueLayout_optionVertical": "Vertical",
         "waveformLoadingDelay": "Demora de càrrega de la forma d'ona",
         "waveformLoadingDelay_description": "Demora en segons abans de carregar la forma d'ona. Incrementeu aquest valor si patiu interrupcions en fer servir el reproductor web.",
         "preventSuspendOnPlayback_description": "Evita que l'aplicació quedi suspesa mentre es reprodueix música",
-        "preventSuspendOnPlayback": "Evita la suspensió durant la reproducció"
+        "preventSuspendOnPlayback": "Evita la suspensió durant la reproducció",
+        "hotkey_listShowPlayingSong": "Mostra la cançó en reproducció a la llista",
+        "sidebarPlaylistFolders_description": "Create una vista de carpeta per lliste de reproducció que inclogui el separador configurat al nom",
+        "sidebarPlaylistFolders": "Habilita les carpetes",
+        "sidebarPlaylistFolderSeparator_description": "Caràcter (o cadena) que separa els nivells de carpetes al nom d'una llista de reproducció",
+        "sidebarPlaylistFolderSeparator": "Separador de carpetes",
+        "sidebarPlaylistFolderView_description": "Com es mostren les carpetes a la barra lateral",
+        "sidebarPlaylistFolderView": "Vista de carpeta",
+        "sidebarPlaylistFolderView_optionSingle": "Carpeta única",
+        "sidebarPlaylistFolderView_optionTree": "Vista d'arbre",
+        "sidebarPlaylistFolderView_optionNavigation": "Vista de navegació",
+        "sidebarPlaylistFolderTreeIndent_description": "Píxels de sagnat per cada nivell de l'arbre",
+        "sidebarPlaylistFolderTreeIndent": "Sagnat de l'arbre",
+        "sidebarPlaylistFolderTreeLineColor_description": "Color de les línies connectores de l'arbre (deixeu-ho en blanc per fer servir el valor predeterminat)",
+        "sidebarPlaylistFolderTreeLineColor": "Color de la línia de l'arbre",
+        "sidebarPlaylistMode_description": "Com es mostra cada llista de reproducció a la llista de la barra lateral",
+        "sidebarPlaylistMode": "Mode de llista de reproducció a la barra lateral",
+        "sidebarPlaylistMode_optionCompact": "Compacte",
+        "sidebarPlaylistMode_optionExpanded": "Expandit"
     },
     "table": {
         "column": {
-            "albumCount": "$t(entity.album, {\"count\": 2})",
-            "artist": "$t(entity.artist, {\"count\": 1})",
-            "channels": "$t(common.channel, {\"count\": 2})",
-            "codec": "$t(common.codec)",
-            "genre": "$t(entity.genre, {\"count\": 1})",
-            "size": "$t(common.size)",
-            "songCount": "$t(entity.track, {\"count\": 2})",
+            "albumCount": "Àlbums",
+            "artist": "Artista",
+            "channels": "Canals",
+            "codec": "Còdec",
+            "genre": "Gènere",
+            "size": "Mida",
+            "songCount": "Pistes",
             "releaseYear": "Any",
             "playCount": "Reproduccions",
             "releaseDate": "Data de llançament",
@@ -966,8 +987,8 @@
             "path": "Ruta",
             "rating": "Qualificació",
             "title": "Títol",
-            "bitDepth": "$t(common.bitDepth)",
-            "sampleRate": "$t(common.sampleRate)",
+            "bitDepth": "Profunditat de bits",
+            "sampleRate": "Freqüència de mostreig",
             "owner": "Propietari"
         },
         "config": {
@@ -1146,7 +1167,8 @@
         "sleepTimer_timeRemaining": "Queden {{time}}",
         "sleepTimer_setCustom": "Configura el temporitzador",
         "sleepTimer_cancel": "Cancel·la el temporitzador",
-        "albumRadio": "Ràdio d'àlbums"
+        "albumRadio": "Ràdio d'àlbums",
+        "scrobbleForceSubmit": "Força l'scrobble"
     },
     "error": {
         "credentialsRequired": "Credencials requerides",

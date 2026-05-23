@@ -1,5 +1,3 @@
-import type { IpcRendererEvent } from 'electron';
-
 import { t } from 'i18next';
 import isElectron from 'is-electron';
 import { memo, useCallback, useEffect, useState } from 'react';
@@ -39,7 +37,7 @@ import { FontType } from '/@/shared/types/types';
 const localSettings = isElectron() ? window.api.localSettings : null;
 const ipc = isElectron() ? window.api.ipc : null;
 // Electron 32+ removed file.path, use this which is exposed in preload to get real path
-const webUtils = isElectron() ? window.electron.webUtils : null;
+const getPathForFile = isElectron() ? window.api.getPathForFile : null;
 
 const HOME_FEATURE_STYLE_OPTIONS = [
     {
@@ -124,7 +122,7 @@ export const ApplicationSettings = memo(() => {
     // }, [fontSettings.custom]);
 
     const onFontError = useCallback(
-        (_: IpcRendererEvent, file: string) => {
+        (file: string) => {
             toast.error({
                 message: `${file} is not a valid font file`,
             });
@@ -295,7 +293,7 @@ export const ApplicationSettings = memo(() => {
                         setSettings({
                             font: {
                                 ...fontSettings,
-                                custom: e ? webUtils?.getPathForFile(e) || null : null,
+                                custom: e ? getPathForFile?.(e) || null : null,
                             },
                         })
                     }

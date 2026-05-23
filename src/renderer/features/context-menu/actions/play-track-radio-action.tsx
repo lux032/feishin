@@ -12,10 +12,15 @@ import { Play } from '/@/shared/types/types';
 
 interface PlayTrackRadioActionProps {
     disabled?: boolean;
+    skipFirstSong?: boolean;
     song: Song;
 }
 
-export const PlayTrackRadioAction = ({ disabled, song }: PlayTrackRadioActionProps) => {
+export const PlayTrackRadioAction = ({
+    disabled,
+    skipFirstSong,
+    song,
+}: PlayTrackRadioActionProps) => {
     const { t } = useTranslation();
     const player = usePlayer();
     const serverId = useCurrentServerId();
@@ -38,13 +43,17 @@ export const PlayTrackRadioAction = ({ disabled, song }: PlayTrackRadioActionPro
                 });
 
                 if (similarSongs && similarSongs.length > 0) {
-                    player.addToQueueByData([song, ...similarSongs], playType);
+                    // We need to skip the first song when adding to the queue as NEXT or LAST, otherwise you will have a duplicate song
+                    const shouldSkipFirstSong =
+                        skipFirstSong && (playType === Play.NEXT || playType === Play.LAST);
+                    const queueSongs = shouldSkipFirstSong ? similarSongs : [song, ...similarSongs];
+                    player.addToQueueByData(queueSongs, playType);
                 }
             } catch (error) {
                 console.error('Failed to load track radio:', error);
             }
         },
-        [player, queryClient, serverId, song],
+        [player, queryClient, serverId, skipFirstSong, song],
     );
 
     const handlePlayTrackRadioNow = useCallback(() => {

@@ -1,18 +1,26 @@
 import clsx from 'clsx';
+import { motion } from 'motion/react';
 import {
     ComponentPropsWithoutRef,
+    createContext,
     CSSProperties,
     MouseEvent,
     ReactElement,
+    ReactNode,
     useCallback,
+    useContext,
     useMemo,
+    useRef,
     useState,
 } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import styles from './playlist-folder-tree.module.css';
 
-import { useUpdatePlaylist } from '/@/renderer/features/playlists/mutations/update-playlist-mutation';
+import {
+    SidebarPlaylistFolderMoveUpdate,
+    useSidebarPlaylistFolderMove,
+} from '/@/renderer/features/playlists/mutations/sidebar-playlist-folder-move-mutation';
 import { PlaylistRowButton } from '/@/renderer/features/sidebar/components/sidebar-playlist-list';
 import { useDragDrop } from '/@/renderer/hooks/use-drag-drop';
 import {
@@ -32,6 +40,25 @@ import { LibraryItem, Playlist } from '/@/shared/types/domain-types';
 import { DragData, DragOperation, DragTarget } from '/@/shared/types/drag-and-drop';
 
 const STORAGE_KEY_PREFIX = 'feishin:playlist-folder-state';
+
+const FOLDER_COLLAPSE_TRANSITION = { duration: 0.2, ease: 'easeInOut' } as const;
+
+interface PlaylistFolderCollapseProps {
+    children: ReactNode;
+    className?: string;
+    open: boolean;
+}
+
+const PlaylistFolderCollapse = ({ children, className, open }: PlaylistFolderCollapseProps) => (
+    <motion.div
+        animate={{ height: open ? 'auto' : 0, opacity: open ? 1 : 0 }}
+        className={clsx(styles.collapse, className)}
+        initial={false}
+        transition={FOLDER_COLLAPSE_TRANSITION}
+    >
+        {children}
+    </motion.div>
+);
 
 export const getPlaylistLeafName = (name: string, separator: string): string => {
     if (!separator) return name;
@@ -67,6 +94,42 @@ export const isDirectChildFolder = (
 
     const relativePath = childFolderPath.slice(prefix.length);
     return relativePath.length > 0 && !relativePath.includes(separator);
+};
+
+export const canDropOnPlaylistFolder = (
+    source: DragData,
+    folderPath: string,
+    separator: string,
+): boolean => {
+    if (source.type === DragTarget.SIDEBAR_PLAYLIST_FOLDER) {
+        const sourceFolderPath =
+            source.id[0] ?? (source.metadata as undefined | { folderName?: string })?.folderName;
+        if (!sourceFolderPath) return false;
+        return isValidFolderNest(sourceFolderPath, folderPath, separator);
+    }
+
+    if (source.itemType === LibraryItem.PLAYLIST) {
+        const items = source.item as Playlist[] | undefined;
+        return Array.isArray(items) && items.length > 0;
+    }
+
+    return false;
+};
+
+export const canDragOverPlaylistFolder = (
+    source: DragData,
+    folderPath: string,
+    separator: string,
+): boolean => {
+    if (canDropOnPlaylistFolder(source, folderPath, separator)) {
+        return true;
+    }
+
+    return (
+        source.itemType !== undefined &&
+        source.type !== DragTarget.PLAYLIST &&
+        (source.operation?.includes(DragOperation.ADD) ?? false)
+    );
 };
 
 export const isValidFolderNest = (
@@ -123,74 +186,82 @@ export const remapPlaylistToRoot = (playlistName: string, separator: string): st
     return getPlaylistLeafName(playlistName, separator).trim();
 };
 
-const updatePlaylistName = async (
-    updateMutation: ReturnType<typeof useUpdatePlaylist>,
-    serverId: string,
-    playlist: Playlist,
-    newName: string,
-) => {
-    if (newName === playlist.name) return;
+export const isRootLevelFolder = (folderPath: string, separator: string): boolean => {
+    const segments = folderPath.split(separator).filter((segment) => segment.length > 0);
+    return segments.length === 1;
+};
 
-    await updateMutation.mutateAsync({
-        apiClientProps: { serverId },
-        body: {
-            comment: playlist.description || '',
-            name: newName,
-            ownerId: playlist.ownerId || '',
-            public: playlist.public || false,
-            queryBuilderRules: playlist.rules ?? undefined,
-            sync: playlist.sync ?? undefined,
-        },
-        query: { id: playlist.id },
-    });
+export const remapPlaylistFolderToRoot = (
+    playlistName: string,
+    sourceFolderPath: string,
+    separator: string,
+): null | string => {
+    const sourcePrefix = `${sourceFolderPath}${separator}`;
+    if (!playlistName.startsWith(sourcePrefix)) return null;
+
+    const remainder = playlistName.slice(sourcePrefix.length);
+    if (!remainder) return null;
+
+    // Root-level folder on root: flatten playlists to root (Rock/x -> x).
+    if (isRootLevelFolder(sourceFolderPath, separator)) {
+        return remapPlaylistToRoot(playlistName, separator);
+    }
+
+    // Nested folder on root: promote one level (Auto/Test/x -> Test/x).
+    const folderName = getFolderName(sourceFolderPath, separator);
+    return `${folderName}${separator}${remainder}`;
 };
 
 export const usePlaylistRootDrop = (allPlaylists: Playlist[]) => {
     const { t } = useTranslation();
     const serverId = useCurrentServerId();
     const separator = useSidebarPlaylistFolderSeparator();
-    const updateMutation = useUpdatePlaylist({});
+    const folderMoveMutation = useSidebarPlaylistFolderMove();
 
     const handleDrop = useCallback(
         async (source: DragData) => {
             if (!serverId) return;
 
-            try {
-                if (source.type === DragTarget.SIDEBAR_PLAYLIST_FOLDER) {
-                    const sourceFolderPath =
-                        source.id[0] ??
-                        (source.metadata as undefined | { folderName?: string })?.folderName;
-                    if (!sourceFolderPath) return;
+            const updates: SidebarPlaylistFolderMoveUpdate[] = [];
 
-                    const affected = getPlaylistsInFolderTree(
-                        allPlaylists,
+            if (source.type === DragTarget.SIDEBAR_PLAYLIST_FOLDER) {
+                const sourceFolderPath =
+                    source.id[0] ??
+                    (source.metadata as undefined | { folderName?: string })?.folderName;
+                if (!sourceFolderPath) return;
+
+                const affected = getPlaylistsInFolderTree(
+                    allPlaylists,
+                    sourceFolderPath,
+                    separator,
+                );
+
+                for (const playlist of affected) {
+                    const newName = remapPlaylistFolderToRoot(
+                        playlist.name,
                         sourceFolderPath,
                         separator,
                     );
+                    if (!newName) continue;
 
-                    for (const playlist of affected) {
-                        await updatePlaylistName(
-                            updateMutation,
-                            serverId,
-                            playlist,
-                            remapPlaylistToRoot(playlist.name, separator),
-                        );
-                    }
-
-                    return;
+                    updates.push({ newName, playlist });
                 }
-
+            } else {
                 const playlists = source.item as Playlist[] | undefined;
                 if (!Array.isArray(playlists) || playlists.length === 0) return;
 
                 for (const playlist of playlists) {
-                    await updatePlaylistName(
-                        updateMutation,
-                        serverId,
+                    updates.push({
+                        newName: remapPlaylistToRoot(playlist.name, separator),
                         playlist,
-                        remapPlaylistToRoot(playlist.name, separator),
-                    );
+                    });
                 }
+            }
+
+            if (updates.length === 0) return;
+
+            try {
+                await folderMoveMutation.mutateAsync({ serverId, updates });
             } catch (err: unknown) {
                 toast.error({
                     message: err instanceof Error ? err.message : undefined,
@@ -198,7 +269,7 @@ export const usePlaylistRootDrop = (allPlaylists: Playlist[]) => {
                 });
             }
         },
-        [allPlaylists, separator, serverId, t, updateMutation],
+        [allPlaylists, folderMoveMutation, separator, serverId, t],
     );
 
     const { isDraggedOver, ref } = useDragDrop<HTMLButtonElement>({
@@ -263,63 +334,211 @@ export const PlaylistRootAccordionControl = ({
     );
 };
 
+interface PlaylistFolderDragExpandContextValue {
+    onFolderDragHover: (folderPath: string) => void;
+    onFolderDragLeave: (folderPath: string) => void;
+    onFolderDrop: (folderPath: string) => void;
+}
+
+const PlaylistFolderDragExpandContext = createContext<null | PlaylistFolderDragExpandContextValue>(
+    null,
+);
+
+interface PlaylistFolderDragExpandProviderProps {
+    children: ReactNode;
+    expandedSet: Set<string>;
+    setMany: (paths: string[], shouldExpand: boolean) => void;
+}
+
+export const PlaylistFolderDragExpandProvider = ({
+    children,
+    expandedSet,
+    setMany,
+}: PlaylistFolderDragExpandProviderProps) => {
+    const separator = useSidebarPlaylistFolderSeparator();
+    const autoExpandedRef = useRef<Set<string>>(new Set());
+    const activeHoveredRef = useRef<null | string>(null);
+
+    const getOpenChain = useCallback(
+        (folderPath: string) => {
+            const segments = folderPath.split(separator).filter((segment) => segment.length > 0);
+            const chain: string[] = [];
+
+            for (let index = 1; index < segments.length; index++) {
+                chain.push(segments.slice(0, index).join(separator));
+            }
+
+            chain.push(folderPath);
+            return chain;
+        },
+        [separator],
+    );
+
+    const collapseAutoExpanded = useCallback(
+        (paths: string[]) => {
+            const toCollapse = paths.filter((path) => autoExpandedRef.current.has(path));
+            if (toCollapse.length === 0) return;
+
+            for (const path of toCollapse) autoExpandedRef.current.delete(path);
+            setMany(toCollapse, false);
+        },
+        [setMany],
+    );
+
+    const onFolderDragHover = useCallback(
+        (folderPath: string) => {
+            const current = activeHoveredRef.current;
+            if (
+                current &&
+                current !== folderPath &&
+                current.startsWith(`${folderPath}${separator}`)
+            ) {
+                return;
+            }
+
+            const openChain = getOpenChain(folderPath);
+            activeHoveredRef.current = folderPath;
+
+            const toCollapse = [...autoExpandedRef.current].filter(
+                (path) => !openChain.includes(path),
+            );
+            if (toCollapse.length > 0) {
+                collapseAutoExpanded(toCollapse);
+            }
+
+            const toExpand = openChain.filter(
+                (path) => !expandedSet.has(path) && !autoExpandedRef.current.has(path),
+            );
+            if (toExpand.length === 0) return;
+
+            for (const path of toExpand) autoExpandedRef.current.add(path);
+            setMany(toExpand, true);
+        },
+        [collapseAutoExpanded, expandedSet, getOpenChain, separator, setMany],
+    );
+
+    const onFolderDragLeave = useCallback(
+        (folderPath: string) => {
+            const active = activeHoveredRef.current;
+            if (active && active !== folderPath && active.startsWith(`${folderPath}${separator}`)) {
+                return;
+            }
+
+            if (active === folderPath) {
+                activeHoveredRef.current = null;
+            }
+            collapseAutoExpanded([folderPath]);
+        },
+        [collapseAutoExpanded, separator],
+    );
+
+    const onFolderDrop = useCallback(
+        (folderPath: string) => {
+            for (const path of getOpenChain(folderPath)) autoExpandedRef.current.delete(path);
+            if (activeHoveredRef.current === folderPath) {
+                activeHoveredRef.current = null;
+            }
+        },
+        [getOpenChain],
+    );
+
+    const value = useMemo(
+        () => ({ onFolderDragHover, onFolderDragLeave, onFolderDrop }),
+        [onFolderDragHover, onFolderDragLeave, onFolderDrop],
+    );
+
+    return (
+        <PlaylistFolderDragExpandContext.Provider value={value}>
+            {children}
+        </PlaylistFolderDragExpandContext.Provider>
+    );
+};
+
+const usePlaylistFolderExpandDrop = (folderPath: string) => {
+    const separator = useSidebarPlaylistFolderSeparator();
+    const dragExpand = useContext(PlaylistFolderDragExpandContext);
+
+    return useDragDrop<HTMLDivElement>({
+        drop: {
+            canDrop: (args) => canDragOverPlaylistFolder(args.source, folderPath, separator),
+            getData: () => ({
+                id: [folderPath],
+                type: DragTarget.SIDEBAR_PLAYLIST_FOLDER,
+            }),
+            onDrag: ({ source }) => {
+                if (!dragExpand) return;
+                if (!canDragOverPlaylistFolder(source, folderPath, separator)) return;
+                dragExpand.onFolderDragHover(folderPath);
+            },
+            onDragLeave: () => {
+                dragExpand?.onFolderDragLeave(folderPath);
+            },
+            onDrop: () => {
+                dragExpand?.onFolderDrop(folderPath);
+            },
+        },
+        isEnabled: Boolean(dragExpand),
+    });
+};
+
+interface PlaylistFolderProps {
+    children: ReactNode;
+    folderPath: string;
+}
+
+const PlaylistFolder = ({ children, folderPath }: PlaylistFolderProps) => {
+    const { ref } = usePlaylistFolderExpandDrop(folderPath);
+
+    return (
+        <div className={styles.folder} ref={ref}>
+            {children}
+        </div>
+    );
+};
+
 // Drag-and-drop on folder headers: folders can be dragged, and accept folder or playlist drops.
 const usePlaylistFolderDrop = (folderPath: string, allPlaylists: Playlist[]) => {
     const { t } = useTranslation();
     const serverId = useCurrentServerId();
     const separator = useSidebarPlaylistFolderSeparator();
-    const updateMutation = useUpdatePlaylist({});
+    const folderMoveMutation = useSidebarPlaylistFolderMove();
+    const dragExpand = useContext(PlaylistFolderDragExpandContext);
 
     const handleDrop = useCallback(
         async (source: DragData) => {
             if (!serverId) return;
 
-            try {
-                if (source.type === DragTarget.SIDEBAR_PLAYLIST_FOLDER) {
-                    // Folder drop: rename every playlist under the dragged folder tree.
-                    const sourceFolderPath =
-                        source.id[0] ??
-                        (source.metadata as undefined | { folderName?: string })?.folderName;
-                    if (
-                        !sourceFolderPath ||
-                        !isValidFolderNest(sourceFolderPath, folderPath, separator)
-                    ) {
-                        return;
-                    }
+            const updates: SidebarPlaylistFolderMoveUpdate[] = [];
 
-                    const affected = getPlaylistsInFolderTree(
-                        allPlaylists,
-                        sourceFolderPath,
-                        separator,
-                    );
-
-                    for (const playlist of affected) {
-                        const newName = remapPlaylistFolderPath(
-                            playlist.name,
-                            sourceFolderPath,
-                            folderPath,
-                            separator,
-                        );
-                        if (!newName || newName === playlist.name) continue;
-
-                        await updateMutation.mutateAsync({
-                            apiClientProps: { serverId },
-                            body: {
-                                comment: playlist.description || '',
-                                name: newName,
-                                ownerId: playlist.ownerId || '',
-                                public: playlist.public || false,
-                                queryBuilderRules: playlist.rules ?? undefined,
-                                sync: playlist.sync ?? undefined,
-                            },
-                            query: { id: playlist.id },
-                        });
-                    }
-
+            if (source.type === DragTarget.SIDEBAR_PLAYLIST_FOLDER) {
+                const sourceFolderPath =
+                    source.id[0] ??
+                    (source.metadata as undefined | { folderName?: string })?.folderName;
+                if (
+                    !sourceFolderPath ||
+                    !isValidFolderNest(sourceFolderPath, folderPath, separator)
+                ) {
                     return;
                 }
 
-                // Playlist drop: move a single playlist into this folder using its leaf name only.
+                const affected = getPlaylistsInFolderTree(
+                    allPlaylists,
+                    sourceFolderPath,
+                    separator,
+                );
+
+                for (const playlist of affected) {
+                    const newName = remapPlaylistFolderPath(
+                        playlist.name,
+                        sourceFolderPath,
+                        folderPath,
+                        separator,
+                    );
+                    if (!newName || newName === playlist.name) continue;
+
+                    updates.push({ newName, playlist });
+                }
+            } else {
                 const playlists = source.item as Playlist[] | undefined;
                 if (!Array.isArray(playlists) || playlists.length === 0) return;
 
@@ -328,19 +547,14 @@ const usePlaylistFolderDrop = (folderPath: string, allPlaylists: Playlist[]) => 
                     const newName = buildPlaylistNameInFolder(folderPath, leafName, separator);
                     if (newName === playlist.name) continue;
 
-                    await updateMutation.mutateAsync({
-                        apiClientProps: { serverId },
-                        body: {
-                            comment: playlist.description || '',
-                            name: newName,
-                            ownerId: playlist.ownerId || '',
-                            public: playlist.public || false,
-                            queryBuilderRules: playlist.rules ?? undefined,
-                            sync: playlist.sync ?? undefined,
-                        },
-                        query: { id: playlist.id },
-                    });
+                    updates.push({ newName, playlist });
                 }
+            }
+
+            if (updates.length === 0) return;
+
+            try {
+                await folderMoveMutation.mutateAsync({ serverId, updates });
             } catch (err: unknown) {
                 toast.error({
                     message: err instanceof Error ? err.message : undefined,
@@ -348,12 +562,11 @@ const usePlaylistFolderDrop = (folderPath: string, allPlaylists: Playlist[]) => 
                 });
             }
         },
-        [allPlaylists, folderPath, separator, serverId, t, updateMutation],
+        [allPlaylists, folderMoveMutation, folderPath, separator, serverId, t],
     );
 
     const { isDraggedOver, isDragging, ref } = useDragDrop<HTMLButtonElement>({
         drag: {
-            // Folders are virtual; drag data carries the folder path, not playlist items.
             getId: () => [folderPath],
             getItem: () => [],
             metadata: { folderName: folderPath },
@@ -361,20 +574,7 @@ const usePlaylistFolderDrop = (folderPath: string, allPlaylists: Playlist[]) => 
             target: DragTarget.SIDEBAR_PLAYLIST_FOLDER,
         },
         drop: {
-            canDrop: (args) => {
-                if (args.source.type === DragTarget.SIDEBAR_PLAYLIST_FOLDER) {
-                    const sourceFolderPath =
-                        args.source.id[0] ??
-                        (args.source.metadata as undefined | { folderName?: string })?.folderName;
-                    if (!sourceFolderPath) return false;
-                    return isValidFolderNest(sourceFolderPath, folderPath, separator);
-                }
-
-                // Single playlist rows can also be dropped onto a folder header.
-                if (args.source.itemType !== LibraryItem.PLAYLIST) return false;
-                const items = args.source.item as Playlist[] | undefined;
-                return Array.isArray(items) && items.length > 0;
-            },
+            canDrop: (args) => canDropOnPlaylistFolder(args.source, folderPath, separator),
             getData: () => ({
                 id: [folderPath],
                 type: DragTarget.SIDEBAR_PLAYLIST_FOLDER,
@@ -386,6 +586,7 @@ const usePlaylistFolderDrop = (folderPath: string, allPlaylists: Playlist[]) => 
                 return;
             },
             onDrop: ({ source }) => {
+                dragExpand?.onFolderDrop(folderPath);
                 void handleDrop(source);
             },
         },
@@ -429,7 +630,7 @@ const PlaylistFolderHeader = ({
                 type="button"
             >
                 <div className={styles.navFolderIcon}>
-                    <Icon color="muted" icon="folder" size="xl" />
+                    <Icon color="muted" icon={isOpen ? 'folder' : 'folderClosed'} size="md" />
                 </div>
                 <Text className={styles.name} fw={500} size="md">
                     {name}
@@ -454,18 +655,21 @@ const PlaylistFolderHeader = ({
             style={{ opacity: isDragging ? 0.5 : 1 }}
             type="button"
         >
-            <Icon
-                className={styles.chevron}
-                icon={isOpen ? 'arrowDownS' : 'arrowRightS'}
-                size="sm"
-            />
-            <Icon color="muted" icon="folder" size="sm" />
+            <Icon color="muted" icon={isOpen ? 'folder' : 'folderClosed'} size="md" />
             <Text className={styles.name} fw={500} size="md">
                 {name}
             </Text>
             <Text className={styles.count} isMuted size="sm">
                 {leafCount}
             </Text>
+            <motion.span
+                animate={{ rotate: isOpen ? 180 : 0 }}
+                className={styles.chevron}
+                initial={false}
+                transition={FOLDER_COLLAPSE_TRANSITION}
+            >
+                <Icon icon="arrowUpS" size="md" />
+            </motion.span>
         </button>
     );
 };
@@ -686,7 +890,7 @@ export const PlaylistFolderTree = ({
 
                 const isOpen = expandedSet.has(group.name);
                 return (
-                    <div className={styles.folder} key={`folder:${group.name}`}>
+                    <PlaylistFolder folderPath={group.name} key={`folder:${group.name}`}>
                         <PlaylistFolderHeader
                             allPlaylists={allPlaylists}
                             folderPath={group.name}
@@ -696,21 +900,19 @@ export const PlaylistFolderTree = ({
                             onClick={() => onToggleFolder(group.name)}
                             variant="header"
                         />
-                        {isOpen && (
-                            <div className={styles.children}>
-                                {group.items.map((item) => (
-                                    <PlaylistRowButton
-                                        item={item}
-                                        key={item.id}
-                                        name={item.name.slice(group.name.length + 1)}
-                                        onContextMenu={onContextMenu}
-                                        onReorder={onReorder}
-                                        to={item.id}
-                                    />
-                                ))}
-                            </div>
-                        )}
-                    </div>
+                        <PlaylistFolderCollapse className={styles.children} open={isOpen}>
+                            {group.items.map((item) => (
+                                <PlaylistRowButton
+                                    item={item}
+                                    key={item.id}
+                                    name={item.name.slice(group.name.length + 1)}
+                                    onContextMenu={onContextMenu}
+                                    onReorder={onReorder}
+                                    to={item.id}
+                                />
+                            ))}
+                        </PlaylistFolderCollapse>
+                    </PlaylistFolder>
                 );
             })}
         </>
@@ -750,7 +952,7 @@ export const PlaylistFolderTreeView = ({
 
         const isOpen = expandedSet.has(node.path);
         return (
-            <div className={styles.folder} key={`folder:${node.path}`}>
+            <PlaylistFolder folderPath={node.path} key={`folder:${node.path}`}>
                 <PlaylistFolderHeader
                     allPlaylists={allPlaylists}
                     folderPath={node.path}
@@ -760,16 +962,14 @@ export const PlaylistFolderTreeView = ({
                     onClick={() => onToggleFolder(node.path)}
                     variant="header"
                 />
-                {isOpen && (
-                    <div className={styles.treeChildren}>
-                        {node.children.map((child) => (
-                            <div className={styles.treeBranch} key={getNodeKey(child)}>
-                                {renderNode(child)}
-                            </div>
-                        ))}
-                    </div>
-                )}
-            </div>
+                <PlaylistFolderCollapse className={styles.treeChildren} open={isOpen}>
+                    {node.children.map((child) => (
+                        <div className={styles.treeBranch} key={getNodeKey(child)}>
+                            {renderNode(child)}
+                        </div>
+                    ))}
+                </PlaylistFolderCollapse>
+            </PlaylistFolder>
         );
     };
 
