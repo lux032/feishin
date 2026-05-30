@@ -280,6 +280,16 @@ let currentRepeatMode: PlayerRepeat = PlayerRepeat.NONE;
 let currentSidebarCollapsed = false;
 let currentShuffleEnabled = false;
 let playbackMenuAccelerators: MenuPlaybackState['accelerators'] = {};
+let inputFocused = false;
+
+ipcMain.on('input-focus-state', (_event, focused: boolean) => {
+    const next = !!focused;
+    if (inputFocused === next) return;
+    inputFocused = next;
+    if (isMacOS()) {
+        rebuildMainMenu();
+    }
+});
 
 if (process.env.NODE_ENV === 'production') {
     import('source-map-support').then((sourceMapSupport) => {
@@ -325,7 +335,7 @@ if (isDevelopment) {
 }
 
 const RESOURCES_PATH = app.isPackaged
-    ? path.join(process.resourcesPath, 'assets')
+    ? path.join(path.dirname(app.getAppPath()), 'assets')
     : path.join(__dirname, '../../assets');
 
 const getAssetPath = (...paths: string[]): string => {
@@ -340,7 +350,7 @@ const rebuildMainMenu = () => {
     if (!menuBuilder || !mainWindow) return;
 
     menuBuilder.buildMenu({
-        accelerators: playbackMenuAccelerators,
+        accelerators: inputFocused ? {} : playbackMenuAccelerators,
         playbackStatus: currentPlaybackStatus,
         privateMode: currentPrivateMode,
         repeatMode: currentRepeatMode,

@@ -9,7 +9,7 @@ import { ServerType } from '/@/shared/types/types';
 export function useSongUrl(
     song: QueueSong | undefined,
     current: boolean,
-    transcode: TranscodingConfig,
+    transcode: Partial<TranscodingConfig>,
 ): string | undefined {
     const prior = useRef(['', '']);
 
@@ -30,7 +30,7 @@ export function useSongUrl(
                     bitrate: transcode.bitrate,
                     format: transcode.format,
                     id: song!.id,
-                    transcode: transcode.enabled,
+                    transcode: transcode.enabled ?? false,
                 },
             }),
         queryKey: [
@@ -74,7 +74,7 @@ export function useSongUrl(
 
 export const getSongUrl = async (
     song: QueueSong,
-    transcode: TranscodingConfig,
+    transcode: Partial<TranscodingConfig>,
     skipAutoTranscode?: boolean,
 ) => {
     // Plex: use direct part URL for lossless playback
@@ -89,7 +89,7 @@ export const getSongUrl = async (
             format: transcode.format,
             id: song.id,
             skipAutoTranscode,
-            transcode: transcode.enabled,
+            transcode: transcode.enabled ?? false,
         },
     });
 

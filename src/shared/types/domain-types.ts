@@ -1466,6 +1466,8 @@ export type ScrobbleQuery = {
     duration?: number;
     event?: 'pause' | 'start' | 'stop' | 'timeupdate' | 'unpause';
     id: string;
+    mediaType: 'podcast' | 'song';
+    playbackRate: number;
     position?: number;
     submission: boolean;
 };

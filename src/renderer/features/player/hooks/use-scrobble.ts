@@ -4,17 +4,21 @@ import { useItemImageUrl } from '/@/renderer/components/item-image/item-image';
 import { usePlayerEvents } from '/@/renderer/features/player/audio-player/hooks/use-player-events';
 import { useSendScrobble } from '/@/renderer/features/player/mutations/scrobble-mutation';
 import {
+    getServerById,
     publishScrobbleDebug,
     useAppStore,
     usePlaybackSettings,
     usePlayerSong,
+    usePlayerSpeed,
     usePlayerStore,
     useSettingsStore,
     useTimestampStoreBase,
 } from '/@/renderer/store';
 import { LogCategory, logFn } from '/@/renderer/utils/logger';
 import { logMsg } from '/@/renderer/utils/logger-message';
+import { hasFeature } from '/@/shared/api/utils';
 import { LibraryItem, QueueSong, ServerType } from '/@/shared/types/domain-types';
+import { ServerFeature } from '/@/shared/types/features-types';
 import { PlayerStatus } from '/@/shared/types/types';
 
 type ScrobbleManualHandlers = {
@@ -93,16 +97,46 @@ const checkScrobbleConditions = (args: {
     return shouldScrobbleBasedOnPercentage || shouldScrobbleBasedOnDuration;
 };
 
-const supportsPlaybackStateScrobble = (serverType?: ServerType) =>
-    serverType === ServerType.JELLYFIN || serverType === ServerType.PLEX;
+const getScrobbleMediaType = (song?: QueueSong): 'podcast' | 'song' =>
+    song?._itemType.includes('song') ? 'song' : 'podcast';
 
-const getScrobblePosition = (song: QueueSong, timestampSeconds: number) => {
+const supportsPlaybackStateScrobble = (song?: QueueSong) => {
+    if (!song) {
+        return false;
+    }
+
+    if (song._serverType === ServerType.JELLYFIN || song._serverType === ServerType.PLEX) {
+        return true;
+    }
+
+    return hasFeature(getServerById(song._serverId), ServerFeature.REPORT_PLAYBACK);
+};
+
+const getScrobblePositionFromSeconds = (song: QueueSong, timestampSeconds: number) => {
     if (song._serverType === ServerType.JELLYFIN) {
         return Math.round(timestampSeconds * 1e7);
     }
 
-    if (song._serverType === ServerType.PLEX) {
+    if (
+        song._serverType === ServerType.PLEX ||
+        hasFeature(getServerById(song._serverId), ServerFeature.REPORT_PLAYBACK)
+    ) {
         return Math.round(timestampSeconds * 1000);
+    }
+
+    return undefined;
+};
+
+const getScrobblePositionFromDuration = (song: QueueSong) => {
+    if (song._serverType === ServerType.JELLYFIN) {
+        return Math.round(song.duration * 10000);
+    }
+
+    if (
+        song._serverType === ServerType.PLEX ||
+        hasFeature(getServerById(song._serverId), ServerFeature.REPORT_PLAYBACK)
+    ) {
+        return Math.round(song.duration);
     }
 
     return undefined;
@@ -114,6 +148,7 @@ export const useScrobble = () => {
     const isPrivateModeEnabled = useAppStore((state) => state.privateMode);
     const sendScrobble = useSendScrobble();
     const currentSong = usePlayerSong();
+    const playbackRate = usePlayerSpeed();
 
     const imageUrl = useItemImageUrl({
         id: currentSong?.imageId || undefined,
@@ -181,6 +216,7 @@ export const useScrobble = () => {
             if (!isScrobbleEnabled || isPrivateModeEnabled) return;
 
             const currentSong = usePlayerStore.getState().getCurrentSong();
+            const mediaType = getScrobbleMediaType(currentSong);
             const currentStatus = usePlayerStore.getState().player.status;
             const currentTime = properties.timestamp;
             const previousTime = prev.timestamp;
@@ -236,10 +272,9 @@ export const useScrobble = () => {
             }
 
             // Send playback progress events every 10 seconds for servers that support state sync.
-            if (supportsPlaybackStateScrobble(currentSong._serverType)) {
+            if (supportsPlaybackStateScrobble(currentSong)) {
                 const timeSinceLastProgress = currentTime - lastProgressEventRef.current;
                 if (timeSinceLastProgress >= 10) {
-                    const position = getScrobblePosition(currentSong, currentTime);
                     sendScrobble.mutate(
                         {
                             apiClientProps: { serverId: currentSong._serverId || '' },
@@ -248,7 +283,9 @@ export const useScrobble = () => {
                                 duration: currentSong.duration,
                                 event: 'timeupdate',
                                 id: currentSong.id,
-                                position,
+                                mediaType,
+                                playbackRate,
+                                position: getScrobblePositionFromSeconds(currentSong, currentTime),
                                 submission: false,
                             },
                         },
@@ -277,20 +314,15 @@ export const useScrobble = () => {
                 });
 
                 if (shouldSubmitScrobble) {
-                    // Since jellyfin-plugin-lastfm uses the submission Position to determine if the song should actually scrobble
-                    // we just send the full duration of the song when it matches the local scrobble conditions
-                    const position =
-                        currentSong._serverType === ServerType.JELLYFIN
-                            ? currentSong.duration * 1e7
-                            : undefined;
-
                     sendScrobble.mutate(
                         {
                             apiClientProps: { serverId: currentSong._serverId || '' },
                             query: {
                                 albumId: currentSong.albumId,
                                 id: currentSong.id,
-                                position,
+                                mediaType,
+                                playbackRate,
+                                position: getScrobblePositionFromDuration(currentSong),
                                 submission: true,
                             },
                         },
@@ -311,7 +343,7 @@ export const useScrobble = () => {
                 }
             }
         },
-        [isScrobbleEnabled, isPrivateModeEnabled, sendScrobble],
+        [isScrobbleEnabled, isPrivateModeEnabled, sendScrobble, playbackRate],
     );
 
     const handleScrobbleFromSongChange = useCallback(
@@ -321,6 +353,7 @@ export const useScrobble = () => {
         ) => {
             const currentSong = properties.song;
             const previousSong = previousSongRef.current;
+            const mediaType = getScrobbleMediaType(currentSong);
 
             // Handle notifications
             if (scrobbleSettings?.notify && currentSong?.id) {
@@ -379,7 +412,12 @@ export const useScrobble = () => {
                         duration: previousSong.duration,
                         event: 'stop',
                         id: previousSong.id,
-                        position: getScrobblePosition(previousSong, previousTimestampRef.current),
+                        mediaType: getScrobbleMediaType(previousSong),
+                        playbackRate,
+                        position: getScrobblePositionFromSeconds(
+                            previousSong,
+                            previousTimestampRef.current,
+                        ),
                         submission: false,
                     },
                 });
@@ -400,6 +438,8 @@ export const useScrobble = () => {
                                 duration: currentSong.duration,
                                 event: 'start',
                                 id: currentSong.id,
+                                mediaType,
+                                playbackRate,
                                 position: 0,
                                 submission: false,
                             },
@@ -423,11 +463,12 @@ export const useScrobble = () => {
             flushScrobbleDebug();
         },
         [
-            flushScrobbleDebug,
             scrobbleSettings?.notify,
             isScrobbleEnabled,
             isPrivateModeEnabled,
+            flushScrobbleDebug,
             sendScrobble,
+            playbackRate,
         ],
     );
 
@@ -439,6 +480,7 @@ export const useScrobble = () => {
             }
 
             const currentSong = usePlayerStore.getState().getCurrentSong();
+            const mediaType = getScrobbleMediaType(currentSong);
 
             if (!currentSong?.id) {
                 return;
@@ -456,7 +498,7 @@ export const useScrobble = () => {
                 lastProgressEventRef.current = 0;
             }
 
-            if (!supportsPlaybackStateScrobble(currentSong._serverType)) {
+            if (!supportsPlaybackStateScrobble(currentSong)) {
                 flushScrobbleDebug();
                 return;
             }
@@ -470,8 +512,6 @@ export const useScrobble = () => {
                 return;
             }
 
-            const position = getScrobblePosition(currentSong, properties.timestamp);
-
             lastProgressEventRef.current = properties.timestamp;
             lastSeekEventRef.current = now;
 
@@ -483,7 +523,9 @@ export const useScrobble = () => {
                         duration: currentSong.duration,
                         event: 'timeupdate',
                         id: currentSong.id,
-                        position,
+                        mediaType,
+                        playbackRate,
+                        position: getScrobblePositionFromSeconds(currentSong, properties.timestamp),
                         submission: false,
                     },
                 },
@@ -500,7 +542,7 @@ export const useScrobble = () => {
             );
             flushScrobbleDebug();
         },
-        [flushScrobbleDebug, isScrobbleEnabled, isPrivateModeEnabled, sendScrobble],
+        [isScrobbleEnabled, isPrivateModeEnabled, sendScrobble, playbackRate, flushScrobbleDebug],
     );
 
     const handleScrobbleFromStatus = useCallback(
@@ -510,17 +552,17 @@ export const useScrobble = () => {
             }
 
             const currentSong = usePlayerStore.getState().getCurrentSong();
+            const mediaType = getScrobbleMediaType(currentSong);
 
             if (!currentSong?.id) {
                 return;
             }
 
-            if (!supportsPlaybackStateScrobble(currentSong._serverType)) {
+            if (!supportsPlaybackStateScrobble(currentSong)) {
                 return;
             }
 
             const currentTimestamp = useTimestampStoreBase.getState().timestamp;
-            const position = getScrobblePosition(currentSong, currentTimestamp);
 
             // Send pause event when status changes to paused
             if (properties.status === PlayerStatus.PAUSED && prev.status === PlayerStatus.PLAYING) {
@@ -532,7 +574,9 @@ export const useScrobble = () => {
                             duration: currentSong.duration,
                             event: 'pause',
                             id: currentSong.id,
-                            position,
+                            mediaType,
+                            playbackRate,
+                            position: getScrobblePositionFromSeconds(currentSong, currentTimestamp),
                             submission: false,
                         },
                     },
@@ -559,7 +603,9 @@ export const useScrobble = () => {
                             duration: currentSong.duration,
                             event: 'unpause',
                             id: currentSong.id,
-                            position,
+                            mediaType,
+                            playbackRate,
+                            position: getScrobblePositionFromSeconds(currentSong, currentTimestamp),
                             submission: false,
                         },
                     },
@@ -578,7 +624,7 @@ export const useScrobble = () => {
 
             flushScrobbleDebug();
         },
-        [flushScrobbleDebug, isScrobbleEnabled, isPrivateModeEnabled, sendScrobble],
+        [isScrobbleEnabled, isPrivateModeEnabled, flushScrobbleDebug, sendScrobble, playbackRate],
     );
 
     const handleScrobbleFromRepeat = useCallback(() => {
@@ -588,6 +634,7 @@ export const useScrobble = () => {
 
         const currentSong = usePlayerStore.getState().getCurrentSong();
         const currentStatus = usePlayerStore.getState().player.status;
+        const mediaType = getScrobbleMediaType(currentSong);
 
         if (currentStatus !== PlayerStatus.PLAYING || !currentSong?.id) {
             return;
@@ -607,6 +654,8 @@ export const useScrobble = () => {
                     duration: currentSong.duration,
                     event: 'start',
                     id: currentSong.id,
+                    mediaType,
+                    playbackRate,
                     position: 0,
                     submission: false,
                 },
@@ -624,7 +673,7 @@ export const useScrobble = () => {
             },
         );
         flushScrobbleDebug();
-    }, [flushScrobbleDebug, isScrobbleEnabled, isPrivateModeEnabled, sendScrobble]);
+    }, [isScrobbleEnabled, isPrivateModeEnabled, sendScrobble, playbackRate, flushScrobbleDebug]);
 
     // Update previous timestamp on progress for use in status change handler
     const handleProgressUpdate = useCallback(
@@ -644,12 +693,11 @@ export const useScrobble = () => {
                 }
 
                 const song = usePlayerStore.getState().getCurrentSong();
+                const mediaType = getScrobbleMediaType(song);
+
                 if (!song?.id) {
                     return;
                 }
-
-                const position =
-                    song._serverType === ServerType.JELLYFIN ? song.duration * 1e7 : undefined;
 
                 sendScrobble.mutate(
                     {
@@ -657,7 +705,9 @@ export const useScrobble = () => {
                         query: {
                             albumId: song.albumId,
                             id: song.id,
-                            position,
+                            mediaType,
+                            playbackRate,
+                            position: getScrobblePositionFromDuration(song),
                             submission: true,
                         },
                     },
@@ -696,7 +746,7 @@ export const useScrobble = () => {
         });
 
         return () => registerScrobbleManualHandlers(null);
-    }, [flushScrobbleDebug, isPrivateModeEnabled, isScrobbleEnabled, sendScrobble]);
+    }, [flushScrobbleDebug, isPrivateModeEnabled, isScrobbleEnabled, playbackRate, sendScrobble]);
 
     usePlayerEvents(
         {
