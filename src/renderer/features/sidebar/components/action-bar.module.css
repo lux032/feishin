@@ -1,11 +1,24 @@
 .container {
-    display: flex;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: var(--theme-spacing-sm);
     align-items: center;
     width: 100%;
     height: 65px;
+    padding: 0 var(--theme-spacing-md);
     -webkit-app-region: drag;
 
+    button,
     input {
         -webkit-app-region: no-drag;
     }
+}
+
+.search {
+    min-width: 0;
+}
+
+.actions {
+    width: 140px;
+    min-width: 140px;
 }

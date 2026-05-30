@@ -39,20 +39,8 @@ import { autoUpdaterLogInterface, createLog, hotkeyToElectronAccelerator } from 
 import { disableAutoUpdates, isLinux, isMacOS, isWindows } from '/@/main/env';
 import { PlayerRepeat, PlayerStatus, PlayerType, TitleTheme } from '/@/shared/types/types';
 
-const ALPHA_UPDATER_CONFIG: {
-    bucket: string;
-    channel: string;
-    endpoint: string;
-    provider: 's3';
-} = {
-    bucket: '',
-    channel: 'alpha',
-    endpoint: 'https://feishin-nightly-bucket.jeffvli.org',
-    provider: 's3',
-};
-
 const GITHUB_UPDATER_CONFIG = {
-    owner: 'jeffvli',
+    owner: 'lux032',
     provider: 'github' as const,
     repo: 'feishin',
 };
@@ -117,7 +105,7 @@ async function checkAllChannelsAndGetBest(): Promise<{
 
     const alphaUpdater = createAlphaUpdaterInstance();
     alphaUpdater.logger = autoUpdaterLogInterface;
-    alphaUpdater.channel = ALPHA_UPDATER_CONFIG.channel;
+    alphaUpdater.channel = 'alpha';
     alphaUpdater.allowPrerelease = true;
     alphaUpdater.disableDifferentialDownload = true;
     alphaUpdater.allowDowngrade = true;
@@ -193,7 +181,7 @@ function configureAndGetUpdater(): UpdaterInstance {
         const updater = createAlphaUpdaterInstance();
         log.transports.file.level = 'info';
         updater.logger = autoUpdaterLogInterface;
-        updater.channel = ALPHA_UPDATER_CONFIG.channel;
+        updater.channel = 'alpha';
         updater.allowPrerelease = true;
         updater.disableDifferentialDownload = true;
         updater.allowDowngrade = true;
@@ -203,6 +191,7 @@ function configureAndGetUpdater(): UpdaterInstance {
     }
 
     log.transports.file.level = 'info';
+    autoUpdater.setFeedURL(GITHUB_UPDATER_CONFIG);
     autoUpdater.logger = autoUpdaterLogInterface;
     autoUpdater.autoInstallOnAppQuit = true;
     autoUpdater.autoRunAppAfterInstall = true;
@@ -225,6 +214,7 @@ function configureAndGetUpdater(): UpdaterInstance {
  * Used when checking multiple channels or when the winning channel is beta/latest.
  */
 function configureAutoUpdaterForChannel(channel: 'beta' | 'latest'): void {
+    autoUpdater.setFeedURL(GITHUB_UPDATER_CONFIG);
     log.transports.file.level = 'info';
     autoUpdater.logger = autoUpdaterLogInterface;
     autoUpdater.autoInstallOnAppQuit = true;
@@ -242,14 +232,14 @@ function configureAutoUpdaterForChannel(channel: 'beta' | 'latest'): void {
 
 function createAlphaUpdaterInstance(): AppImageUpdater | MacUpdater | NsisUpdater {
     if (isMacOS()) {
-        return new MacUpdater(ALPHA_UPDATER_CONFIG);
+        return new MacUpdater(GITHUB_UPDATER_CONFIG);
     }
 
     if (isLinux()) {
-        return new AppImageUpdater(ALPHA_UPDATER_CONFIG);
+        return new AppImageUpdater(GITHUB_UPDATER_CONFIG);
     }
 
-    return new NsisUpdater(ALPHA_UPDATER_CONFIG);
+    return new NsisUpdater(GITHUB_UPDATER_CONFIG);
 }
 
 protocol.registerSchemesAsPrivileged([{ privileges: { bypassCSP: true }, scheme: 'feishin' }]);

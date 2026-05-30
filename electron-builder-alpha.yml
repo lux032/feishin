@@ -68,7 +68,8 @@ toolsets:
 npmRebuild: false
 
 publish:
-    provider: s3
-    bucket: feishin-nightly
+    provider: github
+    owner: lux032
+    repo: feishin
     channel: alpha
-    endpoint: https://065f090c64de2dc707dd70ac72db9669.r2.cloudflarestorage.com
+    releaseType: draft
