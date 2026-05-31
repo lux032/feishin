@@ -1099,7 +1099,7 @@
         "sidePlayQueueLayout_description": "Sets the layout of the attached side play queue",
         "sidePlayQueueLayout_optionHorizontal": "Horizontal",
         "sidePlayQueueLayout_optionVertical": "Vertical",
-        "mediaSession_description": "Enables media session integration, displaying media controls and metadata in the system volume overlay and lock screen",
+        "mediaSession_description": "Enables media session integration, displaying media controls and metadata in the system volume overlay and lock screen. Requires the Web Audio Player.",
         "mediaSession": "Enable media session",
         "sidePlayQueueStyle": "Side play queue style",
         "skipDuration_description": "Sets the duration to skip when using the skip buttons on the player bar",

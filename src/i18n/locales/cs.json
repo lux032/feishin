@@ -296,7 +296,7 @@
         "releaseChannel": "Kanál vydání",
         "releaseChannel_description": "Vyberte si mezi stabilními, beta nebo alpha (nočními) vydáními pro automatické aktualizace",
         "mediaSession": "Povolit relaci médií",
-        "mediaSession_description": "Povolí integraci do služby Media Session, což zobrazí ovládání a metadata médií v překrytí systémové hlasitosti a na zamykací obrazovce",
+        "mediaSession_description": "Povolí integraci do služby Media Session, což zobrazí ovládání a metadata médií v překrytí systémové hlasitosti a na zamykací obrazovce. Vyžaduje webový přehrávač zvuku.",
         "exportImportSettings_control_description": "Exportovat a importovat nastavení pomocí souboru JSON",
         "exportImportSettings_control_exportText": "Exportovat nastavení",
         "exportImportSettings_control_importText": "Importovat nastavení",

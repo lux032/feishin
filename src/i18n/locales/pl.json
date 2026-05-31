@@ -979,7 +979,7 @@
         "preservePitch": "Utrzymuj ton",
         "preventSleepOnPlayback_description": "Powstrzymuje ekran przed uśpieniem, gdy muzyka jest odtwarzana",
         "preventSleepOnPlayback": "Powstrzymuj uśpienie podczas odtwarzania",
-        "mediaSession_description": "Włącza integrację z Media Session, wyświetlając sterowanie mediami i metadane w systemowym oknie zmiany głośności i na ekranie blokady",
+        "mediaSession_description": "Włącza integrację z Media Session, wyświetlając sterowanie mediami i metadane w systemowym oknie zmiany głośności i na ekranie blokad. Wymaga odtwarzacza web audio.",
         "mediaSession": "Włącz media session",
         "transcode": "Włącz transkodowanie",
         "queryBuilder": "Kreator zaptań",
