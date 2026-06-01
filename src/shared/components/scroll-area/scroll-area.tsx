@@ -51,19 +51,17 @@ export const ScrollArea = forwardRef((props: ScrollAreaProps, ref: Ref<HTMLDivEl
         let autoScrollCleanup: (() => void) | null = null;
 
         if (scroller && root) {
-            initialize({
-                elements: { viewport: scroller as HTMLElement },
-                target: root,
-            });
+            initialize(root);
 
             if (allowDragScroll) {
+                const viewport = osInstance()?.elements().viewport || (scroller as HTMLElement);
                 autoScrollCleanup = autoScrollForElements({
                     canScroll: (args) => {
                         const data = args.source.data as unknown as DragData<unknown>;
                         if (data.type === DragTarget.TABLE_COLUMN) return false;
                         return true;
                     },
-                    element: scroller as HTMLElement,
+                    element: viewport,
                     getAllowedAxis: () => 'vertical',
                     getConfiguration: () => ({ maxScrollSpeed: 'standard' }),
                 });

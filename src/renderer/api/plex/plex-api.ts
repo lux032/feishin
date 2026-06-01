@@ -796,40 +796,26 @@ export const pxApiClient = (args: {
             sort?: string;
             start?: number;
         }): ApiResponse<PlexArtistListResponse> => {
-            if (params.searchTerm) {
-                const response = await requestJson<PlexArtistListJsonResponse>({
-                    method: 'GET',
-                    params: {
-                        genre: params.genreId,
-                        query: params.searchTerm,
-                        sort: params.sort || 'titleSort',
-                        type: 8,
-                        'X-Plex-Container-Size': params.size || 50,
-                        'X-Plex-Container-Start': params.start || 0,
-                    },
-                    path: `library/sections/${params.sectionId}/search`,
-                });
-
-                return {
-                    body: toPlexArtistListResponse(response.body),
-                    headers: response.headers,
-                    status: response.status,
-                };
-            }
-
-            const response = await request<PlexArtistListResponse>({
+            const response = await requestJson<PlexArtistListJsonResponse>({
                 method: 'GET',
                 params: {
                     genre: params.genreId,
+                    query: params.searchTerm,
                     sort: params.sort || 'titleSort',
                     type: 8,
                     'X-Plex-Container-Size': params.size || 50,
                     'X-Plex-Container-Start': params.start || 0,
                 },
-                path: `library/sections/${params.sectionId}/all`,
+                path: params.searchTerm
+                    ? `library/sections/${params.sectionId}/search`
+                    : `library/sections/${params.sectionId}/all`,
             });
 
-            return response;
+            return {
+                body: toPlexArtistListResponse(response.body),
+                headers: response.headers,
+                status: response.status,
+            };
         },
 
         getFolder: async (params: {

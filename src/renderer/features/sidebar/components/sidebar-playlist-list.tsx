@@ -773,7 +773,7 @@ export const SidebarSharedPlaylistList = () => {
 
     return (
         <Accordion.Item value="shared-playlists">
-            <Accordion.Control component="motion.div" role="button" style={{ userSelect: 'none' }}>
+            <Accordion.Control component={motion.div} role="button" style={{ userSelect: 'none' }}>
                 <Group gap="xs" style={{ minWidth: 0 }} wrap="nowrap">
                     {inNavigation && (
                         <ActionIcon

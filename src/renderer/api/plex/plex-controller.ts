@@ -356,6 +356,19 @@ const getLibraryId = (musicFolderId?: string | string[]): string | undefined => 
     return musicFolderId;
 };
 
+const getPlexSectionId = async (
+    apiClient: ReturnType<typeof pxApiClient>,
+    musicFolderId?: string | string[],
+) => {
+    const sectionId = getLibraryId(musicFolderId);
+    if (sectionId) {
+        return sectionId;
+    }
+
+    const sections = await apiClient.getSections();
+    return sections.body?.[0]?.key || '1';
+};
+
 const getPlexServerUrl = (server: null | ServerListItemWithCredential) =>
     getServerUrl(server) || '';
 
@@ -628,9 +641,8 @@ export const PlexController: InternalControllerEndpoint = {
         const { apiClientProps, query } = args;
         const serverUrl = getPlexServerUrl(apiClientProps.server);
         const token = getPlexToken(apiClientProps.server);
-        const sectionId = getLibraryId(query.musicFolderId) || '1';
-
         const apiClient = pxApiClient(apiClientProps);
+        const sectionId = await getPlexSectionId(apiClient, query.musicFolderId);
         const shouldFetchAllPages = query.favorite === true || query.limit === -1;
 
         const rawResult = shouldFetchAllPages
@@ -776,9 +788,8 @@ export const PlexController: InternalControllerEndpoint = {
         const { apiClientProps, query } = args;
         const serverUrl = getPlexServerUrl(apiClientProps.server);
         const token = getPlexToken(apiClientProps.server);
-        const sectionId = getLibraryId(query.musicFolderId) || '1';
-
         const apiClient = pxApiClient(apiClientProps);
+        const sectionId = await getPlexSectionId(apiClient, query.musicFolderId);
         const genreId = query.genreIds?.length === 1 ? query.genreIds[0] : undefined;
         const artistId = query.artistIds?.length === 1 ? query.artistIds[0] : undefined;
         const shouldFetchAllPages =
@@ -944,9 +955,8 @@ export const PlexController: InternalControllerEndpoint = {
         const { apiClientProps, query } = args;
         const serverUrl = getPlexServerUrl(apiClientProps.server);
         const token = getPlexToken(apiClientProps.server);
-        const sectionId = getLibraryId(query.musicFolderId) || '1';
-
         const apiClient = pxApiClient(apiClientProps);
+        const sectionId = await getPlexSectionId(apiClient, query.musicFolderId);
         const res = await apiClient.getArtistList({
             searchTerm: query.searchTerm,
             sectionId,
@@ -991,10 +1001,10 @@ export const PlexController: InternalControllerEndpoint = {
         const { apiClientProps, query } = args;
         const serverUrl = getPlexServerUrl(apiClientProps.server);
         const token = getPlexToken(apiClientProps.server);
-        const sectionId = getLibraryId(query.musicFolderId) || '1';
         const isRootFolder = query.id === '0';
 
         const apiClient = pxApiClient(apiClientProps);
+        const sectionId = await getPlexSectionId(apiClient, query.musicFolderId);
         const res = await apiClient.getFolder({
             parentId: isRootFolder ? undefined : query.id,
             sectionId,
@@ -1044,9 +1054,8 @@ export const PlexController: InternalControllerEndpoint = {
 
     getGenreList: async (args) => {
         const { apiClientProps, query } = args;
-        const sectionId = getLibraryId(query.musicFolderId) || '1';
-
         const apiClient = pxApiClient(apiClientProps);
+        const sectionId = await getPlexSectionId(apiClient, query.musicFolderId);
         const res = await apiClient.getGenreList({ sectionId });
 
         if (res.status !== 200) {
@@ -1192,9 +1201,8 @@ export const PlexController: InternalControllerEndpoint = {
         const { apiClientProps, query } = args;
         const serverUrl = getPlexServerUrl(apiClientProps.server);
         const token = getPlexToken(apiClientProps.server);
-        const sectionId = getLibraryId(query.musicFolderId) || '1';
-
         const apiClient = pxApiClient(apiClientProps);
+        const sectionId = await getPlexSectionId(apiClient, query.musicFolderId);
         const res = await apiClient.getSongList({
             sectionId,
             size: query.limit || 50,
@@ -1255,9 +1263,8 @@ export const PlexController: InternalControllerEndpoint = {
         const { apiClientProps, query } = args;
         const serverUrl = getPlexServerUrl(apiClientProps.server);
         const token = getPlexToken(apiClientProps.server);
-        const sectionId = getLibraryId(query.musicFolderId) || '1';
-
         const apiClient = pxApiClient(apiClientProps);
+        const sectionId = await getPlexSectionId(apiClient, query.musicFolderId);
         const genreId = query.genreIds?.length === 1 ? query.genreIds[0] : undefined;
         const singleAlbumId = query.albumIds?.length === 1 ? query.albumIds[0] : undefined;
         const singleArtistId =
@@ -1487,9 +1494,8 @@ export const PlexController: InternalControllerEndpoint = {
         const { apiClientProps, query } = args;
         const serverUrl = getPlexServerUrl(apiClientProps.server);
         const token = getPlexToken(apiClientProps.server);
-        const sectionId = getLibraryId(apiClientProps.server?.musicFolderId) || '1';
-
         const apiClient = pxApiClient(apiClientProps);
+        const sectionId = await getPlexSectionId(apiClient, apiClientProps.server?.musicFolderId);
         const res = await apiClient.getSongList({
             artistId: query.artistId,
             sectionId,
@@ -1571,8 +1577,8 @@ export const PlexController: InternalControllerEndpoint = {
 
         const serverUrl = getPlexServerUrl(apiClientProps.server);
         const token = getPlexToken(apiClientProps.server);
-        const sectionId = getLibraryId(query.musicFolderId) || '1';
         const apiClient = pxApiClient(apiClientProps);
+        const sectionId = await getPlexSectionId(apiClient, query.musicFolderId);
 
         const [albumArtistsRes, albumsRes, songsRes] = await Promise.all([
             query.albumArtistLimit

@@ -402,15 +402,19 @@ const ReleaseNotesModalContentWrapper = ({
     const { version } = packageJson;
     const [, setValue] = useLocalStorage({ key: 'version' });
 
-    const handleDismiss = useCallback(() => {
+    const markDismissed = useCallback(() => {
         setValue(version);
-        closeAllModals();
     }, [setValue, version]);
 
+    const handleDismiss = useCallback(() => {
+        markDismissed();
+        closeAllModals();
+    }, [markDismissed]);
+
     useEffect(() => {
-        setDismissRef?.(handleDismiss);
+        setDismissRef?.(markDismissed);
         return () => setDismissRef?.(undefined);
-    }, [handleDismiss, setDismissRef]);
+    }, [markDismissed, setDismissRef]);
 
     return <ReleaseNotesContent onDismiss={handleDismiss} version={version} />;
 };
