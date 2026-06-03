@@ -515,13 +515,15 @@ export const useScrobble = () => {
             lastProgressEventRef.current = properties.timestamp;
             lastSeekEventRef.current = now;
 
+            const currentStatus = usePlayerStore.getState().player.status;
+
             sendScrobble.mutate(
                 {
                     apiClientProps: { serverId: currentSong._serverId || '' },
                     query: {
                         albumId: currentSong.albumId,
                         duration: currentSong.duration,
-                        event: 'timeupdate',
+                        event: currentStatus === PlayerStatus.PLAYING ? 'unpause' : 'pause',
                         id: currentSong.id,
                         mediaType,
                         playbackRate,

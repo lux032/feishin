@@ -2335,7 +2335,6 @@ export const SubsonicController: InternalControllerEndpoint = {
                 case 'start':
                     state = 'starting';
                     break;
-                case 'timeupdate':
                 case 'unpause':
                     state = 'playing';
                     break;
