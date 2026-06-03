@@ -170,26 +170,20 @@ export const useSaveQueue = () => {
                 throw new Error(`${t('error.multipleServerSaveQueueError')}`);
             }
 
-            try {
-                await api.controller.savePlayQueue({
-                    apiClientProps: { serverId },
-                    query: {
-                        currentIndex: queue.items.length > 0 ? state.player.index : undefined,
-                        positionMs: useTimestampStoreBase.getState().timestamp * 1000,
-                        songs: queue.items.map((item) => item.id),
-                    },
-                });
-
-                toast.success({
-                    message: t('form.saveQueue.success'),
-                });
-            } catch (error) {
-                toast.error({
-                    message: (error as Error).message,
-                    title: t('error.saveQueueFailed'),
-                });
-                throw error;
-            }
+            return api.controller.savePlayQueue({
+                apiClientProps: { serverId },
+                query: {
+                    currentIndex: queue.items.length > 0 ? state.player.index : undefined,
+                    positionMs: useTimestampStoreBase.getState().timestamp * 1000,
+                    songs: queue.items.map((item) => item.id),
+                },
+            });
+        },
+        onError: (error) => {
+            toast.error({
+                message: (error as Error).message,
+                title: t('error.saveQueueFailed'),
+            });
         },
     });
 

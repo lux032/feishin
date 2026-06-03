@@ -288,6 +288,29 @@
         "releaseDate": "Ilmumiskuupäev",
         "releaseYear": "Ilmumisaasta",
         "search": "Otsing",
-        "songCount": "Lugude arv"
+        "songCount": "Lugude arv",
+        "explicitStatus": "$t(common.explicitStatus)",
+        "title": "Pealkiri",
+        "sortName": "Sortimisnimi",
+        "trackNumber": "Lugu"
+    },
+    "filterOperator": {
+        "contains": "Sisaldab",
+        "endsWith": "Lõpeb",
+        "is": "On",
+        "isNot": "Ei ole",
+        "isGreaterThan": "On suurem kui",
+        "isLessThan": "On väiksem kui",
+        "matchesRegex": "Vastab regulaaravaldisele",
+        "notContains": "Ei sisalda",
+        "inTheRangeDate": "Jääb vahemikku (kuupäev)",
+        "inTheRange": "Jääb vahemikku",
+        "inTheLast": "Viimase",
+        "inPlaylist": "On",
+        "beforeDate": "On enne (kuupäeva)",
+        "before": "On enne",
+        "afterDate": "On pärast (kuupäeva)",
+        "after": "On pärast",
+        "notInPlaylist": "Ei ole"
     }
 }

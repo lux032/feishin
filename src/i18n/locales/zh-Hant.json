@@ -423,7 +423,8 @@
         "sleepTimer_setCustom": "設定定時器",
         "sleepTimer_cancel": "取消定時器",
         "albumRadio": "專輯電台",
-        "scrobbleForceSubmit": "強制紀錄"
+        "scrobbleForceSubmit": "強制紀錄",
+        "sleepTimer_endOfAlbum": "專輯播完時"
     },
     "setting": {
         "audioPlayer_description": "選擇用於播放的音訊播放器",
