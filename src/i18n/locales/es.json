@@ -49,7 +49,8 @@
         "sleepTimer_endOfSong": "Fin de la canción actual",
         "sleepTimer": "Temporizador de apagado",
         "albumRadio": "Radio del álbum",
-        "scrobbleForceSubmit": "Forzar scrobble"
+        "scrobbleForceSubmit": "Forzar scrobble",
+        "sleepTimer_endOfAlbum": "Fin del álbum actual"
     },
     "setting": {
         "crossfadeStyle_description": "Selecciona el estilo de crossfade a usar por el reproductor de audio",
