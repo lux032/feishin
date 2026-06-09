@@ -59,8 +59,9 @@ Jellyfin progress APIs still use playback position (ticks), not listen time:
   - pause / unpause
 
 Other events:
-  - When the song changes: sends 'start' when the new track is playing;
-    clears submission flag and listen accumulator for the new track.
+  - When the song changes: sends 'stop' for the previous track; sends 'start'
+    when the new track is playing; clears submission flag and listen accumulator
+    for the new track.
 
   - When the song is restarted (near 0 after 10s+): clears submission flag
     and listen accumulator.
@@ -166,6 +167,7 @@ export const useScrobble = () => {
 
     const previousSongRef = useRef<QueueSong | undefined>(undefined);
     const previousTimestampRef = useRef<number>(0);
+    const stopPositionRef = useRef<number>(0);
     const lastProgressEventRef = useRef<number>(0);
     const lastSeekEventRef = useRef<number>(0);
     const songChangeTimeoutRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
@@ -353,6 +355,7 @@ export const useScrobble = () => {
         ) => {
             const currentSong = properties.song;
             const previousSong = previousSongRef.current;
+            const previousPositionSec = stopPositionRef.current;
             const mediaType = getScrobbleMediaType(currentSong);
 
             // Handle notifications
@@ -389,6 +392,7 @@ export const useScrobble = () => {
             if (!isScrobbleEnabled || isPrivateModeEnabled) {
                 previousSongRef.current = currentSong;
                 previousTimestampRef.current = 0;
+                stopPositionRef.current = 0;
                 listenedMsRef.current = 0;
                 lastListenSampleTimeRef.current = null;
                 flushScrobbleDebug();
@@ -399,29 +403,6 @@ export const useScrobble = () => {
             lastProgressEventRef.current = 0;
             listenedMsRef.current = 0;
             lastListenSampleTimeRef.current = null;
-
-            if (
-                previousSong?.id &&
-                previousSong._serverType === ServerType.PLEX &&
-                previousSong._uniqueId !== currentSong?._uniqueId
-            ) {
-                sendScrobble.mutate({
-                    apiClientProps: { serverId: previousSong._serverId || '' },
-                    query: {
-                        albumId: previousSong.albumId,
-                        duration: previousSong.duration,
-                        event: 'stop',
-                        id: previousSong.id,
-                        mediaType: getScrobbleMediaType(previousSong),
-                        playbackRate,
-                        position: getScrobblePositionFromSeconds(
-                            previousSong,
-                            previousTimestampRef.current,
-                        ),
-                        submission: false,
-                    },
-                });
-            }
 
             // Use a timeout to prevent spamming the server when switching songs quickly
             clearTimeout(songChangeTimeoutRef.current);
@@ -456,10 +437,43 @@ export const useScrobble = () => {
                         },
                     );
                 }
+
+                // Send stop scrobble for the track that was playing before the change
+                if (previousSong?.id && previousSong._uniqueId !== currentSong?._uniqueId) {
+                    sendScrobble.mutate(
+                        {
+                            apiClientProps: { serverId: previousSong._serverId || '' },
+                            query: {
+                                albumId: previousSong.albumId,
+                                duration: previousSong.duration,
+                                event: 'stop',
+                                id: previousSong.id,
+                                mediaType: getScrobbleMediaType(previousSong),
+                                playbackRate,
+                                position: getScrobblePositionFromSeconds(
+                                    previousSong,
+                                    previousPositionSec,
+                                ),
+                                submission: false,
+                            },
+                        },
+                        {
+                            onSuccess: () => {
+                                logFn.debug(logMsg[LogCategory.SCROBBLE].scrobbledStop, {
+                                    category: LogCategory.SCROBBLE,
+                                    meta: {
+                                        id: previousSong.id,
+                                    },
+                                });
+                            },
+                        },
+                    );
+                }
             }, 2000);
 
             previousSongRef.current = currentSong;
             previousTimestampRef.current = 0;
+            stopPositionRef.current = 0;
             flushScrobbleDebug();
         },
         [
@@ -645,6 +659,7 @@ export const useScrobble = () => {
         isCurrentSongScrobbledRef.current = false;
         lastProgressEventRef.current = 0;
         previousTimestampRef.current = 0;
+        stopPositionRef.current = 0;
         listenedMsRef.current = 0;
         lastListenSampleTimeRef.current = null;
 
@@ -680,6 +695,17 @@ export const useScrobble = () => {
     // Update previous timestamp on progress for use in status change handler
     const handleProgressUpdate = useCallback(
         (properties: { timestamp: number }, prev: { timestamp: number }) => {
+            // Preserve last playback position when the playhead resets to the start
+            // (song change can fire after progress already reports 0 for the new track).
+            if (
+                properties.timestamp < SCROBBLE_TRACK_BEGIN_SEC &&
+                prev.timestamp >= SCROBBLE_TRACK_BEGIN_SEC
+            ) {
+                stopPositionRef.current = prev.timestamp;
+            } else {
+                stopPositionRef.current = properties.timestamp;
+            }
+
             previousTimestampRef.current = properties.timestamp;
             handleScrobbleFromProgress(properties, prev);
             flushScrobbleDebug();
