@@ -484,6 +484,8 @@ export const tagListSortMap: TagListSortMap = {
     },
 };
 
+export const SortKeyRandom = 'random';
+
 export enum AlbumListSort {
     ALBUM_ARTIST = 'albumArtist',
     ARTIST = 'artist',
@@ -495,7 +497,7 @@ export enum AlbumListSort {
     ID = 'id',
     NAME = 'name',
     PLAY_COUNT = 'playCount',
-    RANDOM = 'random',
+    RANDOM = SortKeyRandom,
     RATING = 'rating',
     RECENTLY_ADDED = 'recentlyAdded',
     RECENTLY_PLAYED = 'recentlyPlayed',
@@ -638,7 +640,7 @@ export enum SongListSort {
     ID = 'id',
     NAME = 'name',
     PLAY_COUNT = 'playCount',
-    RANDOM = 'random',
+    RANDOM = SortKeyRandom,
     RATING = 'rating',
     RECENTLY_ADDED = 'recentlyAdded',
     RECENTLY_PLAYED = 'recentlyPlayed',
@@ -788,7 +790,7 @@ export enum AlbumArtistListSort {
     FAVORITED = 'favorited',
     NAME = 'name',
     PLAY_COUNT = 'playCount',
-    RANDOM = 'random',
+    RANDOM = SortKeyRandom,
     RATING = 'rating',
     RECENTLY_ADDED = 'recentlyAdded',
     RELEASE_DATE = 'releaseDate',
@@ -891,7 +893,7 @@ export enum ArtistListSort {
     FAVORITED = 'favorited',
     NAME = 'name',
     PLAY_COUNT = 'playCount',
-    RANDOM = 'random',
+    RANDOM = SortKeyRandom,
     RATING = 'rating',
     RECENTLY_ADDED = 'recentlyAdded',
     RELEASE_DATE = 'releaseDate',
