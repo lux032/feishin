@@ -1273,10 +1273,10 @@
         "startsWith": "Začíná na"
     },
     "datetime": {
-        "minuteShort": "Min.",
-        "secondShort": "S",
-        "hourShort": "H.",
-        "dayShort": "D."
+        "minuteShort": "min.",
+        "secondShort": "s",
+        "hourShort": "h.",
+        "dayShort": "d."
     },
     "visualizer": {
         "visualizerType": "Typ vizualizéru",
