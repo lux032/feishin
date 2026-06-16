@@ -192,6 +192,7 @@ type PlexFavoriteSongJson = {
         }[];
     }[];
     originallyAvailableAt?: string;
+    originalTitle?: string;
     parentIndex?: number | string;
     parentRatingKey?: string;
     parentThumb?: string;
@@ -272,6 +273,7 @@ type PlexSongJson = {
     lastViewedAt?: number | string;
     Media?: PlexJsonMedia[];
     originallyAvailableAt?: string;
+    originalTitle?: string;
     parentGuid?: string;
     parentIndex?: number | string;
     parentKey?: string;
@@ -494,6 +496,7 @@ const toPlexSongListResponse = (body: PlexSongListJsonResponse): PlexSongListRes
                     key: item.key || '',
                     lastViewedAt: toOptionalString(item.lastViewedAt),
                     originallyAvailableAt: item.originallyAvailableAt,
+                    originalTitle: item.originalTitle,
                     parentGuid: item.parentGuid,
                     parentIndex: toOptionalString(item.parentIndex),
                     parentKey: item.parentKey,

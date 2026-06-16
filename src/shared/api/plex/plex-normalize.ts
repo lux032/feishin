@@ -82,13 +82,15 @@ const getGenres = (
 
 const getArtists = (item: PlexTrack): RelatedArtist[] => {
     const artists: RelatedArtist[] = [];
+    const artistName = item.$.originalTitle || item.$.grandparentTitle;
 
-    if (item.$.grandparentTitle) {
+    if (artistName) {
+        const isAlbumArtist = artistName === item.$.grandparentTitle;
         artists.push({
-            id: item.$.grandparentRatingKey || '',
-            imageId: item.$.grandparentThumb || null,
+            id: isAlbumArtist ? item.$.grandparentRatingKey || '' : '',
+            imageId: isAlbumArtist ? item.$.grandparentThumb || null : null,
             imageUrl: null,
-            name: item.$.grandparentTitle,
+            name: artistName,
             userFavorite: false,
             userRating: null,
         });
@@ -147,6 +149,7 @@ const normalizeSong = (
     const streamUrl = mediaPart?.key ? `${serverUrl}${mediaPart.key}?X-Plex-Token=${token}` : '';
 
     const userRating = normalizePlexUserRating(item.$.userRating);
+    const artistName = item.$.originalTitle || item.$.grandparentTitle || '';
 
     return {
         _itemType: LibraryItem.SONG,
@@ -167,7 +170,7 @@ const normalizeSong = (
               ]
             : [],
         albumId: item.$.parentRatingKey || `dummy/${item.$.ratingKey}`,
-        artistName: item.$.grandparentTitle || '',
+        artistName,
         artists: getArtists(item),
         bitDepth: null,
         bitRate,

@@ -73,6 +73,7 @@ type PlexFavoriteSongJson = {
         }[];
     }[];
     originallyAvailableAt?: string;
+    originalTitle?: string;
     parentIndex?: number | string;
     parentRatingKey?: string;
     parentThumb?: string;
@@ -213,6 +214,7 @@ const toPlexTrackFromFavoriteJson = (item: PlexFavoriteSongJson): PlexTrack => (
         key: item.ratingKey ? `/library/metadata/${item.ratingKey}` : '',
         lastViewedAt: item.lastViewedAt === undefined ? undefined : String(item.lastViewedAt),
         originallyAvailableAt: item.originallyAvailableAt,
+        originalTitle: item.originalTitle,
         parentIndex: item.parentIndex === undefined ? undefined : String(item.parentIndex),
         parentRatingKey: item.parentRatingKey,
         parentThumb: item.parentThumb,
