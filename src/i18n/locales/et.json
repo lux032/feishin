@@ -456,7 +456,7 @@
             "title": "$t(entity.albumArtist, {\"count\": 2})"
         },
         "albumDetail": {
-            "moreFromArtist": "Veel esitajalt $t(entity.artist, {\"count\": 1})",
+            "moreFromArtist": "Veel $t(entity.artist, {\"count\": 1}) albumeid",
             "moreFromGeneric": "Veel: {{item}}",
             "released": "Avaldatud"
         },
