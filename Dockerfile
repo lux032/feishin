@@ -5,7 +5,8 @@ WORKDIR /app
 # Copy package.json first to cache node_modules
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml .
 
-RUN pnpm install
+RUN corepack enable && corepack prepare pnpm@11.5.2 --activate
+RUN pnpm install --frozen-lockfile
 
 # Copy code and build with cached modules
 COPY . .
