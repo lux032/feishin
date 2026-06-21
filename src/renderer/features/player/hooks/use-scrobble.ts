@@ -113,6 +113,13 @@ const supportsPlaybackStateScrobble = (song?: QueueSong) => {
     return hasFeature(getServerById(song._serverId), ServerFeature.REPORT_PLAYBACK);
 };
 
+const shouldReportPlaybackState = (song: QueueSong, hasSubmitted: boolean) =>
+    supportsPlaybackStateScrobble(song) &&
+    // Plex can increment viewCount from both /:/scrobble and a timeline that reaches
+    // the end of the track. Once the explicit scrobble is submitted, stop reporting
+    // timeline events for that play-through so it is counted exactly once.
+    !(song._serverType === ServerType.PLEX && hasSubmitted);
+
 const getScrobblePositionFromSeconds = (song: QueueSong, timestampSeconds: number) => {
     if (song._serverType === ServerType.JELLYFIN) {
         return Math.round(timestampSeconds * 1e7);
@@ -274,7 +281,7 @@ export const useScrobble = () => {
             }
 
             // Send playback progress events every 10 seconds for servers that support state sync.
-            if (supportsPlaybackStateScrobble(currentSong)) {
+            if (shouldReportPlaybackState(currentSong, isCurrentSongScrobbledRef.current)) {
                 const timeSinceLastProgress = currentTime - lastProgressEventRef.current;
                 if (timeSinceLastProgress >= 10) {
                     sendScrobble.mutate(
@@ -355,6 +362,7 @@ export const useScrobble = () => {
         ) => {
             const currentSong = properties.song;
             const previousSong = previousSongRef.current;
+            const previousSongWasScrobbled = isCurrentSongScrobbledRef.current;
             const previousPositionSec = stopPositionRef.current;
             const mediaType = getScrobbleMediaType(currentSong);
 
@@ -439,7 +447,11 @@ export const useScrobble = () => {
                 }
 
                 // Send stop scrobble for the track that was playing before the change
-                if (previousSong?.id && previousSong._uniqueId !== currentSong?._uniqueId) {
+                if (
+                    previousSong?.id &&
+                    previousSong._uniqueId !== currentSong?._uniqueId &&
+                    shouldReportPlaybackState(previousSong, previousSongWasScrobbled)
+                ) {
                     sendScrobble.mutate(
                         {
                             apiClientProps: { serverId: previousSong._serverId || '' },
@@ -512,7 +524,7 @@ export const useScrobble = () => {
                 lastProgressEventRef.current = 0;
             }
 
-            if (!supportsPlaybackStateScrobble(currentSong)) {
+            if (!shouldReportPlaybackState(currentSong, isCurrentSongScrobbledRef.current)) {
                 flushScrobbleDebug();
                 return;
             }
@@ -574,7 +586,7 @@ export const useScrobble = () => {
                 return;
             }
 
-            if (!supportsPlaybackStateScrobble(currentSong)) {
+            if (!shouldReportPlaybackState(currentSong, isCurrentSongScrobbledRef.current)) {
                 return;
             }
 

@@ -124,6 +124,7 @@ const normalizeSong = (
 ): Song => {
     const media = item.Media?.[0];
     const mediaPart = media?.Part?.[0]?.$;
+    const audioCodec = media?.$.audioCodec || null;
 
     let bitRate = 0;
     let channels: null | number = null;
@@ -134,7 +135,7 @@ const normalizeSong = (
     if (media) {
         bitRate = media.$.bitrate ? Number(media.$.bitrate) : 0;
         channels = media.$.audioChannels ? Number(media.$.audioChannels) : null;
-        container = media.$.container || null;
+        container = audioCodec || media.$.container || null;
     }
 
     if (item.$.duration) {
@@ -143,7 +144,7 @@ const normalizeSong = (
 
     if (mediaPart) {
         size = mediaPart.size ? Number(mediaPart.size) : 0;
-        container = mediaPart.container || container;
+        container = audioCodec || mediaPart.container || container;
     }
 
     const streamUrl = mediaPart?.key ? `${serverUrl}${mediaPart.key}?X-Plex-Token=${token}` : '';
