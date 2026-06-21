@@ -1270,7 +1270,9 @@
         "notContains": "Neobsahuje",
         "notInPlaylist": "Není v",
         "notInTheLast": "Není v posledním",
-        "startsWith": "Začíná na"
+        "startsWith": "Začíná na",
+        "isMissing": "Chybí",
+        "isPresent": "Je přítomen"
     },
     "datetime": {
         "minuteShort": "min.",

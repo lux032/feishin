@@ -314,7 +314,9 @@
         "after": "On pärast",
         "notInPlaylist": "Ei ole",
         "startsWith": "Algab",
-        "notInTheLast": "Pole viimase"
+        "notInTheLast": "Pole viimase",
+        "isMissing": "Puudub",
+        "isPresent": "On olemas"
     },
     "form": {
         "addServer": {
