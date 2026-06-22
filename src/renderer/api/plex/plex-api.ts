@@ -179,6 +179,7 @@ type PlexFavoriteSongJson = {
     lastViewedAt?: number | string;
     Media?: {
         audioChannels?: number | string;
+        audioCodec?: string;
         bitrate?: number | string;
         container?: string;
         id?: number | string;

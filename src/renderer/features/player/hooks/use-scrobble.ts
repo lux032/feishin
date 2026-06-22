@@ -115,9 +115,8 @@ const supportsPlaybackStateScrobble = (song?: QueueSong) => {
 
 const shouldReportPlaybackState = (song: QueueSong, hasSubmitted: boolean) =>
     supportsPlaybackStateScrobble(song) &&
-    // Plex can increment viewCount from both /:/scrobble and a timeline that reaches
-    // the end of the track. Once the explicit scrobble is submitted, stop reporting
-    // timeline events for that play-through so it is counted exactly once.
+    // A completed Plex timeline closes the play-through. Do not send any later
+    // progress, pause, or stop events for the same session.
     !(song._serverType === ServerType.PLEX && hasSubmitted);
 
 const getScrobblePositionFromSeconds = (song: QueueSong, timestampSeconds: number) => {
@@ -328,6 +327,7 @@ export const useScrobble = () => {
                             apiClientProps: { serverId: currentSong._serverId || '' },
                             query: {
                                 albumId: currentSong.albumId,
+                                duration: currentSong.duration,
                                 id: currentSong.id,
                                 mediaType,
                                 playbackRate,
@@ -744,6 +744,7 @@ export const useScrobble = () => {
                         apiClientProps: { serverId: song._serverId || '' },
                         query: {
                             albumId: song.albumId,
+                            duration: song.duration,
                             id: song.id,
                             mediaType,
                             playbackRate,

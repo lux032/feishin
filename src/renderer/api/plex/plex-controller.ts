@@ -60,6 +60,7 @@ type PlexFavoriteSongJson = {
     lastViewedAt?: number | string;
     Media?: {
         audioChannels?: number | string;
+        audioCodec?: string;
         bitrate?: number | string;
         container?: string;
         id?: number | string;
@@ -234,6 +235,7 @@ const toPlexTrackFromFavoriteJson = (item: PlexFavoriteSongJson): PlexTrack => (
         $: {
             audioChannels:
                 media.audioChannels === undefined ? undefined : String(media.audioChannels),
+            audioCodec: media.audioCodec,
             bitrate: media.bitrate === undefined ? undefined : String(media.bitrate),
             container: media.container,
             id: media.id === undefined ? String(index) : String(media.id),
@@ -1551,7 +1553,14 @@ export const PlexController: InternalControllerEndpoint = {
         const apiClient = pxApiClient(apiClientProps);
 
         if (query.submission) {
-            await apiClient.scrobble(query.id);
+            // Plex's timeline endpoint already records completed plays. Calling /:/scrobble
+            // as well creates a second viewCount increment for the same play-through.
+            await apiClient.reportTimeline({
+                duration: query.duration,
+                ratingKey: query.id,
+                state: 'stopped',
+                time: query.position,
+            });
             return null;
         }
 
