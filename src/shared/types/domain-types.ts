@@ -82,6 +82,7 @@ export interface QueueData {
 }
 
 export type QueueSong = Song & {
+    _contextPlaylistId?: null | string;
     _uniqueId: string;
 };
 
