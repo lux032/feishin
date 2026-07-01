@@ -14,13 +14,13 @@ export const useFuriganaLyrics = (lyrics: LyricsResponse | null | undefined, ena
             if (typeof lyrics === 'string') {
                 return await lyricsApi.convertFurigana(lyrics);
             } else if (Array.isArray(lyrics)) {
-                const text = lyrics.map(([, line]) => line).join('\n');
-                const converted = await lyricsApi.convertFurigana(text);
-                const convertedLines = converted.split('\n');
-                return lyrics.map(([time], i) => [
-                    time,
-                    convertedLines[i] ?? lyrics[i][1],
-                ]) as SynchronizedLyricsArray;
+                const converted = await Promise.all(
+                    lyrics.map(async ([time, line]) => [
+                        time,
+                        await lyricsApi.convertFurigana(line),
+                    ]),
+                );
+                return converted as SynchronizedLyricsArray;
             }
             return lyrics;
         },
@@ -38,13 +38,10 @@ export const useRomajiLyrics = (lyrics: LyricsResponse | null | undefined, enabl
             if (typeof lyrics === 'string') {
                 return await lyricsApi.convertRomaji(lyrics);
             } else if (Array.isArray(lyrics)) {
-                const text = lyrics.map(([, line]) => line).join('\n');
-                const converted = await lyricsApi.convertRomaji(text);
-                const convertedLines = converted.split('\n');
-                return lyrics.map(([time], i) => [
-                    time,
-                    convertedLines[i] ?? lyrics[i][1],
-                ]) as SynchronizedLyricsArray;
+                const converted = await Promise.all(
+                    lyrics.map(async ([time, line]) => [time, await lyricsApi.convertRomaji(line)]),
+                );
+                return converted as SynchronizedLyricsArray;
             }
             return lyrics;
         },

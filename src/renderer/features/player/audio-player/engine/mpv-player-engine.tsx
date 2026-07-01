@@ -212,7 +212,7 @@ export const MpvPlayerEngine = (props: MpvPlayerEngineProps) => {
 
         if (playerStatus === PlayerStatus.PLAYING) {
             mpvPlayer.play();
-        } else if (playerStatus === PlayerStatus.PAUSED) {
+        } else {
             mpvPlayer.pause();
         }
     }, [playerStatus]);

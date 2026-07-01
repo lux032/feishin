@@ -197,8 +197,8 @@ const JF_FIELDS = {
         'SortName',
         'ProviderIds',
     ],
-    ALBUM_DETAIL: ['Genres', 'DateCreated', 'ChildCount', 'People', 'Tags', 'ProviderIds'],
-    ALBUM_LIST: ['People', 'Tags', 'Studios', 'SortName', 'ProviderIds', 'ChildCount'],
+    ALBUM_DETAIL: ['Genres', 'DateCreated', 'ChildCount', 'Tags', 'ProviderIds'],
+    ALBUM_LIST: ['Tags', 'Studios', 'SortName', 'ProviderIds', 'ChildCount'],
     FOLDER: ['Genres', 'DateCreated', 'MediaSources', 'ParentId'],
     GENRE: ['ItemCounts'],
     PLAYLIST_DETAIL: [
@@ -210,16 +210,7 @@ const JF_FIELDS = {
         'SortName',
     ],
     PLAYLIST_LIST: ['ChildCount', 'Genres', 'DateCreated', 'ParentId', 'Overview'],
-    SONG: [
-        'Genres',
-        'DateCreated',
-        'MediaSources',
-        'ParentId',
-        'People',
-        'Tags',
-        'SortName',
-        'ProviderIds',
-    ],
+    SONG: ['Genres', 'DateCreated', 'MediaSources', 'ParentId', 'Tags', 'SortName', 'ProviderIds'],
 } as const;
 
 export const JellyfinController: InternalControllerEndpoint = {
@@ -1056,6 +1047,35 @@ export const JellyfinController: InternalControllerEndpoint = {
             apiClientProps,
             query: { ...query, limit: 1, startIndex: 0 },
         }).then((result) => result!.totalRecordCount!),
+    getPlaylistSongIds: async (args) => {
+        const { apiClientProps, query } = args;
+
+        if (!apiClientProps.server?.userId) {
+            throw new Error('No userId found');
+        }
+
+        const res = await jfApiClient(apiClientProps).getPlaylistSongList({
+            params: {
+                id: query.id,
+            },
+            query: {
+                // XXX: No fields are required for only IDs, which saves processing time between
+                // the Jellyfin server query, network (MBs vs KBs), and in-app parsing.
+                IncludeItemTypes: 'Audio',
+                UserId: apiClientProps.server?.userId,
+            },
+        });
+
+        if (res.status !== 200) {
+            throw new Error('Failed to get playlist song list IDs');
+        }
+
+        return {
+            items: res.body.Items.map((item) => item.Id),
+            startIndex: 0,
+            totalRecordCount: res.body.TotalRecordCount,
+        };
+    },
     getPlaylistSongList: async (args) => {
         const { apiClientProps, query } = args;
 
@@ -1068,7 +1088,7 @@ export const JellyfinController: InternalControllerEndpoint = {
                 id: query.id,
             },
             query: {
-                Fields: JF_FIELDS.SONG,
+                Fields: JF_FIELDS.PLAYLIST_DETAIL,
                 IncludeItemTypes: 'Audio',
                 UserId: apiClientProps.server?.userId,
             },

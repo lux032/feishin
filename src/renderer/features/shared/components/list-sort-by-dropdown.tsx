@@ -920,8 +920,18 @@ const GENRE_LIST_FILTERS: Partial<
     [ServerType.NAVIDROME]: [
         {
             defaultOrder: SortOrder.ASC,
+            name: i18n.t('filter.albumCount'),
+            value: GenreListSort.ALBUM_COUNT,
+        },
+        {
+            defaultOrder: SortOrder.ASC,
             name: i18n.t('filter.name'),
             value: GenreListSort.NAME,
+        },
+        {
+            defaultOrder: SortOrder.ASC,
+            name: i18n.t('filter.songCount'),
+            value: GenreListSort.SONG_COUNT,
         },
     ],
     [ServerType.PLEX]: [
@@ -934,8 +944,18 @@ const GENRE_LIST_FILTERS: Partial<
     [ServerType.SUBSONIC]: [
         {
             defaultOrder: SortOrder.ASC,
+            name: i18n.t('filter.albumCount'),
+            value: GenreListSort.ALBUM_COUNT,
+        },
+        {
+            defaultOrder: SortOrder.ASC,
             name: i18n.t('filter.name'),
             value: GenreListSort.NAME,
+        },
+        {
+            defaultOrder: SortOrder.ASC,
+            name: i18n.t('filter.albumCount'),
+            value: GenreListSort.SONG_COUNT,
         },
     ],
 };

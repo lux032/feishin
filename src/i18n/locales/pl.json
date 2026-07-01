@@ -1144,7 +1144,11 @@
         "compressorReset_description": "Przywróć wszystkie parametry kompresora do wartości domyślnych",
         "compressorSavePreset_description": "Zapisz aktualne ustawienia kompresora jako nazwany zestaw ustawień wstępnych",
         "compressorThreshold_description": "Poziom sygnału nad którym rozpoczyna się kompresja.",
-        "compressorThreshold": "Próg"
+        "compressorThreshold": "Próg",
+        "enableRomaji_description": "Wyświetlaj linijkę z wymową romaji pod japońskim tekstem.",
+        "enableRomaji": "Włącz generowanie romaji",
+        "windowBarTrackinfo": "Informacje o utworze w tytule okna",
+        "windowBarTrackinfo_description": "Wyświetlaj tytuł, wykonawcę, pozycję w kolejce i stan Odtwarzania/Wstrzymania w tytule okna."
     },
     "table": {
         "config": {

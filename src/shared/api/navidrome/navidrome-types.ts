@@ -27,7 +27,9 @@ export enum NDAlbumListSort {
 }
 
 export enum NDGenreListSort {
+    ALBUM_COUNT = 'albumCount',
     NAME = 'name',
+    SONG_COUNT = 'songCount',
 }
 
 export enum NDPlaylistListSort {
@@ -754,6 +756,8 @@ const tag = z.object({
 const tagList = z.array(tag);
 
 export enum NDTagListSort {
+    ALBUM_COUNT = 'albumCount',
+    SONG_COUNT = 'songCount',
     TAG_VALUE = 'tagValue',
 }
 

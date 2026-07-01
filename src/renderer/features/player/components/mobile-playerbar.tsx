@@ -213,7 +213,7 @@ export const MobilePlayerbar = () => {
                 />
                 <MainPlayButton
                     disabled={currentSong?.id === undefined}
-                    isPaused={status === PlayerStatus.PAUSED}
+                    isPaused={status !== PlayerStatus.PLAYING}
                     onClick={(e) => {
                         e.stopPropagation();
                         mediaTogglePlayPause();

@@ -869,7 +869,9 @@
         "compressorThreshold_description": "開始進行壓縮的訊號電平。",
         "compressorThreshold": "閥值",
         "enableRomaji_description": "在日文歌詞下方顯示羅馬拼音。",
-        "enableRomaji": "啟用羅馬拼音顯示"
+        "enableRomaji": "啟用羅馬拼音顯示",
+        "windowBarTrackinfo": "在視窗標題列顯示曲目資訊",
+        "windowBarTrackinfo_description": "在視窗標題列中顯示目前播放曲目的標題與藝人、播放佇列中的位置，以及播放/暫停狀態。"
     },
     "table": {
         "config": {
@@ -903,7 +905,9 @@
                 "horizontalBorders": "行邊框線",
                 "rowHoverHighlight": "滑鼠懸停Highlight",
                 "verticalBorders": "列邊框線",
-                "showHeader": "顯示標題"
+                "showHeader": "顯示標題",
+                "albumGroupConfig": "專輯群組設定",
+                "albumImageSize": "專輯圖片大小"
             },
             "label": {
                 "actions": "$t(common.action, {\"count\": 2})",

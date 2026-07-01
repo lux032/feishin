@@ -1235,11 +1235,25 @@ export const usePlayerStoreBase = createWithEqualityFn<PlayerState>()(
                 mediaStop: (options?: { reset?: boolean }) => {
                     const reset = options?.reset !== false;
                     set((state) => {
-                        state.player.status = PlayerStatus.PAUSED;
+                        state.player.status = PlayerStatus.STOPPED;
                         setTimestampStore(0);
                         if (reset) {
                             state.player.seekToTimestamp = uniqueSeekToTimestamp(0);
                         }
+                    });
+
+                    const currentState = get();
+                    const queue = currentState.getQueue();
+                    const currentIndex = currentState.player.index;
+                    const currentSong = queue.items[currentIndex];
+
+                    eventEmitter.emit('PLAYER_STOP', {
+                        id: currentSong?._uniqueId,
+                        index:
+                            currentIndex !== undefined && currentIndex >= 0
+                                ? currentIndex
+                                : undefined,
+                        reset,
                     });
                 },
                 mediaToggleMute: () => {

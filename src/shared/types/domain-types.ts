@@ -169,7 +169,9 @@ export enum ExternalType {
 }
 
 export enum GenreListSort {
+    ALBUM_COUNT = 'albumCount',
     NAME = 'name',
+    SONG_COUNT = 'songCount',
 }
 
 export enum ImageType {
@@ -180,7 +182,9 @@ export enum ImageType {
 }
 
 export enum TagListSort {
+    ALBUM_COUNT = 'albumCount',
     NAME = 'name',
+    SONG_COUNT = 'songCount',
 }
 
 export type Album = {
@@ -445,23 +449,31 @@ type BaseEndpointArgs = {
 
 type GenreListSortMap = {
     jellyfin: Record<GenreListSort, JFGenreListSort | undefined>;
-    navidrome: Record<GenreListSort, NDGenreListSort | undefined>;
+    navidrome: Record<GenreListSort, NDGenreListSort>;
     plex: Record<GenreListSort, PXGenreListSort | undefined>;
-    subsonic: Record<UserListSort, undefined>;
+    subsonic: Record<GenreListSort, undefined>;
 };
 
 export const genreListSortMap: GenreListSortMap = {
     jellyfin: {
+        albumCount: undefined,
         name: JFGenreListSort.NAME,
+        songCount: undefined,
     },
     navidrome: {
+        albumCount: NDGenreListSort.NAME,
         name: NDGenreListSort.NAME,
+        songCount: NDGenreListSort.NAME,
     },
     plex: {
+        albumCount: undefined,
         name: PXGenreListSort.NAME,
+        songCount: undefined,
     },
     subsonic: {
+        albumCount: undefined,
         name: undefined,
+        songCount: undefined,
     },
 };
 
@@ -473,13 +485,19 @@ type TagListSortMap = {
 
 export const tagListSortMap: TagListSortMap = {
     jellyfin: {
+        albumCount: undefined,
         name: undefined,
+        songCount: undefined,
     },
     navidrome: {
+        albumCount: NDTagListSort.ALBUM_COUNT,
         name: NDTagListSort.TAG_VALUE,
+        songCount: NDTagListSort.SONG_COUNT,
     },
     subsonic: {
+        albumCount: undefined,
         name: undefined,
+        songCount: undefined,
     },
 };
 
@@ -659,6 +677,8 @@ export type AlbumInfo = {
     imageUrl: null | string;
     notes: null | string;
 };
+
+export type SongIdListResponse = BasePaginatedResponse<string[]>;
 
 export type SongListArgs = BaseEndpointArgs & { query: SongListQuery };
 
@@ -1607,6 +1627,7 @@ export type ControllerEndpoint = {
     getPlaylistDetail: (args: PlaylistDetailArgs) => Promise<PlaylistDetailResponse>;
     getPlaylistList: (args: PlaylistListArgs) => Promise<PlaylistListResponse>;
     getPlaylistListCount: (args: PlaylistListCountArgs) => Promise<number>;
+    getPlaylistSongIds: (args: PlaylistSongListArgs) => Promise<SongIdListResponse>;
     getPlaylistSongList: (args: PlaylistSongListArgs) => Promise<SongListResponse>;
     getPlayQueue: (args: GetQueueArgs) => Promise<GetQueueResponse>;
     getRandomSongList: (args: RandomSongListArgs) => Promise<SongListResponse>;
@@ -1761,6 +1782,9 @@ export type InternalControllerEndpoint = {
         args: ReplaceApiClientProps<PlaylistListArgs>,
     ) => Promise<PlaylistListResponse>;
     getPlaylistListCount: (args: ReplaceApiClientProps<PlaylistListCountArgs>) => Promise<number>;
+    getPlaylistSongIds: (
+        args: ReplaceApiClientProps<PlaylistSongListArgs>,
+    ) => Promise<SongIdListResponse>;
     getPlaylistSongList: (
         args: ReplaceApiClientProps<PlaylistSongListArgs>,
     ) => Promise<SongListResponse>;

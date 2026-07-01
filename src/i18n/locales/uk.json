@@ -167,7 +167,7 @@
         "version": "Версія",
         "year": "Рік",
         "yes": "Так",
-        "explicit": "Експліцитний зміст",
+        "explicit": "Відвертий зміст",
         "gridRows": "Рядки сітки",
         "tableColumns": "Стовпці таблиці",
         "itemsMore": "{{count}} більше",
@@ -180,9 +180,9 @@
         "album_one": "Альбом",
         "album_few": "альбоми",
         "album_many": "альбомів",
-        "albumArtist_one": "Виконавець альбому",
-        "albumArtist_few": "виконавці альбому",
-        "albumArtist_many": "виконавців альбому",
+        "albumArtist_one": "Виконавець Альбому",
+        "albumArtist_few": "Виконавці Альбому",
+        "albumArtist_many": "Виконавці Альбому",
         "albumArtistCount_one": "{{count}} виконавець альбому",
         "albumArtistCount_few": "{{count}} виконавці альбому",
         "albumArtistCount_many": "{{count}} виконавців альбому",
@@ -190,8 +190,8 @@
         "albumWithCount_few": "{{count}} альбоми",
         "albumWithCount_many": "{{count}} альбомів",
         "radioStation_one": "Радіостанція",
-        "radioStation_few": "радіостанції",
-        "radioStation_many": "радіостанцій",
+        "radioStation_few": "Радіостанції",
+        "radioStation_many": "Радіостанцій",
         "radioStationWithCount_one": "{{count}} радіостанція",
         "radioStationWithCount_few": "{{count}} радіостанції",
         "radioStationWithCount_many": "{{count}} радіостанцій",
@@ -267,7 +267,8 @@
         "systemFontError": "Сталася помилка під час спроби отримати системні шрифти",
         "settingsSyncError": "Виявлено розбіжності між налаштуваннями в рендерері та основним процесом. перезапустіть програму, щоб застосувати зміни",
         "invalidJson": "Недійсний JSON",
-        "playbackPausedDueToError": "Відтворення було призупинено через помилку"
+        "playbackPausedDueToError": "Відтворення було призупинено через помилку",
+        "serverLockSingleServer": "Коли сервер заблоковано можна використовувати тільки один сервер"
     },
     "filter": {
         "album": "$t(entity.album, {\"count\": 1})",
@@ -778,6 +779,8 @@
         "accentColor": "Акцентний колір",
         "useThemeAccentColor": "Використовувати акцентний колір теми",
         "useThemeAccentColor_description": "Використовувати основний колір визначений у обраній темі замість користувацького акцентного коліру",
-        "useThemePrimaryShade": "Використовувати основний відтінок теми"
+        "useThemePrimaryShade": "Використовувати основний відтінок теми",
+        "useThemePrimaryShade_description": "Використовувати основний відтінок, визначений у обраній темі, для основних варіантів кольорів",
+        "primaryShade": "Основний відтінок"
     }
 }

@@ -174,6 +174,7 @@ export const useScrobble = () => {
     const previousSongRef = useRef<QueueSong | undefined>(undefined);
     const previousTimestampRef = useRef<number>(0);
     const stopPositionRef = useRef<number>(0);
+    const stoppedSongIdRef = useRef<string | undefined>(undefined);
     const lastProgressEventRef = useRef<number>(0);
     const lastSeekEventRef = useRef<number>(0);
     const songChangeTimeoutRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
@@ -543,6 +544,12 @@ export const useScrobble = () => {
 
             const currentStatus = usePlayerStore.getState().player.status;
 
+            // Stop resets seek position; the stop event is reported by handleScrobbleFromStatus.
+            if (currentStatus === PlayerStatus.STOPPED) {
+                flushScrobbleDebug();
+                return;
+            }
+
             sendScrobble.mutate(
                 {
                     apiClientProps: { serverId: currentSong._serverId || '' },
@@ -640,6 +647,71 @@ export const useScrobble = () => {
                     {
                         onSuccess: () => {
                             logFn.debug(logMsg[LogCategory.SCROBBLE].scrobbledUnpause, {
+                                category: LogCategory.SCROBBLE,
+                                meta: {
+                                    id: currentSong.id,
+                                },
+                            });
+                        },
+                    },
+                );
+            }
+
+            // Send start event when resuming the same song that was stopped.
+            if (
+                properties.status === PlayerStatus.PLAYING &&
+                prev.status === PlayerStatus.STOPPED &&
+                stoppedSongIdRef.current === currentSong._uniqueId
+            ) {
+                stoppedSongIdRef.current = undefined;
+                sendScrobble.mutate(
+                    {
+                        apiClientProps: { serverId: currentSong._serverId || '' },
+                        query: {
+                            albumId: currentSong.albumId,
+                            event: 'start',
+                            id: currentSong.id,
+                            mediaType: mediaType,
+                            playbackRate: playbackRate,
+                            position: getPositionValue(currentTimestamp, useTicks),
+                            submission: false,
+                        },
+                    },
+                    {
+                        onSuccess: () => {
+                            logFn.debug(logMsg[LogCategory.SCROBBLE].scrobbledStart, {
+                                category: LogCategory.SCROBBLE,
+                                meta: {
+                                    id: currentSong.id,
+                                },
+                            });
+                        },
+                    },
+                );
+            }
+
+            // Send stop event when status changes to stopped (from an active state)
+            if (
+                properties.status === PlayerStatus.STOPPED &&
+                prev.status !== PlayerStatus.STOPPED
+            ) {
+                stoppedSongIdRef.current = currentSong._uniqueId;
+                sendScrobble.mutate(
+                    {
+                        apiClientProps: { serverId: currentSong._serverId || '' },
+                        query: {
+                            albumId: currentSong.albumId,
+                            event: 'stop',
+                            id: currentSong.id,
+                            mediaType: mediaType,
+                            playbackRate: playbackRate,
+                            position: getPositionValue(currentTimestamp, useTicks),
+                            submission: false,
+                        },
+                    },
+                    {
+                        onSuccess: () => {
+                            logFn.debug(logMsg[LogCategory.SCROBBLE].scrobbledStop, {
                                 category: LogCategory.SCROBBLE,
                                 meta: {
                                     id: currentSong.id,

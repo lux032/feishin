@@ -203,7 +203,7 @@ const CenterPlayButton = ({ disabled }: { disabled?: boolean }) => {
     return (
         <MainPlayButton
             disabled={disabled || currentSongId === undefined}
-            isPaused={status === PlayerStatus.PAUSED}
+            isPaused={status !== PlayerStatus.PLAYING}
             onClick={mediaTogglePlayPause}
         />
     );

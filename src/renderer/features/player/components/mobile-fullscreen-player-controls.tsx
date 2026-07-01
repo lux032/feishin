@@ -51,7 +51,7 @@ export const MobileFullscreenPlayerControls = memo(
                 />
                 <MainPlayButton
                     disabled={currentSongId === undefined}
-                    isPaused={status === PlayerStatus.PAUSED}
+                    isPaused={status !== PlayerStatus.PLAYING}
                     onClick={mediaTogglePlayPause}
                     style={{
                         height: '50px',

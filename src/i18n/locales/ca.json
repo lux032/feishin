@@ -1009,7 +1009,11 @@
         "compressorReset_description": "Restaura tots els paràmetres del compressor als seus valors per defecte",
         "compressorSavePreset_description": "Desa la configuració actual del compressor com un ajust predefinit amb nom",
         "compressorThreshold_description": "Nivell de senyal a partir del qual comença la compressió.",
-        "compressorThreshold": "Llindar"
+        "compressorThreshold": "Llindar",
+        "enableRomaji_description": "Mostra la pronunciació en romaji a sota de la lletra en japonès.",
+        "enableRomaji": "Activa la generació de romaji",
+        "windowBarTrackinfo": "Títol de la finestra d'informació de la pista",
+        "windowBarTrackinfo_description": "Mostra el títol i l'artista de la pista actual, la posició a la cua i l'estat de reproducció al títol de la finestra."
     },
     "table": {
         "column": {
