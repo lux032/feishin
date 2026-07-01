@@ -1173,6 +1173,12 @@ export const PlexController: InternalControllerEndpoint = {
             query: { ...query, limit: 1, startIndex: 0 },
         }).then((result) => result?.totalRecordCount ?? 0),
 
+    getPlaylistSongIds: async (args) =>
+        PlexController.getPlaylistSongList(args).then((result) => ({
+            ...result,
+            items: result.items.map((song) => song.id),
+        })),
+
     getPlaylistSongList: async (args) => {
         const { apiClientProps, query } = args;
         const serverUrl = getPlexServerUrl(apiClientProps.server);
