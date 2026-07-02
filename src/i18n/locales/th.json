@@ -171,6 +171,18 @@
         "albumArtist_other": "ศิลปินอัลบั้ม",
         "albumArtistCount_other": "{{count}} ศิลปินอัลบั้ม",
         "albumWithCount_other": "{{count}} อัลบั้ม",
-        "radioStation_other": "สถานีวิทยุ"
+        "radioStation_other": "สถานีวิทยุ",
+        "radioStationWithCount_other": "{{count}} สถานีวิทยุ",
+        "artist_other": "ศิลปิน",
+        "artistWithCount_other": "{{count}} ศิลปิน",
+        "favorite_other": "รายการโปรด",
+        "folder_other": "โฟลเดอร์",
+        "folderWithCount_other": "{{count}} โฟลเดอร์",
+        "genre_other": "แนวเพลง",
+        "genreWithCount_other": "{{count}} แนวเพลง",
+        "playlist_other": "เพลย์ลิสต์",
+        "play_other": "{{count}} เล่น",
+        "playlistWithCount_other": "{{count}} เพลย์ลิสต์",
+        "smartPlaylist": "$t(entity.playlist, {\"count\": 1})อัจฉริยะ"
     }
 }

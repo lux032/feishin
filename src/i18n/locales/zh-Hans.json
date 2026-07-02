@@ -41,7 +41,9 @@
         "createRadioStation": "创建$t(entity.radioStation, {\"count\": 1})",
         "deleteRadioStation": "删除$t(entity.radioStation, {\"count\": 1})",
         "openApplicationDirectory": "打开应用程序目录",
-        "goToCurrent": "转到当前项目"
+        "goToCurrent": "转到当前项目",
+        "collapseAllFolders": "折叠所有文件夹",
+        "expandAllFolders": "展开所有文件夹"
     },
     "common": {
         "increase": "增高",
@@ -162,7 +164,9 @@
         "filter_multiple": "多项",
         "newVersionAvailable": "新版本现已可用",
         "numberOfResults": "{{numberOfResults}} 结果",
-        "grouping": "分组"
+        "grouping": "分组",
+        "back": "返回",
+        "openFolder": "打开文件夹"
     },
     "entity": {
         "albumArtist_other": "专辑艺术家",
@@ -611,7 +615,9 @@
         "sidePlayQueueLayout_optionHorizontal": "水平",
         "sidePlayQueueLayout_optionVertical": "垂直",
         "waveformLoadingDelay": "波形加载延迟",
-        "waveformLoadingDelay_description": "加载波形前的延迟时间（秒）。如果在使用网页播放器时遇到卡顿现象，请增加此值。"
+        "waveformLoadingDelay_description": "加载波形前的延迟时间（秒）。如果在使用网页播放器时遇到卡顿现象，请增加此值。",
+        "autoDJ_strategy_option_library_random": "随机",
+        "autoDJ_strategy_option_similar": "相似"
     },
     "error": {
         "remotePortWarning": "重启服务器使新端口生效",
@@ -731,7 +737,8 @@
                 "followCurrentLyric": "跟随当前歌词",
                 "dynamicImageBlur": "图像模糊大小",
                 "dynamicIsImage": "启用背景图像",
-                "lyricOffset": "歌词延迟补偿（毫秒）"
+                "lyricOffset": "歌词延迟补偿（毫秒）",
+                "lyricOpacityNonActive": "静态歌词不透明度"
             },
             "lyrics": "歌词",
             "related": "相关",
@@ -942,7 +949,8 @@
             "input_skipDuplicates": "跳过重复",
             "input_playlists": "$t(entity.playlist, {\"count\": 2})",
             "create": "创建 $t(entity.playlist, {\"count\": 1}) {{playlist}}",
-            "searchOrCreate": "搜索 $t(entity.playlist, {\"count\": 2}) 或键入以创建一个新的"
+            "searchOrCreate": "搜索 $t(entity.playlist, {\"count\": 2}) 或键入以创建一个新的",
+            "noneAdded": "没有音轨被添加到 $t(entity.playlist, {\"count\": 1}) '{{playlist}}'"
         },
         "createPlaylist": {
             "title": "创建$t(entity.playlist, {\"count\": 1})",
@@ -1018,7 +1026,12 @@
             "input_played_optionUnplayed": "仅未播放的曲目",
             "input_played_optionPlayed": "仅已播放的曲目",
             "input_limit": "有多少首歌？",
-            "input_played": "播放筛选器"
+            "input_played": "播放筛选器",
+            "input_kind_albums": "专辑",
+            "input_kind_songs": "歌曲",
+            "input_kind": "随机播放",
+            "input_limit_albums": "有多少专辑？",
+            "input_limit_songs": "有多少歌曲？"
         },
         "editRadioStation": {
             "success": "电台更新成功"
@@ -1180,7 +1193,8 @@
         "startsWith": "以…开头",
         "inTheRangeDate": "在（日期）范围内",
         "notInPlaylist": "不在…中",
-        "notInTheLast": "不在最后"
+        "notInTheLast": "不在最后",
+        "isMissing": "丢失的项目"
     },
     "datetime": {
         "minuteShort": "分",

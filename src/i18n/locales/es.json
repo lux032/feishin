@@ -1189,7 +1189,9 @@
                 "horizontalBorders": "Bordes de fila",
                 "verticalBorders": "Bordes de columna",
                 "rowHoverHighlight": "Resaltar al pasar el cursor por la fila",
-                "showHeader": "Mostrar cabecera"
+                "showHeader": "Mostrar cabecera",
+                "albumImageSize": "Tamaño de la imagen del álbum",
+                "albumGroupConfig": "Configuración del grupo del álbum"
             },
             "view": {
                 "table": "Tabla",
