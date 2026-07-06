@@ -1396,7 +1396,8 @@
                 "horizontalBorders": "Ridade piirjooned",
                 "rowHoverHighlight": "Rea esiletõstmine kursoriga",
                 "showHeader": "Kuva päis",
-                "verticalBorders": "Veergude piirjooned"
+                "verticalBorders": "Veergude piirjooned",
+                "albumImageSize": "Kaanepildi suurus"
             },
             "label": {
                 "actions": "$t(common.action, {\"count\": 2})",

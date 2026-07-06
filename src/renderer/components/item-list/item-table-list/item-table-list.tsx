@@ -827,6 +827,7 @@ interface ItemTableListProps {
     enableVerticalBorders?: boolean;
     getItem?: (index: number) => undefined | unknown;
     getItemIndex?: (rowId: string) => number | undefined;
+    getLoadedItems?: () => unknown[];
     getRowId?: ((item: unknown) => string) | string;
     groups?: TableGroupHeader[];
     headerHeight?: number;
@@ -1264,6 +1265,7 @@ const BaseItemTableList = ({
     enableVerticalBorders = false,
     getItem,
     getItemIndex,
+    getLoadedItems,
     getRowId,
     groups,
     headerHeight = 40,
@@ -1498,9 +1500,18 @@ const BaseItemTableList = ({
         [enableHeader, headerHeight, rowHeight, pinnedRowCount, size],
     );
 
+    const dataRef = useRef(data);
+    const getLoadedItemsRef = useRef(getLoadedItems);
+    dataRef.current = data;
+    getLoadedItemsRef.current = getLoadedItems;
+
     const getDataFn = useCallback(() => {
-        return data;
-    }, [data]);
+        const loadedItems = getLoadedItemsRef.current?.();
+        if (loadedItems?.length) {
+            return loadedItems;
+        }
+        return dataRef.current ?? [];
+    }, []);
 
     const extractRowId = useMemo(() => createExtractRowId(getRowId), [getRowId]);
 
@@ -1646,6 +1657,7 @@ const BaseItemTableList = ({
 
     useListHotkeys({
         controls,
+        focusContainerRef: containerRef,
         focused,
         internalState,
         itemType,

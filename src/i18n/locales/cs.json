@@ -495,7 +495,9 @@
         "compressorThreshold_description": "Úroveň signálu, nad kterou začne komprese.",
         "compressorThreshold": "Hranice",
         "enableRomaji_description": "Zobrazit rómadži výslovnost pod japonskými texty.",
-        "enableRomaji": "Povolit generování rómadži"
+        "enableRomaji": "Povolit generování rómadži",
+        "windowBarTrackinfo_description": "Zobrazit v titulku okna umělce a název aktuální skladby, její pozici ve frontě a stav Přehrává se/Pozastaveno.",
+        "windowBarTrackinfo": "Informace o skladbě v titulku okna"
     },
     "action": {
         "editPlaylist": "Upravit $t(entity.playlist, {\"count\": 1})",
@@ -712,7 +714,9 @@
                 "horizontalBorders": "Okraje řádků",
                 "rowHoverHighlight": "Zvýraznění řádku při přejetí myší",
                 "verticalBorders": "Okraje sloupců",
-                "showHeader": "Zobrazit záhlaví"
+                "showHeader": "Zobrazit záhlaví",
+                "albumImageSize": "Velikost obrázku alba",
+                "albumGroupConfig": "Nastavení skupiny alb"
             },
             "label": {
                 "releaseDate": "Datum vydání",
