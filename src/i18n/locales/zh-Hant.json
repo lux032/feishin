@@ -1120,7 +1120,8 @@
             "input_preferRemoteUrl": "優先使用公開網址",
             "input_remoteUrl": "公開網址",
             "input_remoteUrlPlaceholder": "選用：對外功能的公開網址",
-            "discoveredServer": "{{serverType}} 伺服器：{{serverUrl}}"
+            "discoveredServer": "{{serverType}} 伺服器：{{serverUrl}}",
+            "input_passwordNoSSO": "不支援反向代理(SSO)驗證。僅支援使用者名稱/密碼驗證及 Subsonic 驗證"
         },
         "addToPlaylist": {
             "input_playlists": "$t(entity.playlist, {\"count\": 2})",

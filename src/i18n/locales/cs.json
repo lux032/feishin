@@ -1113,7 +1113,8 @@
             "input_preferInstantMixDescription": "Pro získání podobných skladeb použít pouze instantní mix. užitečné, pokud máte doplňky, které upravují toto chování",
             "input_preferRemoteUrl": "Preferovat veřejnou adresu url",
             "input_remoteUrl": "Veřejná adresa url",
-            "input_remoteUrlPlaceholder": "Volitelné: veřejná adresa url pro externí funkce"
+            "input_remoteUrlPlaceholder": "Volitelné: veřejná adresa url pro externí funkce",
+            "input_passwordNoSSO": "Autentifikace skrze reverzní proxy (SSO) není podporována. Podporována je pouze autentifikace pomocí uživatelského jména a hesla s Subsonic"
         },
         "addToPlaylist": {
             "success": "$t(entity.trackWithCount, {\"count\": {{message}} }) přidáno do $t(entity.playlistWithCount, {\"count\": {{numOfPlaylists}} })",
