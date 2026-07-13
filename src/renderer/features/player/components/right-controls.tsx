@@ -54,7 +54,7 @@ import { Text } from '/@/shared/components/text/text';
 import { useMediaQuery } from '/@/shared/hooks/use-media-query';
 import { useThrottledCallback } from '/@/shared/hooks/use-throttled-callback';
 import { useThrottledValue } from '/@/shared/hooks/use-throttled-value';
-import { LibraryItem, QueueSong, ServerType } from '/@/shared/types/domain-types';
+import { LibraryItem, QueueSong } from '/@/shared/types/domain-types';
 import { ServerFeature } from '/@/shared/types/features-types';
 import { PlayerType } from '/@/shared/types/types';
 
@@ -352,7 +352,6 @@ const LyricsButton = () => {
 };
 
 const FavoriteButton = () => {
-    const server = useCurrentServer();
     const currentSong = usePlayerSong();
     const { bindings } = useHotkeySettings();
 
