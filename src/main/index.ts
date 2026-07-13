@@ -37,10 +37,11 @@ import './features';
 import { autoUpdaterLogInterface, createLog, hotkeyToElectronAccelerator } from './utils';
 
 import { disableAutoUpdates, isLinux, isMacOS, isWindows } from '/@/main/env';
+import { UPDATER_OWNER } from '/@/main/fork-config';
 import { PlayerRepeat, PlayerStatus, PlayerType, TitleTheme } from '/@/shared/types/types';
 
 const GITHUB_UPDATER_CONFIG = {
-    owner: 'lux032',
+    owner: UPDATER_OWNER,
     provider: 'github' as const,
     repo: 'feishin',
 };
