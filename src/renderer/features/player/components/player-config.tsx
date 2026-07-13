@@ -14,6 +14,7 @@ import {
 } from '/@/renderer/store';
 import {
     useCombinedLyricsAndVisualizer,
+    useMicrotonalPitchControls,
     usePlaybackSettings,
     useSettingsStore,
     useSettingsStoreActions,
@@ -21,11 +22,14 @@ import {
     useShowVisualizerInSidebar,
 } from '/@/renderer/store/settings.store';
 import { ActionIcon } from '/@/shared/components/action-icon/action-icon';
+import { Button } from '/@/shared/components/button/button';
+import { Group } from '/@/shared/components/group/group';
 import { Popover } from '/@/shared/components/popover/popover';
 import { SegmentedControl } from '/@/shared/components/segmented-control/segmented-control';
 import { Select } from '/@/shared/components/select/select';
 import { Slider } from '/@/shared/components/slider/slider';
 import { Switch } from '/@/shared/components/switch/switch';
+import { Text } from '/@/shared/components/text/text';
 import { CrossfadeStyle, PlayerStatus, PlayerStyle, PlayerType } from '/@/shared/types/types';
 
 const ipc = isElectron() ? window.api.ipc : null;
@@ -92,6 +96,11 @@ export const PlayerConfig = () => {
                 component: <PlaybackSpeedSlider />,
                 id: 'playbackSpeed',
                 label: t('player.playbackSpeed'),
+            },
+            {
+                component: !preservePitch ? <PitchControls /> : <></>,
+                id: 'pitchControls',
+                label: '',
             },
             {
                 component: (
@@ -209,6 +218,7 @@ const AudioPlayerTypeConfig = () => {
                     value: PlayerType.LOCAL,
                 },
                 { label: 'Web', value: PlayerType.WEB },
+                { label: 'Jukebox', value: PlayerType.JUKEBOX },
             ]}
             defaultValue={playbackSettings.type}
             disabled={status === PlayerStatus.PLAYING}
@@ -364,16 +374,15 @@ export const PlaybackSpeedSlider = () => {
         () => (value: number) => {
             const bpmValue = Number(bpm);
             if (bpmValue > 0) {
-                return `${value} x / ${(bpmValue * value).toFixed(1)} BPM`;
+                return `${value.toFixed(2)} x / ${(bpmValue * value).toFixed(1)} BPM`;
             }
-            return `${value} x`;
+            return `${value.toFixed(2)} x`;
         },
         [bpm],
     );
 
     return (
         <Slider
-            defaultValue={speed}
             label={formatPlaybackSpeedSliderLabel}
             marks={[
                 { label: '0.5', value: 0.5 },
@@ -386,14 +395,81 @@ export const PlaybackSpeedSlider = () => {
             ]}
             max={2}
             min={0.5}
-            onChangeEnd={setSpeed}
+            onChange={setSpeed}
             onDoubleClick={() => setSpeed(1)}
             step={0.01}
             styles={{
                 markLabel: {},
                 root: {},
             }}
+            value={speed}
             w="100%"
         />
+    );
+};
+
+export const PitchControls = () => {
+    const microtonal = useMicrotonalPitchControls();
+    const speed = usePlayerSpeed();
+    const { setSpeed } = usePlayerActions();
+
+    const speedToPitch = (speed: number) => {
+        return 12 * Math.log2(speed);
+    };
+
+    const pitchToSpeed = (pitch: number) => {
+        return 2 ** (pitch / 12);
+    };
+
+    const adjustMusicalSpeed = (adjustment: number) => {
+        const curPitch = speedToPitch(speed);
+        const newSpeed = pitchToSpeed(curPitch + adjustment);
+        setSpeed(newSpeed);
+    };
+
+    return (
+        <Group gap={microtonal ? 'xs' : 'md'} my="sm" w="100%" wrap="nowrap">
+            <Button
+                aria-label="-1 semitone"
+                fullWidth
+                onClick={() => adjustMusicalSpeed(-1)}
+                size="compact-xs"
+            >
+                -1st
+            </Button>
+            {microtonal && (
+                <Button
+                    aria-label="-10 cents"
+                    fullWidth
+                    onClick={() => adjustMusicalSpeed(-0.1)}
+                    size="compact-xs"
+                >
+                    -10ct
+                </Button>
+            )}
+            <Text size="xs" style={{ fontFamily: 'monospace' }} ta="center" w="60px">
+                {speed.toFixed(2)}x {speedToPitch(speed) > 0 && '+'}
+                {speedToPitch(speed) == 0 && '±'}
+                {speedToPitch(speed).toFixed(2)}st
+            </Text>
+            {microtonal && (
+                <Button
+                    aria-label="+10 cents"
+                    fullWidth
+                    onClick={() => adjustMusicalSpeed(0.1)}
+                    size="compact-xs"
+                >
+                    +10ct
+                </Button>
+            )}
+            <Button
+                aria-label="+1 semitone"
+                fullWidth
+                onClick={() => adjustMusicalSpeed(1)}
+                size="compact-xs"
+            >
+                +1st
+            </Button>
+        </Group>
     );
 };

@@ -40,6 +40,18 @@ import { disableAutoUpdates, isLinux, isMacOS, isWindows } from '/@/main/env';
 import { UPDATER_OWNER } from '/@/main/fork-config';
 import { PlayerRepeat, PlayerStatus, PlayerType, TitleTheme } from '/@/shared/types/types';
 
+const ALPHA_UPDATER_CONFIG: {
+    bucket: string;
+    channel: string;
+    endpoint: string;
+    provider: 's3';
+} = {
+    bucket: '',
+    channel: 'alpha',
+    endpoint: 'https://feishin-nightly-bucket.jeffvli.org',
+    provider: 's3',
+};
+
 const GITHUB_UPDATER_CONFIG = {
     owner: UPDATER_OWNER,
     provider: 'github' as const,
@@ -54,16 +66,19 @@ class AppUpdater {
         console.log('Effective update channel:', effectiveChannel);
         if (effectiveChannel === 'alpha') {
             checkAllChannelsAndGetBest().then(({ result, updater: updaterInstance }) => {
+                if (!result?.isUpdateAvailable) {
+                    return;
+                }
+
                 updaterInstance.autoInstallOnAppQuit = true;
                 updaterInstance.autoRunAppAfterInstall = true;
                 if (isMacOS()) {
-                    if (result?.isUpdateAvailable) {
-                        getMainWindow()?.webContents.send(
-                            'update-available',
-                            result.updateInfo.version,
-                        );
-                    }
+                    getMainWindow()?.webContents.send(
+                        'update-available',
+                        result.updateInfo.version,
+                    );
                 } else {
+                    updaterInstance.autoDownload = true;
                     updaterInstance.checkForUpdatesAndNotify();
                 }
             });
@@ -104,12 +119,7 @@ async function checkAllChannelsAndGetBest(): Promise<{
         updater: UpdaterInstance;
     }> = [];
 
-    const alphaUpdater = createAlphaUpdaterInstance();
-    alphaUpdater.logger = autoUpdaterLogInterface;
-    alphaUpdater.channel = 'alpha';
-    alphaUpdater.allowPrerelease = true;
-    alphaUpdater.disableDifferentialDownload = true;
-    alphaUpdater.allowDowngrade = true;
+    const alphaUpdater = createAlphaUpdaterInstance({ probeOnly: true });
 
     try {
         console.log('Checking for updates on alpha channel');
@@ -127,17 +137,16 @@ async function checkAllChannelsAndGetBest(): Promise<{
     }
 
     try {
-        autoUpdater.setFeedURL(GITHUB_UPDATER_CONFIG);
-        configureAutoUpdaterForChannel('latest');
+        const latestUpdater = createGithubUpdaterInstance('latest', { probeOnly: true });
         console.log('Checking for updates on latest channel (GitHub)');
-        const latestResult = await autoUpdater.checkForUpdates();
+        const latestResult = await latestUpdater.checkForUpdates();
         if (
             latestResult?.updateInfo?.version &&
             latestResult.isUpdateAvailable &&
             semver.valid(latestResult.updateInfo.version) &&
             semver.gt(latestResult.updateInfo.version, currentVersion)
         ) {
-            candidates.push({ channel: 'latest', result: latestResult, updater: autoUpdater });
+            candidates.push({ channel: 'latest', result: latestResult, updater: latestUpdater });
         }
     } catch (e) {
         log.warn('Latest channel check failed', e);
@@ -153,6 +162,7 @@ async function checkAllChannelsAndGetBest(): Promise<{
 
     if (best.channel === 'latest') {
         configureAutoUpdaterForChannel('latest');
+        return { result: best.result, updater: autoUpdater };
     }
 
     return { result: best.result, updater: best.updater };
@@ -179,20 +189,11 @@ function configureAndGetUpdater(): UpdaterInstance {
     const effectiveChannel = store.get('release_channel') as string;
 
     if (effectiveChannel === 'alpha') {
-        const updater = createAlphaUpdaterInstance();
         log.transports.file.level = 'info';
-        updater.logger = autoUpdaterLogInterface;
-        updater.channel = 'alpha';
-        updater.allowPrerelease = true;
-        updater.disableDifferentialDownload = true;
-        updater.allowDowngrade = true;
-        updater.autoInstallOnAppQuit = true;
-        updater.autoRunAppAfterInstall = true;
-        return updater;
+        return createAlphaUpdaterInstance();
     }
 
     log.transports.file.level = 'info';
-    autoUpdater.setFeedURL(GITHUB_UPDATER_CONFIG);
     autoUpdater.logger = autoUpdaterLogInterface;
     autoUpdater.autoInstallOnAppQuit = true;
     autoUpdater.autoRunAppAfterInstall = true;
@@ -204,6 +205,7 @@ function configureAndGetUpdater(): UpdaterInstance {
         autoUpdater.disableDifferentialDownload = true;
     } else {
         autoUpdater.channel = 'latest';
+        autoUpdater.allowDowngrade = false;
         autoUpdater.allowPrerelease = false;
     }
 
@@ -215,7 +217,6 @@ function configureAndGetUpdater(): UpdaterInstance {
  * Used when checking multiple channels or when the winning channel is beta/latest.
  */
 function configureAutoUpdaterForChannel(channel: 'beta' | 'latest'): void {
-    autoUpdater.setFeedURL(GITHUB_UPDATER_CONFIG);
     log.transports.file.level = 'info';
     autoUpdater.logger = autoUpdaterLogInterface;
     autoUpdater.autoInstallOnAppQuit = true;
@@ -227,20 +228,68 @@ function configureAutoUpdaterForChannel(channel: 'beta' | 'latest'): void {
         autoUpdater.disableDifferentialDownload = true;
     } else {
         autoUpdater.channel = 'latest';
+        autoUpdater.allowDowngrade = false;
         autoUpdater.allowPrerelease = false;
     }
 }
 
-function createAlphaUpdaterInstance(): AppImageUpdater | MacUpdater | NsisUpdater {
+function createAlphaUpdaterInstance(
+    options: { probeOnly?: boolean } = {},
+): AppImageUpdater | MacUpdater | NsisUpdater {
+    const probeOnly = options.probeOnly ?? false;
+    let updater: AppImageUpdater | MacUpdater | NsisUpdater;
+
     if (isMacOS()) {
-        return new MacUpdater(GITHUB_UPDATER_CONFIG);
+        updater = new MacUpdater(ALPHA_UPDATER_CONFIG);
+    } else if (isLinux()) {
+        updater = new AppImageUpdater(ALPHA_UPDATER_CONFIG);
+    } else {
+        updater = new NsisUpdater(ALPHA_UPDATER_CONFIG);
     }
 
-    if (isLinux()) {
-        return new AppImageUpdater(GITHUB_UPDATER_CONFIG);
+    updater.logger = autoUpdaterLogInterface;
+    updater.channel = ALPHA_UPDATER_CONFIG.channel;
+    updater.allowPrerelease = true;
+    updater.disableDifferentialDownload = true;
+    updater.allowDowngrade = true;
+    updater.autoDownload = !probeOnly;
+    updater.autoInstallOnAppQuit = true;
+    updater.autoRunAppAfterInstall = true;
+
+    return updater;
+}
+
+function createGithubUpdaterInstance(
+    channel: 'beta' | 'latest',
+    options: { probeOnly?: boolean } = {},
+): AppImageUpdater | MacUpdater | NsisUpdater {
+    const probeOnly = options.probeOnly ?? false;
+    let updater: AppImageUpdater | MacUpdater | NsisUpdater;
+
+    if (isMacOS()) {
+        updater = new MacUpdater(GITHUB_UPDATER_CONFIG);
+    } else if (isLinux()) {
+        updater = new AppImageUpdater(GITHUB_UPDATER_CONFIG);
+    } else {
+        updater = new NsisUpdater(GITHUB_UPDATER_CONFIG);
     }
 
-    return new NsisUpdater(GITHUB_UPDATER_CONFIG);
+    updater.logger = autoUpdaterLogInterface;
+    updater.autoDownload = !probeOnly;
+    updater.autoInstallOnAppQuit = true;
+    updater.autoRunAppAfterInstall = true;
+    updater.channel = channel;
+
+    if (channel === 'beta') {
+        updater.allowDowngrade = true;
+        updater.allowPrerelease = true;
+        updater.disableDifferentialDownload = true;
+    } else {
+        updater.allowDowngrade = false;
+        updater.allowPrerelease = false;
+    }
+
+    return updater;
 }
 
 protocol.registerSchemesAsPrivileged([

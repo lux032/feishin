@@ -35,7 +35,7 @@ export const LyricsExportForm = ({ lyrics, offsetMs, synced }: LyricsExportFormP
             const contents = lyrics.lyrics
                 .map(
                     (lyric) =>
-                        `[${formatDuration(lyric[0], { leading: true, ms: true })}]${lyric[1]}`,
+                        `[${formatDuration(lyric.startMs, { leading: true, ms: true })}]${lyric.text}`,
                 )
                 .join('\n');
 
@@ -46,7 +46,7 @@ ${contents}
 `;
         } else {
             if (Array.isArray(lyrics.lyrics)) {
-                return lyrics.lyrics.map((lyric) => lyric[1]).join('\n') + '\n';
+                return lyrics.lyrics.map((lyric) => lyric.text).join('\n') + '\n';
             }
             return lyrics.lyrics;
         }

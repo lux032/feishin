@@ -1,0 +1,10 @@
+.controls {
+    display: flex;
+    gap: var(--theme-spacing-xs);
+    align-items: center;
+    min-height: 22px;
+}
+
+.hidden {
+    visibility: hidden;
+}

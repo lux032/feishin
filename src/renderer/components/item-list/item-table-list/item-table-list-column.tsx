@@ -384,6 +384,22 @@ export const ItemTableListColumn = memo(ItemTableListColumnBase, (prevProps, nex
 
 const NonMutedColumns = [TableColumn.TITLE, TableColumn.TITLE_ARTIST, TableColumn.TITLE_COMBINED];
 
+/** Stable key for album-group content heights (survives row moves; not row index). */
+export function getAlbumGroupHeightKey(item: unknown, groupRowCount?: number): string | undefined {
+    if (!item || typeof item !== 'object') return undefined;
+
+    let itemKey: string | undefined;
+    if ('_uniqueId' in item && typeof (item as { _uniqueId?: unknown })._uniqueId === 'string') {
+        itemKey = (item as { _uniqueId: string })._uniqueId;
+    } else if ('id' in item && typeof (item as { id?: unknown }).id === 'string') {
+        itemKey = (item as { id: string }).id;
+    }
+
+    if (!itemKey) return undefined;
+    if (groupRowCount === undefined) return itemKey;
+    return `${itemKey}:${groupRowCount}`;
+}
+
 // Counts how many consecutive rows belong to the same album group as `rowIndex`.
 export function getAlbumGroupRowCount(
     rowIndex: number,
@@ -412,6 +428,38 @@ export function getAlbumGroupRowCount(
     }
 
     return end - start + 1;
+}
+
+export function getAlbumGroupSpanHeight(
+    groupRowCount: number,
+    baseHeight: number,
+    albumGroupImageSize: number,
+    contentHeight = 0,
+): number {
+    const rowSpanHeight = groupRowCount * baseHeight;
+    const imageSpanHeight =
+        albumGroupImageSize > 0 ? Math.max(albumGroupImageSize, rowSpanHeight) : rowSpanHeight;
+
+    return Math.max(imageSpanHeight, contentHeight);
+}
+
+export function getAlbumGroupStartRowIndex(
+    rowIndex: number,
+    getRowItem: ((index: number) => unknown) | undefined,
+    enableHeader: boolean | undefined,
+): number {
+    const item = getRowItem?.(rowIndex) as null | undefined | { album?: string };
+    if (!item?.album) return rowIndex;
+
+    const firstDataRow = enableHeader ? 1 : 0;
+    let start = rowIndex;
+    while (start > firstDataRow) {
+        const prevItem = getRowItem?.(start - 1) as null | undefined | { album?: string };
+        if (!prevItem || prevItem.album !== item.album) break;
+        start--;
+    }
+
+    return start;
 }
 
 export function isAlbumGroupingActive(columns: { id: string; isEnabled?: boolean }[]): boolean {
@@ -513,9 +561,24 @@ function getAlbumGroupClampHeight(props: ItemTableListInnerColumn): null | numbe
         props.enableHeader,
         props.data.length,
     );
+    const groupStartRowIndex = getAlbumGroupStartRowIndex(
+        props.rowIndex,
+        props.getRowItem,
+        props.enableHeader,
+    );
+    const groupStartItem = props.getRowItem?.(groupStartRowIndex);
+    const groupHeightKey = getAlbumGroupHeightKey(groupStartItem, groupRowCount);
+    const contentHeight =
+        (groupHeightKey ? props.albumGroupContentHeights?.get(groupHeightKey) : undefined) ?? 0;
+    const totalGroupHeight = getAlbumGroupSpanHeight(
+        groupRowCount,
+        baseHeight,
+        albumImageSize,
+        contentHeight,
+    );
 
-    // Only clamp when the row was actually grown to fit the image.
-    if (albumImageSize <= groupRowCount * baseHeight) return null;
+    // Only clamp when the row was actually grown to fit the image or wrapped text.
+    if (totalGroupHeight <= groupRowCount * baseHeight) return null;
 
     return baseHeight;
 }
@@ -842,6 +905,7 @@ export const TableColumnContainer = (
                 [styles.withHorizontalBorder]: showHorizontalBorder && clampHeight === null,
                 [styles.withVerticalBorder]: showVerticalBorder,
             })}
+            data-exclude-row-drag-border={props.type === TableColumn.ALBUM_GROUP ? true : undefined}
             data-row-index={isDataRow ? `${props.tableId}-${props.rowIndex}` : undefined}
             onClick={handleClick}
             onContextMenu={handleContextMenu}
