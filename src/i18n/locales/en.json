@@ -1239,6 +1239,7 @@
                 "albumGroupConfig": "Album Group configuration",
                 "albumGroupMetadata": "Metadata fields",
                 "albumGroupShowFavoriteRating": "Show favorites and ratings",
+                "albumGroupVerticalLayout": "Vertical layout",
                 "albumImageSize": "Album image size",
                 "autoFitColumns": "Auto fit columns",
                 "autosize": "Autosize",
