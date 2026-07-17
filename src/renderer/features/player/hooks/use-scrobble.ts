@@ -245,9 +245,9 @@ export const useScrobble = () => {
                         id: song.id,
                         mediaType: song._itemType.includes('song') ? 'song' : 'podcast',
                         playbackRate,
-                        position: getPositionValue(
+                        position: getScrobblePositionFromSeconds(
+                            song,
                             useTimestampStoreBase.getState().timestamp,
-                            true,
                         ),
                         submission: false,
                     },
