@@ -20,7 +20,7 @@
         "ascending": "升冪",
         "disable": "停用",
         "disc": "光碟",
-        "dismiss": "不理會",
+        "dismiss": "關閉",
         "duration": "時長",
         "edit": "編輯",
         "enable": "啟用",
@@ -432,7 +432,9 @@
         "sleepTimer_cancel": "取消計時器",
         "albumRadio": "專輯電台",
         "scrobbleForceSubmit": "強制紀錄",
-        "sleepTimer_endOfAlbum": "專輯播完時"
+        "sleepTimer_endOfAlbum": "專輯播完時",
+        "nextAlbum": "Alt + 點擊：下一張專輯",
+        "previousAlbum": "Alt + 點擊：上一張專輯"
     },
     "setting": {
         "audioPlayer_description": "選擇用於播放的音訊播放器",
@@ -882,7 +884,9 @@
         "windowBarTrackinfo_description": "在視窗標題列中顯示目前播放曲目的標題與藝人、播放佇列中的位置，以及播放/暫停狀態。",
         "audioDeviceDefault": "系統預設",
         "microtonalPitchControls": "微音程音高控制",
-        "microtonalPitchControls_description": "新增更多音高控制選項，以在半音之間進行微調"
+        "microtonalPitchControls_description": "新增更多音高控制選項，以在半音之間進行微調",
+        "hotkey_playbackNextAlbum": "下一張專輯",
+        "hotkey_playbackPreviousAlbum": "上一張專輯"
     },
     "table": {
         "config": {
@@ -920,7 +924,8 @@
                 "albumGroupConfig": "專輯群組設定",
                 "albumImageSize": "專輯圖片大小",
                 "albumGroupMetadata": "中繼資料欄位",
-                "albumGroupShowFavoriteRating": "顯示最愛與評分"
+                "albumGroupShowFavoriteRating": "顯示最愛與評分",
+                "albumGroupVerticalLayout": "垂直佈局"
             },
             "label": {
                 "actions": "$t(common.action, {\"count\": 2})",

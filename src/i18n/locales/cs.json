@@ -721,7 +721,8 @@
                 "albumImageSize": "Velikost obrázku alba",
                 "albumGroupConfig": "Nastavení skupiny alb",
                 "albumGroupShowFavoriteRating": "Zobrazit oblíbené a hodnocení",
-                "albumGroupMetadata": "Pole metadat"
+                "albumGroupMetadata": "Pole metadat",
+                "albumGroupVerticalLayout": "Vertikální rozložení"
             },
             "label": {
                 "releaseDate": "Datum vydání",

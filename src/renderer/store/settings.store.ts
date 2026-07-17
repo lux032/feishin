@@ -21,6 +21,7 @@ import {
     PLAYLIST_TABLE_COLUMNS,
     SONG_TABLE_COLUMNS,
 } from '/@/renderer/components/item-list/item-table-list/default-columns';
+import { resolveVolumeMax } from '/@/renderer/features/player/audio-player/utils/volume';
 import { audiomotionanalyzerPresets } from '/@/renderer/features/visualizer/components/audiomotionanalyzer/presets';
 import { AppRoute } from '/@/renderer/router/routes';
 import { getEnvSettingsOverrides } from '/@/renderer/store/env-settings-overrides';
@@ -145,10 +146,12 @@ const BindingActionsSchema = z.enum([
     'volumeMute',
     'navigateHome',
     'next',
+    'nextAlbum',
     'pause',
     'play',
     'playPause',
     'previous',
+    'previousAlbum',
     'rate0',
     'rate1',
     'rate2',
@@ -847,10 +850,12 @@ export enum BindingActions {
     MUTE = 'volumeMute',
     NAVIGATE_HOME = 'navigateHome',
     NEXT = 'next',
+    NEXT_ALBUM = 'nextAlbum',
     PAUSE = 'pause',
     PLAY = 'play',
     PLAY_PAUSE = 'playPause',
     PREVIOUS = 'previous',
+    PREVIOUS_ALBUM = 'previousAlbum',
     RATE_0 = 'rate0',
     RATE_1 = 'rate1',
     RATE_2 = 'rate2',
@@ -1322,10 +1327,12 @@ const initialState: SettingsState = {
             localSearch: { allowGlobal: false, hotkey: 'mod+f', isGlobal: false },
             navigateHome: { allowGlobal: false, hotkey: '', isGlobal: false },
             next: { allowGlobal: true, hotkey: '', isGlobal: false },
+            nextAlbum: { allowGlobal: true, hotkey: '', isGlobal: false },
             pause: { allowGlobal: true, hotkey: '', isGlobal: false },
             play: { allowGlobal: true, hotkey: '', isGlobal: false },
             playPause: { allowGlobal: true, hotkey: 'space', isGlobal: false },
             previous: { allowGlobal: true, hotkey: '', isGlobal: false },
+            previousAlbum: { allowGlobal: true, hotkey: '', isGlobal: false },
             rate0: { allowGlobal: true, hotkey: '', isGlobal: false },
             rate1: { allowGlobal: true, hotkey: '', isGlobal: false },
             rate2: { allowGlobal: true, hotkey: '', isGlobal: false },
@@ -2631,6 +2638,12 @@ export const useTableSettings = (type: ItemListKey) =>
 export const useGeneralSettings = () => useSettingsStore((state) => state.general, shallow);
 
 export const usePlaybackType = () => useSettingsStore((state) => state.playback.type, shallow);
+
+export const useVolumeMax = () =>
+    useSettingsStore(
+        (state) => resolveVolumeMax(state.playback.type, state.playback.mpvExtraParameters),
+        shallow,
+    );
 
 export const usePlayButtonBehavior = () =>
     useSettingsStore((state) => state.general.playButtonBehavior, shallow);

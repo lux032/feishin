@@ -9,6 +9,7 @@
         "collapseAllFolders": "Collapse all folders",
         "expandAllFolders": "Expand all folders",
         "createPlaylist": "Create $t(entity.playlist, {\"count\": 1})",
+        "createPlaylistFromQueue": "Create $t(entity.playlist, {\"count\": 1}) from queue",
         "createRadioStation": "Create $t(entity.radioStation, {\"count\": 1})",
         "deletePlaylist": "Delete $t(entity.playlist, {\"count\": 1})",
         "deleteRadioStation": "Delete $t(entity.radioStation, {\"count\": 1})",
@@ -371,6 +372,9 @@
             "success": "$t(entity.playlist, {\"count\": 1}) created successfully",
             "title": "Create $t(entity.playlist, {\"count\": 1})"
         },
+        "createPrefilledPlaylist": {
+            "title": "Create $t(entity.playlist, {\"count\": 1}) from selected songs"
+        },
         "createRadioStation": {
             "success": "Radio station created successfully",
             "title": "Create radio station",
@@ -684,6 +688,7 @@
         "mute": "Mute",
         "muted": "Muted",
         "next": "Next",
+        "nextAlbum": "Alt+click for next album",
         "play": "Play",
         "playbackFetchCancel": "This is taking a while… close the notification to cancel",
         "playbackFetchInProgress": "Loading songs…",
@@ -692,6 +697,7 @@
         "playRandom": "Play random",
         "playSimilarSongs": "Play similar songs",
         "previous": "Previous",
+        "previousAlbum": "Alt+click for previous album",
         "queue_clear": "Clear queue",
         "queue_moveToBottom": "Move selected to bottom",
         "queue_moveToTop": "Move selected to top",
@@ -933,10 +939,12 @@
         "hotkey_listShowPlayingSong": "Show playing song in list",
         "hotkey_navigateHome": "Navigate to home",
         "hotkey_playbackNext": "Next track",
+        "hotkey_playbackNextAlbum": "Next album",
         "hotkey_playbackPause": "Pause",
         "hotkey_playbackPlay": "Play",
         "hotkey_playbackPlayPause": "Play / pause",
         "hotkey_playbackPrevious": "Previous track",
+        "hotkey_playbackPreviousAlbum": "Previous album",
         "hotkey_playbackStop": "Stop",
         "hotkey_rate0": "Rating clear",
         "hotkey_rate1": "Rating 1 star",
