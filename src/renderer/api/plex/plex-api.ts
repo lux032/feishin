@@ -1025,6 +1025,17 @@ export const pxApiClient = (args: {
             };
         },
 
+        refreshMetadataItems: async (ids: string[]) => {
+            return Promise.all(
+                ids.map((id) =>
+                    request<unknown>({
+                        method: 'PUT',
+                        path: `library/metadata/${encodeURIComponent(id)}/refresh`,
+                    }),
+                ),
+            );
+        },
+
         reportTimeline: async (params: {
             continuing?: boolean;
             duration?: number;
@@ -1048,17 +1059,6 @@ export const pxApiClient = (args: {
             });
 
             return response;
-        },
-
-        refreshMetadataItems: async (ids: string[]) => {
-            return Promise.all(
-                ids.map((id) =>
-                    request<unknown>({
-                        method: 'PUT',
-                        path: `library/metadata/${encodeURIComponent(id)}/refresh`,
-                    }),
-                ),
-            );
         },
 
         scrobble: async (ratingKey: string) => {
