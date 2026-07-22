@@ -762,7 +762,7 @@
         "autoDJ_timing_description": "佇列中剩餘多少歌曲時啟動 Auto DJ",
         "autoDJ_timing": "觸發時機",
         "logLevel": "日誌等級",
-        "logLevel_description": "設定要顯示的最低日誌等級。Debug 會顯示所有日誌，Error 僅會顯示錯誤訊息",
+        "logLevel_description": "設定要顯示的最低日誌等級",
         "logLevel_optionDebug": "Debug",
         "logLevel_optionInfo": "Info",
         "useThemeAccentColor": "使用主題強調色",
@@ -912,7 +912,10 @@
         "microtonalPitchControls": "微音程音高控制",
         "microtonalPitchControls_description": "新增更多音高控制選項，以在半音之間進行微調",
         "hotkey_playbackNextAlbum": "下一張專輯",
-        "hotkey_playbackPreviousAlbum": "上一張專輯"
+        "hotkey_playbackPreviousAlbum": "上一張專輯",
+        "logLevel_optionDebugDescription": "包含 info，另外提供詳細的 debug 資訊與已遮蔽的 API 回應",
+        "logLevel_optionInfoDescription": "包含 info、warnings 以及 errors",
+        "exportDiagnostics": "匯出診斷"
     },
     "table": {
         "config": {

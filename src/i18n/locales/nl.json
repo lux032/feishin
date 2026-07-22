@@ -41,7 +41,8 @@
         "holdToMoveToTop": "Ingedrukt houden om naar begin te verplaatsen",
         "holdToMoveToBottom": "Ingedrukt houden om naar einde te verplaatsen",
         "openApplicationDirectory": "Applicatiemap openen",
-        "goToCurrent": "Ga naar huidige item"
+        "goToCurrent": "Ga naar huidige item",
+        "createPlaylistFromQueue": "Maak $t(entity.playlist, {\"count\": 1}) uit queue"
     },
     "common": {
         "backward": "Achteruit",
@@ -168,7 +169,9 @@
         "numberOfResults": "{{numberOfResults}} resultaten",
         "newVersionAvailable": "Een nieuwe versie is beschikbaar",
         "back": "Terug",
-        "saveAndClose": "Opslaan en afsluiten"
+        "saveAndClose": "Opslaan en afsluiten",
+        "undo": "Ongedaan maken",
+        "lastScan": "Laatste scan {{date}}"
     },
     "filter": {
         "rating": "Rating",
@@ -518,7 +521,7 @@
     "table": {
         "column": {
             "rating": "Rating",
-            "size": "$t(common.size)",
+            "size": "Grootte",
             "albumArtist": "Albumartiest",
             "biography": "Biografie",
             "bitrate": "Bitsnelheid",
@@ -536,12 +539,12 @@
             "title": "Titel",
             "trackNumber": "Nummer",
             "owner": "Eigenaar",
-            "albumCount": "$t(entity.album, {\"count\": 2})",
-            "artist": "$t(entity.artist, {\"count\": 1})",
+            "albumCount": "Albums",
+            "artist": "Artiest",
             "bitDepth": "$t(common.bitDepth)",
             "channels": "$t(common.channel, {\"count\": 2})",
             "codec": "$t(common.codec)",
-            "genre": "$t(entity.genre, {\"count\": 1})",
+            "genre": "Genre",
             "sampleRate": "$t(common.sampleRate)",
             "songCount": "$t(entity.track, {\"count\": 2})"
         },
@@ -763,7 +766,7 @@
         "lyricOffset_description": "Compenseer de songtekst met het gegeven aantal milliseconden",
         "lyricOffset": "Compensatie songtekst (ms)",
         "logLevel": "Logniveau",
-        "logLevel_description": "Het laagste logniveau dat wordt getoond. debug toont alle logs, error toont enkel foutmeldingen",
+        "logLevel_description": "Het laagste logniveau dat wordt getoond",
         "logLevel_optionDebug": "Debug",
         "logLevel_optionInfo": "Informatief",
         "minimizeToTray_description": "Minimaliseer de applicatie naar het systeemvak",
@@ -1003,7 +1006,8 @@
         "audioDeviceDefault": "Systeemstandaard",
         "equalizerPresetGroupBuiltIn": "Ingebouwd",
         "hotkey_playbackNextAlbum": "Volgend album",
-        "hotkey_playbackPreviousAlbum": "Vorig album"
+        "hotkey_playbackPreviousAlbum": "Vorig album",
+        "windowBarTrackinfo": "Nummer informatie in Venstertitel"
     },
     "form": {
         "addServer": {

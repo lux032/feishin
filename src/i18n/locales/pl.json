@@ -1044,7 +1044,7 @@
         "autoDJ_timing": "Czas dodawania",
         "autoDJ_timing_description": "Ilość piosenek pozostałych w kolejce przed tym gdy zostanie włączony automatyczny DJ",
         "logLevel": "Poziom logów",
-        "logLevel_description": "Ustawia minimalny poziom logów do wyświetlenia. debugowanie wyświetla wszystkie logi błędy wyświetla tylko błędy",
+        "logLevel_description": "Ustawia minimalny poziom logów do wyświetlenia",
         "logLevel_optionDebug": "Debugowanie",
         "logLevel_optionInfo": "Info",
         "useThemeAccentColor": "Używaj koloru akcentu motywu",
@@ -1194,7 +1194,10 @@
         "microtonalPitchControls": "Mikrotonowe sterowanie wysokością dźwięku",
         "microtonalPitchControls_description": "Dodaj więcej sterowania wysokością dźwięku pomiędzy półtonami",
         "hotkey_playbackNextAlbum": "Następny album",
-        "hotkey_playbackPreviousAlbum": "Poprzedni album"
+        "hotkey_playbackPreviousAlbum": "Poprzedni album",
+        "logLevel_optionDebugDescription": "zawiera info, plus szczegółowe informacje debugowania i ocenzurowane odpowiedzi API",
+        "logLevel_optionInfoDescription": "zawiera info, ostrzeżenia i błędy",
+        "exportDiagnostics": "Eksportuj diagnostykę"
     },
     "table": {
         "config": {

@@ -352,7 +352,7 @@
         "autoDJ_timing": "Časování",
         "autoDJ_timing_description": "Počet skladeb zbývajících ve frontě před spuštěním automatického DJ",
         "logLevel": "Úroveň protokolu",
-        "logLevel_description": "Nastaví minimální úroveň protokolu k zobrazení. ladění zobrazuje vše, možnost chyba zobrazí pouze chyby",
+        "logLevel_description": "Nastaví minimální úroveň protokolu k zobrazení",
         "logLevel_optionDebug": "Ladění",
         "logLevel_optionInfo": "Informace",
         "useThemeAccentColor": "Použít barvu motivu",
@@ -502,7 +502,10 @@
         "microtonalPitchControls": "Ovládání mikrotonální výšky tónu",
         "microtonalPitchControls_description": "Přidat další ovládání výšky mezi půltóny",
         "hotkey_playbackNextAlbum": "Další album",
-        "hotkey_playbackPreviousAlbum": "Předchozí album"
+        "hotkey_playbackPreviousAlbum": "Předchozí album",
+        "logLevel_optionDebugDescription": "Zahrnuje informace, plus podrobné ladicí informace a cenzurované odpovědi API",
+        "logLevel_optionInfoDescription": "Zahrnuje informace, varování a chyby",
+        "exportDiagnostics": "Exportovat diagnostiku"
     },
     "action": {
         "editPlaylist": "Upravit $t(entity.playlist, {\"count\": 1})",
