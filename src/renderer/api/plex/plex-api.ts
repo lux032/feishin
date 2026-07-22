@@ -87,6 +87,19 @@ const axiosClient = axios.create({});
 
 type ApiResponse<T> = Promise<{ body: T; headers?: any; status: number }>;
 
+type PlexActivitiesJsonResponse = {
+    MediaContainer?: {
+        Activity?: Array<{
+            progress?: number;
+            subtitle?: string;
+            title?: string;
+            type?: string;
+            uuid?: string;
+        }>;
+        size?: number | string;
+    };
+};
+
 type PlexAlbumJson = {
     addedAt?: number | string;
     art?: string;
@@ -731,6 +744,13 @@ export const pxApiClient = (args: {
             return response;
         },
 
+        getActivities: async (): ApiResponse<PlexActivitiesJsonResponse> => {
+            return requestJson<PlexActivitiesJsonResponse>({
+                method: 'GET',
+                path: 'activities',
+            });
+        },
+
         getAlbumList: async (params: {
             artistId?: string;
             searchTerm?: string;
@@ -1028,6 +1048,17 @@ export const pxApiClient = (args: {
             });
 
             return response;
+        },
+
+        refreshMetadataItems: async (ids: string[]) => {
+            return Promise.all(
+                ids.map((id) =>
+                    request<unknown>({
+                        method: 'PUT',
+                        path: `library/metadata/${encodeURIComponent(id)}/refresh`,
+                    }),
+                ),
+            );
         },
 
         scrobble: async (ratingKey: string) => {

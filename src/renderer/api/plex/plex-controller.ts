@@ -1237,6 +1237,24 @@ export const PlexController: InternalControllerEndpoint = {
 
     getRoles: async () => [],
 
+    getScanStatus: async (args) => {
+        const res = await pxApiClient(args.apiClientProps).getActivities();
+
+        if (res.status !== 200) {
+            throw new Error('Failed to get scan status');
+        }
+
+        const activities = res.body?.MediaContainer?.Activity || [];
+        const isLibraryScan = (activity: (typeof activities)[number]) =>
+            activity.type?.startsWith('library.update') === true;
+
+        return {
+            count: 0,
+            folderCount: 0,
+            scanning: activities.some(isLibraryScan),
+        };
+    },
+
     getServerInfo: async (args) => {
         return {
             features: { [ServerFeature.STAR_RATING]: [1] },
@@ -1540,6 +1558,19 @@ export const PlexController: InternalControllerEndpoint = {
 
     movePlaylistItem: async () => {
         throw new Error('Not implemented for Plex');
+    },
+
+    refreshItems: async (args) => {
+        const responses = await pxApiClient(args.apiClientProps).refreshMetadataItems(
+            args.query.ids,
+        );
+        const failedResponse = responses.find((response) => response.status !== 200);
+
+        if (failedResponse) {
+            throw new Error('Failed to refresh Plex metadata items');
+        }
+
+        return null;
     },
 
     removeFromPlaylist: async () => {
