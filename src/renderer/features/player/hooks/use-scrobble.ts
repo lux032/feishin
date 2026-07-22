@@ -14,8 +14,7 @@ import {
     useSettingsStore,
     useTimestampStoreBase,
 } from '/@/renderer/store';
-import { LogCategory, logFn } from '/@/renderer/utils/logger';
-import { logMsg } from '/@/renderer/utils/logger-message';
+import { logger } from '/@/renderer/utils/logger';
 import { hasFeature } from '/@/shared/api/utils';
 import { LibraryItem, QueueSong, ServerType } from '/@/shared/types/domain-types';
 import { ServerFeature } from '/@/shared/types/features-types';
@@ -228,9 +227,9 @@ export const useScrobble = () => {
             // Because Jellyfin uses the stop event for submission, we need to send another
             // progress update after submission so that the song continues to progress in the dashboard
             const shouldSendProgress =
-                song._serverType !== ServerType.JELLYFIN ||
-                activeSong?._uniqueId !== song._uniqueId ||
-                status !== PlayerStatus.PLAYING;
+                song._serverType === ServerType.JELLYFIN &&
+                activeSong?._uniqueId === song._uniqueId &&
+                status === PlayerStatus.PLAYING;
 
             if (!shouldSendProgress) {
                 return;
@@ -254,12 +253,9 @@ export const useScrobble = () => {
                 },
                 {
                     onSuccess: () => {
-                        logFn.debug(logMsg[LogCategory.SCROBBLE].scrobbledTimeupdate, {
-                            category: LogCategory.SCROBBLE,
-                            meta: {
-                                id: song.id,
-                                reason: 'after submission',
-                            },
+                        logger.debug('Scrobbled a timeupdate event', {
+                            id: song.id,
+                            reason: 'after submission',
                         });
                     },
                 },
@@ -348,11 +344,8 @@ export const useScrobble = () => {
                         },
                         {
                             onSuccess: () => {
-                                logFn.debug(logMsg[LogCategory.SCROBBLE].scrobbledTimeupdate, {
-                                    category: LogCategory.SCROBBLE,
-                                    meta: {
-                                        id: currentSong.id,
-                                    },
+                                logger.debug('Scrobbled a timeupdate event', {
+                                    id: currentSong.id,
                                 });
                             },
                         },
@@ -386,12 +379,9 @@ export const useScrobble = () => {
                         },
                         {
                             onSuccess: () => {
-                                logFn.debug(logMsg[LogCategory.SCROBBLE].scrobbledSubmission, {
-                                    category: LogCategory.SCROBBLE,
-                                    meta: {
-                                        id: currentSong.id,
-                                        reason: 'from listened time',
-                                    },
+                                logger.info('Scrobbled a submission event', {
+                                    id: currentSong.id,
+                                    reason: 'from listened time',
                                 });
                                 sendProgressAfterSubmission(currentSong);
                             },
@@ -442,11 +432,8 @@ export const useScrobble = () => {
                                 silent: true,
                             });
                         } catch (error) {
-                            logFn.error('an error occurred while sending a desktop notification', {
-                                category: LogCategory.SCROBBLE,
-                                meta: {
-                                    error: error as Error,
-                                },
+                            logger.error('an error occurred while sending a desktop notification', {
+                                error: error as Error,
                             });
                         }
                     }
@@ -491,11 +478,8 @@ export const useScrobble = () => {
                         },
                         {
                             onSuccess: () => {
-                                logFn.debug(logMsg[LogCategory.SCROBBLE].scrobbledStart, {
-                                    category: LogCategory.SCROBBLE,
-                                    meta: {
-                                        id: currentSong.id,
-                                    },
+                                logger.info('Scrobbled a start event', {
+                                    id: currentSong.id,
                                 });
                             },
                         },
@@ -531,11 +515,8 @@ export const useScrobble = () => {
                         },
                         {
                             onSuccess: () => {
-                                logFn.debug(logMsg[LogCategory.SCROBBLE].scrobbledStop, {
-                                    category: LogCategory.SCROBBLE,
-                                    meta: {
-                                        id: previousSong.id,
-                                    },
+                                logger.info('Scrobbled a stop event', {
+                                    id: previousSong.id,
                                 });
                             },
                         },
@@ -625,11 +606,8 @@ export const useScrobble = () => {
                 },
                 {
                     onSuccess: () => {
-                        logFn.debug(logMsg[LogCategory.SCROBBLE].scrobbledTimeupdate, {
-                            category: LogCategory.SCROBBLE,
-                            meta: {
-                                id: currentSong.id,
-                            },
+                        logger.debug('Scrobbled a timeupdate event', {
+                            id: currentSong.id,
                         });
                     },
                 },
@@ -676,11 +654,8 @@ export const useScrobble = () => {
                     },
                     {
                         onSuccess: () => {
-                            logFn.debug(logMsg[LogCategory.SCROBBLE].scrobbledPause, {
-                                category: LogCategory.SCROBBLE,
-                                meta: {
-                                    id: currentSong.id,
-                                },
+                            logger.debug('Scrobbled a pause event', {
+                                id: currentSong.id,
                             });
                         },
                     },
@@ -705,11 +680,8 @@ export const useScrobble = () => {
                     },
                     {
                         onSuccess: () => {
-                            logFn.debug(logMsg[LogCategory.SCROBBLE].scrobbledUnpause, {
-                                category: LogCategory.SCROBBLE,
-                                meta: {
-                                    id: currentSong.id,
-                                },
+                            logger.debug('Scrobbled an unpause event', {
+                                id: currentSong.id,
                             });
                         },
                     },
@@ -738,11 +710,8 @@ export const useScrobble = () => {
                     },
                     {
                         onSuccess: () => {
-                            logFn.debug(logMsg[LogCategory.SCROBBLE].scrobbledStart, {
-                                category: LogCategory.SCROBBLE,
-                                meta: {
-                                    id: currentSong.id,
-                                },
+                            logger.info('Scrobbled a start event', {
+                                id: currentSong.id,
                             });
                         },
                     },
@@ -770,11 +739,8 @@ export const useScrobble = () => {
                     },
                     {
                         onSuccess: () => {
-                            logFn.debug(logMsg[LogCategory.SCROBBLE].scrobbledStop, {
-                                category: LogCategory.SCROBBLE,
-                                meta: {
-                                    id: currentSong.id,
-                                },
+                            logger.info('Scrobbled a stop event', {
+                                id: currentSong.id,
                             });
                         },
                     },
@@ -822,12 +788,9 @@ export const useScrobble = () => {
             },
             {
                 onSuccess: () => {
-                    logFn.debug(logMsg[LogCategory.SCROBBLE].scrobbledStart, {
-                        category: LogCategory.SCROBBLE,
-                        meta: {
-                            id: currentSong.id,
-                            reason: 'from repeat',
-                        },
+                    logger.info('Scrobbled a start event', {
+                        id: currentSong.id,
+                        reason: 'from repeat',
                     });
                 },
             },
@@ -885,12 +848,9 @@ export const useScrobble = () => {
                     },
                     {
                         onSuccess: () => {
-                            logFn.debug(logMsg[LogCategory.SCROBBLE].scrobbledSubmission, {
-                                category: LogCategory.SCROBBLE,
-                                meta: {
-                                    id: song.id,
-                                    reason: 'forced from UI',
-                                },
+                            logger.info('Scrobbled a submission event', {
+                                id: song.id,
+                                reason: 'forced from UI',
                             });
                             sendProgressAfterSubmission(song);
                         },

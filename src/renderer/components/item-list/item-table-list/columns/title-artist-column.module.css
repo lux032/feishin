@@ -59,6 +59,10 @@ a.title {
     --text-text-wrap: nowrap;
 }
 
+.artists > * {
+    white-space: nowrap;
+}
+
 .folder-icon {
     color: black;
     fill: rgb(255 215 100);

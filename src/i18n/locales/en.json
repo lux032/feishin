@@ -147,6 +147,7 @@
         "right": "Right",
         "sampleRate": "Sample rate",
         "save": "Save",
+        "saveAndClose": "Save and close",
         "saveAndReplace": "Save and replace",
         "saveAs": "Save as",
         "search": "Search",
@@ -163,6 +164,7 @@
         "trackGain": "Track gain",
         "trackPeak": "Track peak",
         "translation": "Translation",
+        "undo": "Undo",
         "unknown": "Unknown",
         "version": "Version",
         "year": "Year",
@@ -172,7 +174,11 @@
         "gridRows": "Grid rows",
         "tableColumns": "Table columns",
         "itemsMore": "{{count}} more",
-        "newVersionAvailable": "A new version is available"
+        "lastScan": "Last scan {{date}}",
+        "newVersionAvailable": "A new version is available",
+        "scanFolderCount": "{{count}} folders",
+        "scanItemCount": "{{count}} items",
+        "scanningLibrary": "Scanning library…"
     },
     "entity": {
         "album_one": "Album",
@@ -506,6 +512,7 @@
             "goBack": "Go back",
             "goForward": "Go forward",
             "manageServers": "Manage servers",
+            "logout": "Logout",
             "privateModeOff": "Turn off private mode",
             "privateModeOn": "Turn on private mode",
             "openBrowserDevtools": "Open browser devtools",
@@ -551,7 +558,8 @@
             "goTo": "Go to",
             "goToAlbum": "Go to $t(entity.album, {\"count\": 1})",
             "goToAlbumArtist": "Go to $t(entity.albumArtist, {\"count\": 1})",
-            "showDetails": "Get info"
+            "showDetails": "Get info",
+            "editMetadata": "Edit Metadata"
         },
         "fullscreenPlayer": {
             "config": {
@@ -612,9 +620,29 @@
             "title": "$t(common.home)"
         },
         "itemDetail": {
+            "tagConfiguration": "Tag configuration",
+            "addTagConfig": "Add tag…",
+            "multiValueToggle": "Multi-value",
+            "autocompleteSource": "Autocomplete source",
+            "customValues": "Custom values",
+            "addCustomValue": "Add custom value…",
+            "serverSuggestions": "Server",
             "copyPath": "Copy path to clipboard",
             "copiedPath": "Path copied successfully",
-            "openFile": "Show track in file manager"
+            "openFile": "Show track in file manager",
+            "fileNotWritable": "File is not accessible or not writable",
+            "triggerRescan": "Trigger library rescan after saving",
+            "addField": "Add field…",
+            "emptyFields": "Fields cannot be empty",
+            "tagsTab": "Tags",
+            "artworkTab": "Artwork",
+            "removeArtwork": "Remove Artwork",
+            "noArtwork": "No Artwork",
+            "multipleValues": "(Multiple Values)",
+            "multipleArtworks": "Multiple Artworks",
+            "noLocalSongs": "No songs with local file paths found",
+            "readPartialFailure": "Could not read metadata from {{count}} of {{total}} file(s)",
+            "writePartialFailure": "Failed to save {{count}} file(s)"
         },
         "playlist": {
             "reorder": "Reordering only enabled when sorting by ID"
@@ -984,11 +1012,12 @@
         "lyricOffset_description": "Offset the lyric by the specified amount of milliseconds",
         "lyricOffset": "Lyric offset (ms)",
         "logLevel": "Log level",
-        "logLevel_description": "Sets the minimum log level to display. Debug shows all logs, error only shows errors",
+        "logLevel_description": "Sets the minimum log level to display",
         "logLevel_optionDebug": "Debug",
-        "logLevel_optionError": "Error",
+        "logLevel_optionDebugDescription": "Includes info, plus verbose debug information and redacted API responses",
         "logLevel_optionInfo": "Info",
-        "logLevel_optionWarn": "Warn",
+        "logLevel_optionInfoDescription": "Includes info, warnings, and errors",
+        "exportDiagnostics": "Export diagnostics",
         "minimizeToTray_description": "Minimize the application to the system tray",
         "minimizeToTray": "Minimize to tray",
         "minimumScrobblePercentage_description": "The minimum percentage of the song that must be played before it is scrobbled",

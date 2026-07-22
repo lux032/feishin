@@ -10,6 +10,7 @@ import JellyfinLogo from '/@/renderer/features/servers/assets/jellyfin.png';
 import NavidromeLogo from '/@/renderer/features/servers/assets/navidrome.png';
 import OpenSubsonicLogo from '/@/renderer/features/servers/assets/opensubsonic.png';
 import PlexLogo from '/@/renderer/features/servers/assets/plex.png';
+import { useScanStatus } from '/@/renderer/features/shared/hooks/use-scan-status';
 import { CollapsedSidebarButton } from '/@/renderer/features/sidebar/components/collapsed-sidebar-button';
 import { CollapsedSidebarItem } from '/@/renderer/features/sidebar/components/collapsed-sidebar-item';
 import { ServerSelectorItems } from '/@/renderer/features/sidebar/components/server-selector-items';
@@ -42,6 +43,7 @@ export const CollapsedSidebar = () => {
     const sidebarCollapsedNavigation = useSidebarCollapsedNavigation();
     const sidebarItems = useSidebarItems();
     const currentServer = useCurrentServer();
+    const { isScanning } = useScanStatus();
 
     const translatedSidebarItemMap = useMemo(
         () => ({
@@ -102,7 +104,14 @@ export const CollapsedSidebar = () => {
                         <CollapsedSidebarItem
                             activeIcon={null}
                             component={Flex}
-                            icon={<Icon fill="muted" icon="menu" size="3xl" />}
+                            icon={
+                                <Icon
+                                    animate={isScanning ? 'spin' : undefined}
+                                    fill="muted"
+                                    icon={isScanning ? 'spinner' : 'menu'}
+                                    size="3xl"
+                                />
+                            }
                             label={t('common.menu')}
                             style={{
                                 cursor: 'pointer',
