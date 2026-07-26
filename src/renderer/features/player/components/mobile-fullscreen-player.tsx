@@ -35,10 +35,11 @@ import {
     useCurrentServer,
     useFullScreenPlayerStore,
     useFullScreenPlayerStoreActions,
-    useGeneralSettings,
     usePlayerData,
     usePlayerSong,
     useSetFullScreenPlayerStore,
+    useShowFavorites,
+    useShowRatings,
 } from '/@/renderer/store';
 import { hasFeature } from '/@/shared/api/utils';
 import { ActionIcon } from '/@/shared/components/action-icon/action-icon';
@@ -389,7 +390,8 @@ export const MobileFullscreenPlayer = () => {
     const isPlayingRadio = isRadioActive && isRadioPlaying;
     const effectiveDynamicBackground = dynamicBackground && !isPlayingRadio;
     const setFavorite = useSetFavorite();
-    const { showRatings: showRatingsSetting } = useGeneralSettings();
+    const showRatingsSetting = useShowRatings();
+    const showFavorites = useShowFavorites();
     const setRating = useSetRating();
 
     const [isPageHovered, setIsPageHovered] = useState(false);
@@ -449,7 +451,7 @@ export const MobileFullscreenPlayer = () => {
     const isSongDefined = Boolean(currentSong?.id);
     const showRating =
         showRatingsSetting && isSongDefined && hasFeature(server, ServerFeature.STAR_RATING);
-    const showFavorite = server?.type !== ServerType.PLEX;
+    const showFavorite = showFavorites && server?.type !== ServerType.PLEX;
 
     return (
         <MobilePlayerContainer

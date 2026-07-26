@@ -36,6 +36,7 @@ interface ItemCardControlsProps {
     internalState?: ItemListStateActions;
     item: Album | AlbumArtist | Artist | Genre | Playlist | Song | undefined;
     itemType: LibraryItem;
+    showFavorite: boolean;
     showRating: boolean;
     type?: 'compact' | 'default' | 'poster';
 }
@@ -208,6 +209,7 @@ export const ItemCardControls = ({
     internalState,
     item,
     itemType,
+    showFavorite,
     showRating,
     type = 'default',
 }: ItemCardControlsProps) => {
@@ -293,7 +295,7 @@ export const ItemCardControls = ({
                     </PlayTooltip>
                 </Tooltip.Group>
             )}
-            {controls?.onFavorite && item?._serverType !== ServerType.PLEX && (
+            {controls?.onFavorite && showFavorite && item?._serverType !== ServerType.PLEX && (
                 <FavoriteButton isFavorite={isFavorite} onClick={favoriteHandler} />
             )}
             {controls?.onRating && showRating && hasFeature(server, ServerFeature.STAR_RATING) && (

@@ -499,21 +499,21 @@
     "page": {
         "sidebar": {
             "nowPlaying": "Сейчас играет",
-            "search": "$t(common.search)",
-            "home": "$t(common.home)",
+            "search": "Поиск",
+            "home": "Главная",
             "myLibrary": "Моя библиотека",
-            "shared": "Публичные плейлисты $t(entity.playlist, {\"count\": 2})",
+            "shared": "Публичные плейлисты",
             "collections": "Коллекции",
-            "albumArtists": "$t(entity.albumArtist, {\"count\": 2})",
-            "albums": "$t(entity.album, {\"count\": 2})",
-            "artists": "$t(entity.artist, {\"count\": 2})",
-            "favorites": "$t(entity.favorite, {\"count\": 2})",
-            "folders": "$t(entity.folder, {\"count\": 2})",
-            "genres": "$t(entity.genre, {\"count\": 2})",
-            "radio": "$t(entity.radioStation, {\"count\": 2})",
-            "playlists": "$t(entity.playlist, {\"count\": 2})",
-            "settings": "$t(common.setting, {\"count\": 2})",
-            "tracks": "$t(entity.track, {\"count\": 2})"
+            "albumArtists": "Исполнители альбомов",
+            "albums": "Альбомы",
+            "artists": "Исполнители",
+            "favorites": "Избранное",
+            "folders": "Папки",
+            "genres": "Жанры",
+            "radio": "Радиостанции",
+            "playlists": "Плейлисты",
+            "settings": "Настройки",
+            "tracks": "Треки"
         },
         "fullscreenPlayer": {
             "config": {
