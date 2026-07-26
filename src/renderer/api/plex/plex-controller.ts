@@ -1257,7 +1257,10 @@ export const PlexController: InternalControllerEndpoint = {
 
     getServerInfo: async (args) => {
         return {
-            features: { [ServerFeature.STAR_RATING]: [1] },
+            features: {
+                [ServerFeature.ARTIST_IMAGE_UPLOAD]: [1],
+                [ServerFeature.STAR_RATING]: [1],
+            },
             id: args.apiClientProps.server?.id,
             version: '1.0.0',
         };
@@ -1700,5 +1703,20 @@ export const PlexController: InternalControllerEndpoint = {
 
     updatePlaylist: async () => {
         throw new Error('Not implemented for Plex');
+    },
+
+    uploadArtistImage: async (args) => {
+        const { apiClientProps, body, query } = args;
+        const res = await pxApiClient(apiClientProps).uploadPoster({
+            contentType: body.contentType,
+            image: body.image,
+            ratingKey: query.id,
+        });
+
+        if (res.status < 200 || res.status >= 300) {
+            throw new Error('Failed to upload artist image');
+        }
+
+        return true;
     },
 };

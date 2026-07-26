@@ -1262,6 +1262,7 @@ export type UploadArtistImageArgs = BaseEndpointArgs & {
 };
 
 export type UploadArtistImageBody = {
+    contentType?: string;
     image: Uint8Array;
 };
 

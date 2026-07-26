@@ -568,8 +568,10 @@ export const pxApiClient = (args: {
 
     const request = async <T>(config: {
         body?: any;
+        headers?: Record<string, string>;
         method: Method;
         params?: Record<string, boolean | number | string | undefined>;
+        parseResponse?: boolean;
         path: string;
     }): Promise<{ body: T; headers: any; status: number }> => {
         try {
@@ -584,7 +586,10 @@ export const pxApiClient = (args: {
 
             const result = await axiosClient.request({
                 data: config.body,
-                headers: getPlexHeaders(token),
+                headers: {
+                    ...getPlexHeaders(token),
+                    ...config.headers,
+                },
                 method: config.method,
                 params: queryParams,
                 responseType: 'arraybuffer',
@@ -592,10 +597,13 @@ export const pxApiClient = (args: {
                 url: `${baseUrl}/${config.path}`,
             });
 
-            const parsedBody = parseXmlResponse(
-                result.data,
-                result.headers as Record<string, string>,
-            );
+            const parsedBody =
+                config.parseResponse === false
+                    ? (result.data as T)
+                    : parseXmlResponse(
+                          result.data,
+                          result.headers as Record<string, string>,
+                      );
 
             return {
                 body: parsedBody,
@@ -1086,6 +1094,22 @@ export const pxApiClient = (args: {
             });
 
             return response;
+        },
+
+        uploadPoster: async (params: {
+            contentType?: string;
+            image: Uint8Array;
+            ratingKey: string;
+        }): ApiResponse<ArrayBuffer> => {
+            return request<ArrayBuffer>({
+                body: params.image,
+                headers: {
+                    'Content-Type': params.contentType || 'application/octet-stream',
+                },
+                method: 'POST',
+                parseResponse: false,
+                path: `library/metadata/${encodeURIComponent(params.ratingKey)}/posters`,
+            });
         },
     };
 };

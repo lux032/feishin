@@ -257,7 +257,10 @@ export const AlbumArtistDetailHeader = forwardRef<HTMLDivElement, AlbumArtistDet
                     apiClientProps: {
                         serverId: artist._serverId,
                     },
-                    body: { image: new Uint8Array(buffer) },
+                    body: {
+                        contentType: file.type || undefined,
+                        image: new Uint8Array(buffer),
+                    },
                     query: { id: artist.id },
                 });
             },
