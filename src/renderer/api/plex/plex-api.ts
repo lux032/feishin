@@ -600,10 +600,7 @@ export const pxApiClient = (args: {
             const parsedBody =
                 config.parseResponse === false
                     ? (result.data as T)
-                    : parseXmlResponse(
-                          result.data,
-                          result.headers as Record<string, string>,
-                      );
+                    : parseXmlResponse(result.data, result.headers as Record<string, string>);
 
             return {
                 body: parsedBody,
