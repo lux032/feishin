@@ -511,7 +511,9 @@
         "showQueueInSidebar": "Zobrazit frontu přehrávání v postranním panelu přehrávače",
         "showQueueInSidebar_description": "Do postranního panelu přehrávače bude přidán panel zobrazující frontu přehrávání",
         "autoDJ_allowDuplicates_description": "Povolit automatickému DJ přidávat znovu skladby nebo alba, která již jsou ve frontě přehrávání",
-        "autoDJ_onlySimilar_description": "Přidávat pouze položky, které jsou podobné ke spuštěné skladbě. Počet položek je maximální počet položek k přidání, namísto vyplnění limitu jinými zdroji"
+        "autoDJ_onlySimilar_description": "Přidávat pouze položky, které jsou podobné ke spuštěné skladbě. Počet položek je maximální počet položek k přidání, namísto vyplnění limitu jinými zdroji",
+        "showFavorites": "Zobrazit oblíbené",
+        "showFavorites_description": "Ovládá, zda se tlačítko oblíbení (srdíčko) zobrazí v rozhraní"
     },
     "action": {
         "editPlaylist": "Upravit $t(entity.playlist, {\"count\": 1})",

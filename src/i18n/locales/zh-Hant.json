@@ -921,7 +921,9 @@
         "autoDJ_onlySimilar": "只有相似",
         "autoDJ_onlySimilar_description": "僅新增與觸發歌曲相似的項目。項目數量視為新增項目的上限，而非透過其他來源填滿至上限",
         "showQueueInSidebar_description": "播放器側邊欄將新增一個顯示播放佇列的面板",
-        "showQueueInSidebar": "在播放器側邊欄中顯示播放佇列"
+        "showQueueInSidebar": "在播放器側邊欄中顯示播放佇列",
+        "showFavorites_description": "控制收藏（愛心）按鈕是否顯示於介面中",
+        "showFavorites": "顯示收藏"
     },
     "table": {
         "config": {
