@@ -194,13 +194,13 @@
         "playlist_few": "Playlisty",
         "playlist_many": "Playlist",
         "artist_one": "Wykonawca",
-        "artist_few": "Wykonawców",
+        "artist_few": "Wykonawcy",
         "artist_many": "Wykonawców",
         "folderWithCount_one": "{{count}} katalog",
         "folderWithCount_few": "{{count}} katalogi",
         "folderWithCount_many": "{{count}} katalogów",
         "albumArtist_one": "Wykonawca albumu",
-        "albumArtist_few": "Wykonawców albumów",
+        "albumArtist_few": "Wykonawcy albumów",
         "albumArtist_many": "Wykonawców albumów",
         "track_one": "Utwór",
         "track_few": "Utwory",
@@ -575,7 +575,7 @@
             "genres": "$t(entity.genre, {\"count\": 2})"
         },
         "setting": {
-            "playbackTab": "Odtworzenia",
+            "playbackTab": "Odtwarzanie",
             "generalTab": "Ogólne",
             "hotkeysTab": "Skróty klawiszowe",
             "windowTab": "Okno",
@@ -960,9 +960,9 @@
         "discordPausedStatus_description": "Jeżeli włączone, status będzie pokazywany kiedy odtwarzanie jest wstrzymane",
         "preferLocalLyrics": "Preferuj lokalne teksty",
         "preferLocalLyrics_description": "Jeśli to możliwe, preferuj lokalne teksty zamiast tekstów zdalnych",
-        "lastfm": "Pokazuj linki do last.fm",
+        "lastfm": "Pokazuj linki last.fm",
         "lastfm_description": "Pokazuj linki do Last.fm na stronach wykonawców/albumów",
-        "musicbrainz": "Pokazuj linki do MusicBrainz",
+        "musicbrainz": "Pokazuj linki MusicBrainz",
         "musicbrainz_description": "Pokazuj linki do MusicBrainz na stronach wykonawców/albumów, gdzie istnieje MusicBrainz ID",
         "discordPausedStatus": "Pokaż status podczas pauzy",
         "discordServeImage": "Wysyłaj obrazy dla {{discord}} z serwera",
@@ -1197,7 +1197,15 @@
         "hotkey_playbackPreviousAlbum": "Poprzedni album",
         "logLevel_optionDebugDescription": "zawiera info, plus szczegółowe informacje debugowania i ocenzurowane odpowiedzi API",
         "logLevel_optionInfoDescription": "zawiera info, ostrzeżenia i błędy",
-        "exportDiagnostics": "Eksportuj diagnostykę"
+        "exportDiagnostics": "Eksportuj diagnostykę",
+        "autoDJ_allowDuplicates": "Pozwól na duplikaty",
+        "autoDJ_allowDuplicates_description": "Pozwalaj na ponowne dodawanie piosenek lub albumów które są już w kolejce przez Automatycznego DJ",
+        "autoDJ_onlySimilar": "Tylko podobne",
+        "autoDJ_onlySimilar_description": "Dodawaj tylko te elementy które są podobne do wywołującej piosenki. Liczba elementów jest traktowane jako maksymalna liczba elementów do dodania, zamiast zapełniania do limitu przez inne źródła",
+        "showFavorites": "Pokaż polubienie",
+        "showFavorites_description": "Steruje tym czy przycisk polubienia (serce) jest pokazywany w interfejsie",
+        "showQueueInSidebar_description": "Panel zostanie dodany do paska bocznego odtwarzacza który wyświetla kolejkę odtwarzania",
+        "showQueueInSidebar": "Pokaż kolejkę odtwarzania w pasku bocznym"
     },
     "table": {
         "config": {

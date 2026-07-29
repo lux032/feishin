@@ -1220,7 +1220,12 @@
         "windowBarTrackinfo": "Loo andmed akna tiitliribal",
         "windowBarTrackinfo_description": "Kuva akna tiitliribal hetkel mängiva loo pealkirja ja esitajat, kohta järjekorras ning olekut (mängib/pausil).",
         "microtonalPitchControls": "Mikrotonaalsed helikõrguse nupud",
-        "microtonalPitchControls_description": "Lisa täiendavad helikõrguse nupud pooltoonide vahel liikumiseks"
+        "microtonalPitchControls_description": "Lisa täiendavad helikõrguse nupud pooltoonide vahel liikumiseks",
+        "autoDJ_allowDuplicates": "Luba duplikaadid",
+        "autoDJ_allowDuplicates_description": "Luba Auto DJ-l juba järjekorras olevaid lugusid või albumeid uuesti lisada",
+        "autoDJ_onlySimilar": "Ainult sarnased",
+        "showFavorites": "Kuva lemmikud",
+        "showQueueInSidebar": "Kuva esitusjärjekord külgribal"
     },
     "datetime": {
         "minuteShort": "m",

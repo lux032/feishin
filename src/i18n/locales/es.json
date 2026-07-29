@@ -511,7 +511,9 @@
         "autoDJ_onlySimilar": "Solo similares",
         "autoDJ_onlySimilar_description": "Añade solamente elementos que sean similares a la canción que lo activó. El número de elementos es tratado como una cantidad máxima de elementos a añadir en lugar de completarse por otras fuentes hasta alcanzar el límite",
         "showQueueInSidebar": "Mostrar cola de reproducción en la barra lateral del reproductor",
-        "showQueueInSidebar_description": "Se añadirá un panel a la barra lateral del reproductor que muestra la cola de reproducción"
+        "showQueueInSidebar_description": "Se añadirá un panel a la barra lateral del reproductor que muestra la cola de reproducción",
+        "showFavorites": "Mostrar favoritos",
+        "showFavorites_description": "Controla si los botones de favoritos (corazón) se muestran en la interfaz"
     },
     "action": {
         "editPlaylist": "Editar $t(entity.playlist, {\"count\": 1})",
