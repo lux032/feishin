@@ -1188,6 +1188,7 @@ export const NavidromeController: InternalControllerEndpoint = {
             id: res.body.data.id,
         };
     },
+    startLibraryScan: SubsonicController.startLibraryScan,
     updateInternetRadioStation: async (args) => {
         const { apiClientProps, body, query } = args;
 

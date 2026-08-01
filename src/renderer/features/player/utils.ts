@@ -434,7 +434,7 @@ export const filterSongsByPlayerFilters = (songs: Song[], filters: PlayerFilter[
     });
 
     if (filteredSongs.length > 0) {
-        logger.debug('Player filters applied', {
+        logger.info('Player filters applied', {
             filteredCount: filteredSongs.length,
             filteredSongs: filteredSongs.map(({ filter, song }) => ({
                 artist: song.artistName,

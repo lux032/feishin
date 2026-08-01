@@ -1049,6 +1049,18 @@ export const controller: GeneralController = {
             server.type,
         )?.(addContext({ ...args, apiClientProps: { ...args.apiClientProps, server } }));
     },
+    startLibraryScan(args) {
+        const server = getServerById(args.apiClientProps.serverId);
+
+        if (!server) {
+            throw new Error(`${i18n.t('error.apiRouteError')}: startLibraryScan`);
+        }
+
+        return apiController(
+            'startLibraryScan',
+            server.type,
+        )?.(addContext({ ...args, apiClientProps: { ...args.apiClientProps, server } }));
+    },
     updateInternetRadioStation(args) {
         const server = getServerById(args.apiClientProps.serverId);
 

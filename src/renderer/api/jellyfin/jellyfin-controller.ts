@@ -1917,6 +1917,54 @@ export const JellyfinController: InternalControllerEndpoint = {
 
         return null;
     },
+    startLibraryScan: async (args) => {
+        const { apiClientProps } = args;
+        const server = apiClientProps.server;
+        const userId = server?.userId;
+
+        if (!userId) {
+            throw new Error('No userId found');
+        }
+
+        let musicFolderIds = server.musicFolderId?.filter(Boolean) ?? [];
+
+        if (musicFolderIds.length === 0) {
+            const res = await jfApiClient(apiClientProps).getMusicFolderList({
+                params: { userId },
+            });
+
+            if (res.status !== 200) {
+                throw new Error('Failed to get music folders');
+            }
+
+            musicFolderIds = res.body.Items.filter(
+                (folder) => folder.CollectionType === jfType._enum.collection.MUSIC,
+            ).map((folder) => folder.Id);
+        }
+
+        if (musicFolderIds.length === 0) {
+            throw new Error('No music folders found');
+        }
+
+        await Promise.all(
+            musicFolderIds.map((id) =>
+                jfApiClient(apiClientProps).refreshItem({
+                    body: null,
+                    params: { id },
+                    query: {
+                        ImageRefreshMode: 'Default',
+                        MetadataRefreshMode: 'Default',
+                        Recursive: true,
+                        RegenerateTrickplay: false,
+                        ReplaceAllImages: false,
+                        ReplaceAllMetadata: false,
+                    },
+                }),
+            ),
+        );
+
+        return null;
+    },
     updateInternetRadioStation: async (args) => {
         const { apiClientProps, body, query } = args;
 
