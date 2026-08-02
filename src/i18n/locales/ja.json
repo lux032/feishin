@@ -633,7 +633,11 @@
         "back": "戻る",
         "openFolder": "フォルダーを開く",
         "saveAndClose": "保存して閉じる",
-        "undo": "元に戻す"
+        "undo": "元に戻す",
+        "lastScan": "前回のスキャン {{date}}",
+        "scanFolderCount": "{{count}} 個のフォルダー",
+        "scanItemCount": "{{count}} 個の項目",
+        "scanningLibrary": "ライブラリをスキャン中…"
     },
     "table": {
         "config": {
@@ -865,7 +869,8 @@
                 "lyricScaleNonActive": "非アクティブな歌詞のスケール",
                 "lyricLineLeadTime": "行を読み込む時間 (ms)",
                 "lyricPaddingLeft": "歌詞の左側のパディング (%)",
-                "lyricPaddingRight": "歌詞の右側のパディング (%)"
+                "lyricPaddingRight": "歌詞の右側のパディング (%)",
+                "followCurrentLyric_description": "現在表示されている歌詞の行が画面内に見えるように自動的にスクロールします"
             },
             "upNext": "次へ",
             "lyrics": "歌詞",
