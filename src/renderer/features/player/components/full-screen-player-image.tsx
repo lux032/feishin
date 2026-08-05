@@ -18,6 +18,7 @@ import {
     usePlayerData,
     usePlayerSong,
 } from '/@/renderer/store';
+import { formatPartialIsoDateUTC } from '/@/renderer/utils';
 import { Badge } from '/@/shared/components/badge/badge';
 import { Center } from '/@/shared/components/center/center';
 import { Flex } from '/@/shared/components/flex/flex';
@@ -181,6 +182,7 @@ export const FullScreenPlayerImage = () => {
             </Badge>
         ),
         codec: currentSong?.container && <Badge>{currentSong?.container}</Badge>,
+        date: currentSong?.date && <Badge>{formatPartialIsoDateUTC(currentSong?.date)}</Badge>,
         disc_number: currentSong?.discNumber && (
             <Badge>
                 {t('common.disc')} {currentSong?.discNumber}
@@ -191,7 +193,9 @@ export const FullScreenPlayerImage = () => {
             currentSong?.genres
                 .slice(0, 2)
                 .map((genre) => <Badge key={genre.id}>{genre.name}</Badge>),
-        release_date: currentSong?.releaseDate && <Badge>{currentSong?.releaseDate}</Badge>,
+        release_date: currentSong?.releaseDate && (
+            <Badge>{formatPartialIsoDateUTC(currentSong?.releaseDate)}</Badge>
+        ),
         release_type: currentSong?.tags?.releasetype && (
             <Badge>{currentSong?.tags?.releasetype[0]}</Badge>
         ),
@@ -202,6 +206,7 @@ export const FullScreenPlayerImage = () => {
                 {t('common.trackNumber')} {currentSong?.trackNumber}
             </Badge>
         ),
+        year: currentSong?.year && <Badge>{currentSong?.year}</Badge>,
     };
 
     return (
