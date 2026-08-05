@@ -1016,6 +1016,9 @@ export const PlexController: InternalControllerEndpoint = {
                 artistIds: [query.artistId],
                 favorite: query.type !== 'rating',
                 limit: -1,
+                sortBy:
+                    query.type === 'rating' ? SongListSort.RATING : SongListSort.PLAY_COUNT,
+                sortOrder: SortOrder.DESC,
                 startIndex: 0,
             },
         });
