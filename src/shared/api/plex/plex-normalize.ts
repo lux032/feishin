@@ -151,6 +151,8 @@ const normalizeSong = (
 
     const userRating = normalizePlexUserRating(item.$.userRating);
     const artistName = item.$.originalTitle || item.$.grandparentTitle || '';
+    const releaseDate = item.$.originallyAvailableAt || null;
+    const releaseYear = item.$.year ? Number(item.$.year) : null;
 
     return {
         _itemType: LibraryItem.SONG,
@@ -183,6 +185,7 @@ const normalizeSong = (
         createdAt: item.$.addedAt
             ? new Date(Number(item.$.addedAt) * 1000).toISOString()
             : new Date().toISOString(),
+        date: releaseDate || (releaseYear ? String(releaseYear) : null),
         discNumber: item.$.parentIndex ? Number(item.$.parentIndex) : 1,
         discSubtitle: null,
         duration,
@@ -203,8 +206,8 @@ const normalizeSong = (
         path: null,
         peak: null,
         playCount: item.$.viewCount ? Number(item.$.viewCount) : 0,
-        releaseDate: item.$.originallyAvailableAt || null,
-        releaseYear: item.$.year ? Number(item.$.year) : null,
+        releaseDate,
+        releaseYear,
         sampleRate: null,
         size,
         sortName: item.$.titleSort || item.$.title,
@@ -217,6 +220,7 @@ const normalizeSong = (
             : new Date().toISOString(),
         userFavorite: isPlexFavorite(item.$.userRating),
         userRating,
+        year: releaseYear,
     };
 };
 
@@ -265,6 +269,7 @@ const normalizeAlbum = (
         songCount,
         sortName: item.$.titleSort || item.$.title,
         tags: null,
+        trackYearRange: null,
         updatedAt: item.$.updatedAt
             ? new Date(Number(item.$.updatedAt) * 1000).toISOString()
             : new Date().toISOString(),

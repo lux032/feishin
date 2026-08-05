@@ -781,6 +781,7 @@ export const songListSortMap: SongListSortMap = {
         recentlyAdded: PXSongListSort.RECENTLY_ADDED,
         recentlyPlayed: undefined,
         releaseDate: PXSongListSort.RELEASE_DATE,
+        releaseYear: PXSongListSort.RELEASE_DATE,
         sortName: PXSongListSort.NAME,
         year: PXSongListSort.RELEASE_DATE,
     },
