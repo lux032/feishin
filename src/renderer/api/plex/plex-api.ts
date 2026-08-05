@@ -1041,6 +1041,17 @@ export const pxApiClient = (args: {
             );
         },
 
+        refreshSections: async (ids: string[]) => {
+            return Promise.all(
+                ids.map((id) =>
+                    request<unknown>({
+                        method: 'GET',
+                        path: `library/sections/${encodeURIComponent(id)}/refresh`,
+                    }),
+                ),
+            );
+        },
+
         reportTimeline: async (params: {
             continuing?: boolean;
             duration?: number;

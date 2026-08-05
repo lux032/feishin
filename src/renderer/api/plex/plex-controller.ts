@@ -1009,6 +1009,36 @@ export const PlexController: InternalControllerEndpoint = {
         return `${serverUrl}/library/metadata/${query.id}/download?X-Plex-Token=${apiClientProps.server?.credential}`;
     },
 
+    getFavoriteSongs: async ({ apiClientProps, query }) => {
+        const response = await PlexController.getSongList({
+            apiClientProps,
+            query: {
+                artistIds: [query.artistId],
+                favorite: query.type !== 'rating',
+                limit: -1,
+                startIndex: 0,
+            },
+        });
+
+        const filteredItems =
+            query.type === 'rating'
+                ? response.items.filter(
+                      (song) => song.userRating !== null && song.userRating > 2,
+                  )
+                : response.items.filter((song) => song.userFavorite);
+        const sortedItems = sortSongList(
+            filteredItems,
+            query.type === 'rating' ? SongListSort.RATING : SongListSort.PLAY_COUNT,
+            SortOrder.DESC,
+        );
+
+        return {
+            items: query.limit ? sortedItems.slice(0, query.limit) : sortedItems,
+            startIndex: 0,
+            totalRecordCount: filteredItems.length,
+        };
+    },
+
     getFolder: async (args) => {
         const { apiClientProps, query } = args;
         const serverUrl = getPlexServerUrl(apiClientProps.server);
@@ -1579,6 +1609,32 @@ export const PlexController: InternalControllerEndpoint = {
 
         if (failedResponse) {
             throw new Error('Failed to refresh Plex metadata items');
+        }
+
+        return null;
+    },
+
+    startLibraryScan: async ({ apiClientProps }) => {
+        const apiClient = pxApiClient(apiClientProps);
+        let sectionIds = apiClientProps.server?.musicFolderId?.filter(Boolean) ?? [];
+
+        if (sectionIds.length === 0) {
+            const sectionsResponse = await apiClient.getSections();
+            if (sectionsResponse.status !== 200) {
+                throw new Error('Failed to get Plex music sections');
+            }
+
+            sectionIds = sectionsResponse.body.map((section) => section.key);
+        }
+
+        if (sectionIds.length === 0) {
+            throw new Error('No Plex music sections found');
+        }
+
+        const responses = await apiClient.refreshSections(sectionIds);
+        const failedResponse = responses.find((response) => response.status !== 200);
+        if (failedResponse) {
+            throw new Error('Failed to start Plex library scan');
         }
 
         return null;
