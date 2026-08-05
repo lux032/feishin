@@ -1016,8 +1016,7 @@ export const PlexController: InternalControllerEndpoint = {
                 artistIds: [query.artistId],
                 favorite: query.type !== 'rating',
                 limit: -1,
-                sortBy:
-                    query.type === 'rating' ? SongListSort.RATING : SongListSort.PLAY_COUNT,
+                sortBy: query.type === 'rating' ? SongListSort.RATING : SongListSort.PLAY_COUNT,
                 sortOrder: SortOrder.DESC,
                 startIndex: 0,
             },
@@ -1025,9 +1024,7 @@ export const PlexController: InternalControllerEndpoint = {
 
         const filteredItems =
             query.type === 'rating'
-                ? response.items.filter(
-                      (song) => song.userRating !== null && song.userRating > 2,
-                  )
+                ? response.items.filter((song) => song.userRating !== null && song.userRating > 2)
                 : response.items.filter((song) => song.userFavorite);
         const sortedItems = sortSongList(
             filteredItems,
@@ -1617,32 +1614,6 @@ export const PlexController: InternalControllerEndpoint = {
         return null;
     },
 
-    startLibraryScan: async ({ apiClientProps }) => {
-        const apiClient = pxApiClient(apiClientProps);
-        let sectionIds = apiClientProps.server?.musicFolderId?.filter(Boolean) ?? [];
-
-        if (sectionIds.length === 0) {
-            const sectionsResponse = await apiClient.getSections();
-            if (sectionsResponse.status !== 200) {
-                throw new Error('Failed to get Plex music sections');
-            }
-
-            sectionIds = sectionsResponse.body.map((section) => section.key);
-        }
-
-        if (sectionIds.length === 0) {
-            throw new Error('No Plex music sections found');
-        }
-
-        const responses = await apiClient.refreshSections(sectionIds);
-        const failedResponse = responses.find((response) => response.status !== 200);
-        if (failedResponse) {
-            throw new Error('Failed to start Plex library scan');
-        }
-
-        return null;
-    },
-
     removeFromPlaylist: async () => {
         throw new Error('Not implemented for Plex');
     },
@@ -1759,6 +1730,32 @@ export const PlexController: InternalControllerEndpoint = {
 
         for (const id of query.id) {
             await apiClient.setRating(id, toPlexUserRating(query.rating));
+        }
+
+        return null;
+    },
+
+    startLibraryScan: async ({ apiClientProps }) => {
+        const apiClient = pxApiClient(apiClientProps);
+        let sectionIds = apiClientProps.server?.musicFolderId?.filter(Boolean) ?? [];
+
+        if (sectionIds.length === 0) {
+            const sectionsResponse = await apiClient.getSections();
+            if (sectionsResponse.status !== 200) {
+                throw new Error('Failed to get Plex music sections');
+            }
+
+            sectionIds = sectionsResponse.body.map((section) => section.key);
+        }
+
+        if (sectionIds.length === 0) {
+            throw new Error('No Plex music sections found');
+        }
+
+        const responses = await apiClient.refreshSections(sectionIds);
+        const failedResponse = responses.find((response) => response.status !== 200);
+        if (failedResponse) {
+            throw new Error('Failed to start Plex library scan');
         }
 
         return null;
