@@ -747,6 +747,13 @@ export const PlexController: InternalControllerEndpoint = {
         }
 
         const firstTrack = songs[0];
+        const trackYears = songs
+            .map((song) => song.year)
+            .filter((year): year is number => year !== null);
+        const trackYearRange = trackYears.length
+            ? { max: Math.max(...trackYears), min: Math.min(...trackYears) }
+            : null;
+
         return {
             _itemType: LibraryItem.ALBUM,
             _serverId: apiClientProps.server?.id || '',
@@ -781,6 +788,7 @@ export const PlexController: InternalControllerEndpoint = {
             songs,
             sortName: firstTrack.album || '',
             tags: null,
+            trackYearRange,
             updatedAt: firstTrack.updatedAt,
             userFavorite: isPlexFavorite(albumMetadata?.$.userRating),
             userRating: normalizePlexUserRating(albumMetadata?.$.userRating),
