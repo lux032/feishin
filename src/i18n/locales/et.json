@@ -449,6 +449,10 @@
         },
         "createPrefilledPlaylist": {
             "title": "Loo $t(entity.playlist, {\"count\": 1}) valitud lugudest"
+        },
+        "queueChangeConfirmation": {
+            "title": "Kas tühistada praegune järjekord?",
+            "description": "See eemaldab kõik üksused praegusest järjekorrast."
         }
     },
     "page": {
@@ -1263,7 +1267,9 @@
         "customThemeWarnings_description": "Need teemad laaditi, kuid mõned väärtused olid vigased ja neid eirati.",
         "customThemeWarnings": "Hoiatused",
         "customThemes_description": "Lohista kohandatud teemade lisamiseks sellesse kausta .json teemafailid. Need tuvastatakse automaatselt iga kord, kui faile lisad, muudad või eemaldad.",
-        "customThemes": "Kohandatud teemad"
+        "customThemes": "Kohandatud teemad",
+        "confirmQueueChanges": "Kinnita järjekorra muudatused",
+        "confirmQueueChanges_description": "Küsi enne praeguse järjekorra tühistamist kinnitust"
     },
     "datetime": {
         "minuteShort": "m",

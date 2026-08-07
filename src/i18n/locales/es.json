@@ -523,7 +523,9 @@
         "shareExpirationUseServerDefault": "Usar la expiración predeterminada del servidor",
         "shareExpiration": "Expiración de compartir predeterminada",
         "shareExpiration_description": "Cuándo expiran en el futuro de forma predeterminada los nuevos enlaces de compartir. Limpiar la fecha en el diálogo de compartir para usar en su lugar la predeterminada del servidor",
-        "shareExpirationUseServerDefault_description": "Omite una expiración cuando se crean enlaces de compartir para que el servidor pueda aplicar la predeterminada configurada (p. ej. Navidrome DefaultShareExpiration)"
+        "shareExpirationUseServerDefault_description": "Omite una expiración cuando se crean enlaces de compartir para que el servidor pueda aplicar la predeterminada configurada (p. ej. Navidrome DefaultShareExpiration)",
+        "confirmQueueChanges": "Confirmar cambios en cola",
+        "confirmQueueChanges_description": "Pide confirmación antes de descartar la cola actual"
     },
     "action": {
         "editPlaylist": "Editar $t(entity.playlist, {\"count\": 1})",
@@ -1176,6 +1178,10 @@
         },
         "createPrefilledPlaylist": {
             "title": "Crear $t(entity.playlist, {\"count\": 1}) desde las canciones seleccionadas"
+        },
+        "queueChangeConfirmation": {
+            "title": "¿Descartar la cola actual?",
+            "description": "Esto eliminará todos los elementos de la cola actual."
         }
     },
     "table": {
