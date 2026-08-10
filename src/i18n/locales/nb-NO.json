@@ -171,7 +171,13 @@
         "back": "Tilbake",
         "openFolder": "Åpne mappe",
         "grouping": "Grupper",
-        "numberOfResults": "{{numberOfResults}} resultater"
+        "numberOfResults": "{{numberOfResults}} resultater",
+        "saveAndClose": "Lagre og avslutt",
+        "undo": "Angre",
+        "lastScan": "Siste skan {{date}}",
+        "scanningLibrary": "Skanner bibliotek",
+        "scanFolderCount": "{{count}} mapper",
+        "scanItemCount": "{{count}} elementer"
     },
     "entity": {
         "smartPlaylist": "Smart $t(entity.playlist, {\"count\": 1})",
@@ -397,6 +403,9 @@
             "input_played_optionAll": "Alle sanger",
             "input_played_optionUnplayed": "Bare uavspilte sanger",
             "input_played_optionPlayed": "Bare avspilte sanger"
+        },
+        "privateMode": {
+            "title": "Privat modus"
         }
     },
     "page": {
@@ -410,7 +419,15 @@
             "openBrowserDevtools": "Åpne utviklingsverktøy i nettleser",
             "settings": "$t(common.setting, {\"count\": 2})",
             "expandSidebar": "Utvid sidefelt",
-            "goForward": "Gå fremover"
+            "goForward": "Gå fremover",
+            "privateModeOn": "Aktiver privat modus",
+            "logout": "Logg ut",
+            "commandPalette": "Åpne kommandopalett",
+            "selectMusicFolder": "Velg musikkmappe",
+            "noMusicFolder": "Ingen musikkmappe valgt",
+            "multipleMusicFolders": "{{count}} musikkmapper valgt",
+            "privateModeOff": "Avslutt privat modus",
+            "rescanLibrary": "Skann biblioteket på nytt"
         },
         "contextMenu": {
             "addToPlaylist": "$t(action.addToPlaylist)",
@@ -434,7 +451,11 @@
             "shareItem": "Del element",
             "addFavorite": "$t(action.addToFavorites)",
             "deletePlaylist": "$t(action.deletePlaylist)",
-            "deselectAll": "$t(action.deselectAll)"
+            "deselectAll": "$t(action.deselectAll)",
+            "goTo": "Gå til",
+            "goToAlbum": "Gå til $t(entity.album, {\"count\": 1})",
+            "goToAlbumArtist": "Gå til $t(entity.albumArtist, {\"count\": 1})",
+            "editMetadata": "Rediger metadata"
         },
         "albumArtistDetail": {
             "topSongs": "Beste sanger",
@@ -445,7 +466,8 @@
             "viewAll": "Se alle",
             "about": "Om {{artist}}",
             "appearsOn": "Opptrer på",
-            "relatedArtists": "Relatert $t(entity.artist, {\"count\": 2})"
+            "relatedArtists": "Relatert $t(entity.artist, {\"count\": 2})",
+            "topSongsCommunity": "Fellesskap"
         },
         "albumList": {
             "artistAlbums": "Album av {{artist}}",
@@ -475,7 +497,9 @@
                 "unsynchronized": "Usynkronisert",
                 "dynamicBackground": "Dynamisk bakgrunn",
                 "useImageAspectRatio": "Bruk sideforhold til bildet",
-                "followCurrentLyric": "Følg sangtekst"
+                "followCurrentLyric": "Følg sangtekst",
+                "lyricAlignment_description": "Horisontal justering av sangtekst",
+                "lyricFollowScrollAlignment_description": "Vertikal plassering av den aktive linjen ved følging"
             },
             "noLyrics": "Fant ikke sangtekst",
             "lyrics": "Sangtekst",
@@ -532,9 +556,10 @@
             "playlists": "Spillelister",
             "search": "Søk",
             "settings": "Innstillinger",
-            "shared": "Delte Spillelister",
+            "shared": "Delte spillelister",
             "artists": "Artister",
-            "myLibrary": "Mitt bibliotek"
+            "myLibrary": "Mitt bibliotek",
+            "radio": "Radiostasjoner"
         },
         "setting": {
             "generalTab": "Generelt",
@@ -549,6 +574,12 @@
         },
         "playlist": {
             "reorder": "Omorganisering kun mulig ved sortering på ID"
+        },
+        "windowBar": {
+            "privateMode": "(Privat modus)"
+        },
+        "radioList": {
+            "title": "Radiostasjoner"
         }
     },
     "player": {
@@ -582,7 +613,18 @@
         "toggleFullscreenPlayer": "Bytt til fullskjermspiller",
         "pause": "Sett på pause",
         "viewQueue": "Se kø",
-        "unfavorite": "Fjern fra favoritter"
+        "unfavorite": "Fjern fra favoritter",
+        "addLastShuffled": "Sist (tilfeldig rekkefølge)",
+        "addNextShuffled": "Neste (tilfeldig rekkefølge)",
+        "albumRadio": "Albumradio",
+        "artistRadio": "Artistradio",
+        "holdToShuffle": "Hold inne for tilfeldig avspilling",
+        "lyrics": "Sangtekst",
+        "nextAlbum": "Alt+klikk for neste album",
+        "previousAlbum": "Alt+klikk for forrige album",
+        "saveQueueToServer": "Lagre avspillingskøen på serveren",
+        "restoreQueueFromServer": "Hent avspillingskøen fra serveren",
+        "trackRadio": "Låtradio"
     },
     "setting": {
         "accentColor": "Aksentfarge",
