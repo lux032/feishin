@@ -524,7 +524,8 @@
         "confirmQueueChanges_description": "Zeptat se na potvrzení před vymazáním aktuální fronty",
         "shareExpiration_description": "Jak daleko do budoucnosti ve výchozím nastavení vyprší nové odkazy ke sdílení. Vymažte datum v dialogu sdílení pro použití výchozí hodnoty serveru",
         "shareExpiration": "Výchozí vypršení sdílení",
-        "shareExpirationUseServerDefault": "Použít výchozí dobu vypršení serveru"
+        "shareExpirationUseServerDefault": "Použít výchozí dobu vypršení serveru",
+        "shareExpirationUseServerDefault_description": "Při vytváření sdílených složek vynechte nastavení doby platnosti, aby server mohl použít nakonfigurovanou výchozí hodnotu (např. Navidrome DefaultShareExpiration)"
     },
     "action": {
         "editPlaylist": "Upravit $t(entity.playlist, {\"count\": 1})",
