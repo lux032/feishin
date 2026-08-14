@@ -157,7 +157,7 @@
                 "lyricLineLeadTime_description": "Avança la línia activa aquests tants milisegons abans de la seva marca temporal",
                 "lyricPaddingLeft_description": "Espaiat a l'esquerra com a percentatge de l'àrea de la lletra",
                 "lyricPaddingRight_description": "Espaiat a la dreta com a percentatge de l'àrea de la lletra",
-                "lyricSizeSynchronized_description": "Mida de la font per la lletra sincronitzada",
+                "lyricSizeSynchronized_description": "Tamany de la tipografia per a lletres sincronitzades",
                 "lyricSizeUnsynchronized_description": "Mida de la font per la lletra no sincronitzada",
                 "lyricOpacityNonActive_description": "Opacitat de les línies inactives de la lletra",
                 "lyricScaleNonActive_description": "Escala de les línies inactives de la lletra",
