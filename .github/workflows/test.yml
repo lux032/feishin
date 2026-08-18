@@ -44,5 +44,7 @@ jobs:
                   if [ "${{ github.event.before }}" = "0000000000000000000000000000000000000000" ]; then
                     pnpm exec commitlint --last --verbose
                   else
-                    pnpm exec commitlint --from ${{ github.event.before }} --to ${{ github.event.after }} --verbose
+                    for commit in $(git rev-list --first-parent --reverse "${{ github.event.before }}..${{ github.event.after }}"); do
+                      git show -s --format=%B "$commit" | pnpm exec commitlint --verbose || exit 1
+                    done
                   fi
