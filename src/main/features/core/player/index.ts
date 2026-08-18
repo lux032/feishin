@@ -26,6 +26,21 @@ let mpvInstance: MpvAPI | null = null;
 let currentPlayerData: null | PlayerData = null;
 const socketPath = isWindows() ? `\\\\.\\pipe\\mpvserver-${pid}` : `/tmp/node-mpv-${pid}.sock`;
 
+// While quitting/restarting mpv, playlist-pos goes to -1 and node-mpv emits stopped/paused/
+// resumed. Those look identical to a real track end and must not reach the renderer — otherwise
+// handleTrackEnded runs mediaAutoNext while status is STOPPED and flips the UI back to Playing
+// on the next queue item (e.g. MPV reload after mediaStop).
+let suppressRendererPlaybackEvents = false;
+// Bumped on quit so late events from a dying instance are ignored after a new one starts.
+let playbackEventGeneration = 0;
+
+const sendRendererPlaybackEvent = (channel: string, ...args: unknown[]) => {
+    if (suppressRendererPlaybackEvents) {
+        return;
+    }
+    getMainWindow()?.webContents.send(channel, ...args);
+};
+
 const NodeMpvErrorCode = {
     0: 'Unable to load file or stream',
     1: 'Invalid argument',
@@ -167,6 +182,16 @@ const createMpv = async (data: {
     }
 
     let previousPlaylistPos: number | undefined;
+    const eventGeneration = playbackEventGeneration;
+
+    suppressRendererPlaybackEvents = false;
+
+    const sendIfCurrent = (channel: string, ...args: unknown[]) => {
+        if (eventGeneration !== playbackEventGeneration) {
+            return;
+        }
+        sendRendererPlaybackEvent(channel, ...args);
+    };
 
     mpv.on('status', (status) => {
         if (status.property === 'playlist-pos') {
@@ -175,7 +200,7 @@ const createMpv = async (data: {
             // mpv uses playlist-pos = -1 when nothing is playing (ended, cleared, load failure, etc).
             if (currentPos === -1) {
                 if (previousPlaylistPos === 0) {
-                    getMainWindow()?.webContents.send('renderer-player-track-ended');
+                    sendIfCurrent('renderer-player-track-ended');
                 }
                 mpv?.pause();
                 previousPlaylistPos = currentPos;
@@ -185,7 +210,7 @@ const createMpv = async (data: {
             // In our 2-item queue model, playlist-pos should normally be 0.
             // When mpv auto-advances to the next track it becomes > 0 (typically 1).
             if (typeof currentPos === 'number' && currentPos > 0) {
-                getMainWindow()?.webContents.send('renderer-player-auto-next');
+                sendIfCurrent('renderer-player-auto-next');
             }
 
             previousPlaylistPos = currentPos;
@@ -194,21 +219,24 @@ const createMpv = async (data: {
 
     // Automatically updates the play button when the player is playing
     mpv.on('resumed', () => {
-        getMainWindow()?.webContents.send('renderer-player-play');
+        sendIfCurrent('renderer-player-play');
     });
 
     // Automatically updates the play button when the player is stopped
     mpv.on('stopped', () => {
-        getMainWindow()?.webContents.send('renderer-player-stop');
+        sendIfCurrent('renderer-player-stop');
     });
 
     // Automatically updates the play button when the player is paused
     mpv.on('paused', () => {
-        getMainWindow()?.webContents.send('renderer-player-pause');
+        sendIfCurrent('renderer-player-pause');
     });
 
     // Event output every interval set by time_update, used to update the current time
     mpv.on('timeposition', (time: number) => {
+        if (eventGeneration !== playbackEventGeneration) {
+            return;
+        }
         getMainWindow()?.webContents.send('renderer-player-current-time', time);
     });
 
@@ -235,6 +263,8 @@ const killMpvProcess = (mpv: MpvAPI) => {
 const quit = async (instance?: MpvAPI | null) => {
     const mpv = instance || getMpvInstance();
     if (mpv) {
+        suppressRendererPlaybackEvents = true;
+        playbackEventGeneration += 1;
         try {
             // mpv.quit() resolves only when mpv replies over IPC. If mpv's command queue
             // is wedged (e.g. blocked on a dead network stream after the system resumes
@@ -302,6 +332,8 @@ ipcMain.handle(
             });
 
             // Clean up previous mpv instance
+            suppressRendererPlaybackEvents = true;
+            playbackEventGeneration += 1;
             getMpvInstance()?.stop();
             getMpvInstance()
                 ?.quit()
@@ -338,6 +370,9 @@ ipcMain.handle(
 );
 
 ipcMain.on('player-quit', async () => {
+    // stop() also drives playlist-pos to -1; suppress before that so reload does not look like a track end.
+    suppressRendererPlaybackEvents = true;
+    playbackEventGeneration += 1;
     try {
         await getMpvInstance()?.stop();
         await quit();
@@ -446,6 +481,13 @@ ipcMain.on('player-set-queue', async (_event, current?: string, next?: string, p
         }
     }
 
+    // When pause is requested (e.g. preload after reload while UI is STOPPED/PAUSED), mpv still
+    // briefly resumes on load. Suppress those events so they do not overwrite renderer status.
+    const shouldSuppressLoadEvents = pause === true;
+    if (shouldSuppressLoadEvents) {
+        suppressRendererPlaybackEvents = true;
+    }
+
     try {
         if (current) {
             try {
@@ -472,6 +514,10 @@ ipcMain.on('player-set-queue', async (_event, current?: string, next?: string, p
         }
     } catch (err: any | NodeMpvError) {
         mpvLog({ action: `Failed to set play queue` }, err);
+    } finally {
+        if (shouldSuppressLoadEvents) {
+            suppressRendererPlaybackEvents = false;
+        }
     }
 });
 
@@ -737,10 +783,8 @@ const cleanupMpv = async (force = false) => {
 // the renderer to reload mpv so it reconnects with a fresh stream instead of staying
 // stuck on the old, now-dead connection until the app is manually restarted.
 powerMonitor.on('resume', () => {
-    if (getMpvInstance()) {
-        mpvLog({ action: 'System resumed from sleep, reloading mpv' });
-        getMainWindow()?.webContents.send('renderer-mpv-reconnect');
-    }
+    mpvLog({ action: 'System resumed from sleep, notifying renderer to reconnect mpv' });
+    getMainWindow()?.webContents.send('renderer-mpv-reconnect');
 });
 
 app.on('before-quit', async (event) => {

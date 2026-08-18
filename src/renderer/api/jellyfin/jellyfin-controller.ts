@@ -502,10 +502,10 @@ export const JellyfinController: InternalControllerEndpoint = {
                 userId: apiClientProps.server.userId,
             },
             query: {
-                AlbumIds: query.id,
                 EnableUserData: true,
                 Fields: JF_FIELDS.SONG,
                 IncludeItemTypes: 'Audio',
+                ParentId: query.id,
                 Recursive: true,
                 SortBy: 'ParentIndexNumber,IndexNumber,SortName',
                 SortOrder: JFSortOrder.ASC,

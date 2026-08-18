@@ -741,7 +741,7 @@
         "artistReleaseTypeConfiguration_description": "Configureer welke uitgavesoorten worden getoond op de albumartiestpagina en in welke volgorde",
         "audioDevice_description": "Kies het audioapparaat dat wordt gebruikt om af te spelen",
         "audioDevice": "Audioapparaat",
-        "audioExclusiveMode_description": "Schakel exclusieve uitvoermodus in. In deze modus wordt het systeem normaliter uitgesloten en zal enkel mpv audio kunnen uitvoeren",
+        "audioExclusiveMode_description": "Schakel exclusieve uitvoermodus in. In deze modus wordt het systeem normaliter uitgesloten en zal enkel mpv audio kunnen uitvoeren. Visualisatiesysteem audio-opname zal niet werken als dit ingeschakeld is",
         "audioExclusiveMode": "Audio-exclusieve modus",
         "audioPlayer_description": "Kies de audiospeler om te gebruiken bij het afspelen",
         "audioPlayer": "Audiospeler",
@@ -1056,7 +1056,14 @@
         "hotkey_playbackPreviousAlbum": "Vorig album",
         "windowBarTrackinfo": "Nummer informatie in Venstertitel",
         "autoDJ_mode_albums": "Albums",
-        "autoDJ_albumStrategy": "Albumselectiemodus"
+        "autoDJ_albumStrategy": "Albumselectiemodus",
+        "autoDJ_songStrategy": "Nummerselectiemodus",
+        "autoDJ_strategy_option_similar": "Gelijkaardig",
+        "autoDJ_allowDuplicates": "Laat duplicaten toe",
+        "autoDJ_allowDuplicates_description": "Sta toe dat nummers of albums die al in de wachtrij staan, opnieuw toegevoegd kunnen worden door Auto-DJ",
+        "autoDJ_onlySimilar": "Enkel gelijkaardig",
+        "enableFurigana_description": "Toon uitspraakgidsen (furigana) boven Japanse kanji-teksten",
+        "enableFurigana": "Furigana-generatie inschakelen"
     },
     "form": {
         "addServer": {
@@ -1092,7 +1099,7 @@
             "input_owner": "$t(common.owner)"
         },
         "addToPlaylist": {
-            "success": "$t(entity.trackWithCount, {\"count\": {{message}} }) aan $t(entity.trackWithCount, {\"count\": {{message}} }) toegevoegd",
+            "success": "$t(entity.trackWithCount, {\"count\": {{message}} }) aan $t(entity.playlistWithCount, {\"count\": {{numOfPlaylists}} }) toegevoegd",
             "title": "Aan $t(entity.playlist, {\"count\": 1}) toevoegen",
             "input_skipDuplicates": "Duplicaten overslaan",
             "input_playlists": "$t(entity.playlist, {\"count\": 2})",
@@ -1156,7 +1163,7 @@
             "input_played_optionPlayed": "Alleen gespeelde nummers",
             "input_kind_albums": "Albums",
             "input_kind_songs": "Nummers",
-            "input_kind": "Willekeurige keuzes",
+            "input_kind": "Willekeurige selectie",
             "input_limit_albums": "Hoeveel albums?",
             "input_limit_songs": "Hoeveel nummers?"
         },
@@ -1179,7 +1186,7 @@
             "success": "Radiozender succesvol bijgewerkt"
         },
         "createPrefilledPlaylist": {
-            "title": "Maak $t(entity.playlist, {\"count\": 1}) uit geselecteerde nummers."
+            "title": "Maak $t(entity.playlist, {\"count\": 1}) uit geselecteerde nummers"
         },
         "queueChangeConfirmation": {
             "title": "Huidige wachtrij legen?",

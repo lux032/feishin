@@ -200,88 +200,95 @@ const AudioPlayersContent = ({
     }, []);
 
     useEffect(() => {
-        if (webAudio && 'AudioContext' in window) {
-            let context: AudioContext;
-
-            try {
-                context = new AudioContext({
-                    latencyHint: 'playback',
-                    sampleRate: audioSampleRateHz || undefined,
-                });
-            } catch (error) {
-                // In practice, this should never be hit because the UI should validate
-                // the range. However, the actual supported range is not guaranteed
-                toast.error({ message: (error as Error).message });
-                context = new AudioContext({ latencyHint: 'playback' });
-                resetSampleRate();
-            }
-
-            const gains = [context.createGain(), context.createGain()];
-
-            // Build DSP chain from persisted settings so EQ/compressor
-            // are active immediately on first playback, not just after
-            // the user opens the settings panel.
-            const { compressor, equalizer } = useSettingsStore.getState().playback;
-
-            // Preamp gain — converts dB to linear
-            const preampGain = context.createGain();
-            preampGain.gain.value = equalizer.enabled ? Math.pow(10, equalizer.preamp / 20) : 1;
-
-            // One peaking BiquadFilterNode per EQ band
-            const eqFilters: BiquadFilterNode[] = equalizer.bands.map((band) => {
-                const filter = context.createBiquadFilter();
-                filter.type = 'peaking';
-                filter.frequency.value = band.freq;
-                // Q of 1.41 gives roughly 1-octave bandwidth per band
-                filter.Q.value = 1.41;
-                filter.gain.value = equalizer.enabled ? band.gain : 0;
-                return filter;
-            });
-
-            // DynamicsCompressorNode — always present, pass-through when disabled
-            // (ratio=1, threshold=0 = mathematically transparent)
-            const compressorNode = context.createDynamicsCompressor();
-            if (compressor.enabled) {
-                compressorNode.threshold.value = compressor.threshold;
-                compressorNode.ratio.value = compressor.ratio;
-                compressorNode.attack.value = compressor.attack / 1000;
-                compressorNode.release.value = compressor.release / 1000;
-                compressorNode.knee.value = compressor.knee;
-            } else {
-                compressorNode.threshold.value = 0;
-                compressorNode.ratio.value = 1;
-                compressorNode.attack.value = 0;
-                compressorNode.release.value = 0.25;
-                compressorNode.knee.value = 0;
-            }
-
-            // Wire: each gain → preamp → eq[0] → eq[1] → ... → compressor → destination
-            for (const gain of gains) {
-                gain.connect(preampGain);
-            }
-
-            if (eqFilters.length > 0) {
-                preampGain.connect(eqFilters[0]);
-                for (let i = 0; i < eqFilters.length - 1; i++) {
-                    eqFilters[i].connect(eqFilters[i + 1]);
-                }
-                eqFilters[eqFilters.length - 1].connect(compressorNode);
-            } else {
-                preampGain.connect(compressorNode);
-            }
-
-            compressorNode.connect(context.destination);
-
-            setWebAudio!({
-                context,
-                dsp: { compressor: compressorNode, eqFilters, preampGain },
-                gains,
-            });
+        if (playbackType !== PlayerType.WEB || !webAudio || !('AudioContext' in window)) {
+            return;
         }
+
+        let context: AudioContext;
+
+        try {
+            context = new AudioContext({
+                latencyHint: 'playback',
+                sampleRate: audioSampleRateHz || undefined,
+            });
+        } catch (error) {
+            // In practice, this should never be hit because the UI should validate
+            // the range. However, the actual supported range is not guaranteed
+            toast.error({ message: (error as Error).message });
+            context = new AudioContext({ latencyHint: 'playback' });
+            resetSampleRate();
+        }
+
+        const gains = [context.createGain(), context.createGain()];
+
+        // Build DSP chain from persisted settings so EQ/compressor
+        // are active immediately on first playback, not just after
+        // the user opens the settings panel.
+        const { compressor, equalizer } = useSettingsStore.getState().playback;
+
+        // Preamp gain — converts dB to linear
+        const preampGain = context.createGain();
+        preampGain.gain.value = equalizer.enabled ? Math.pow(10, equalizer.preamp / 20) : 1;
+
+        // One peaking BiquadFilterNode per EQ band
+        const eqFilters: BiquadFilterNode[] = equalizer.bands.map((band) => {
+            const filter = context.createBiquadFilter();
+            filter.type = 'peaking';
+            filter.frequency.value = band.freq;
+            // Q of 1.41 gives roughly 1-octave bandwidth per band
+            filter.Q.value = 1.41;
+            filter.gain.value = equalizer.enabled ? band.gain : 0;
+            return filter;
+        });
+
+        // DynamicsCompressorNode — always present, pass-through when disabled
+        // (ratio=1, threshold=0 = mathematically transparent)
+        const compressorNode = context.createDynamicsCompressor();
+        if (compressor.enabled) {
+            compressorNode.threshold.value = compressor.threshold;
+            compressorNode.ratio.value = compressor.ratio;
+            compressorNode.attack.value = compressor.attack / 1000;
+            compressorNode.release.value = compressor.release / 1000;
+            compressorNode.knee.value = compressor.knee;
+        } else {
+            compressorNode.threshold.value = 0;
+            compressorNode.ratio.value = 1;
+            compressorNode.attack.value = 0;
+            compressorNode.release.value = 0.25;
+            compressorNode.knee.value = 0;
+        }
+
+        // Wire: each gain → preamp → eq[0] → eq[1] → ... → compressor → destination
+        for (const gain of gains) {
+            gain.connect(preampGain);
+        }
+
+        if (eqFilters.length > 0) {
+            preampGain.connect(eqFilters[0]);
+            for (let i = 0; i < eqFilters.length - 1; i++) {
+                eqFilters[i].connect(eqFilters[i + 1]);
+            }
+            eqFilters[eqFilters.length - 1].connect(compressorNode);
+        } else {
+            preampGain.connect(compressorNode);
+        }
+
+        compressorNode.connect(context.destination);
+
+        setWebAudio?.({
+            context,
+            dsp: { compressor: compressorNode, eqFilters, preampGain },
+            gains,
+        });
+
+        return () => {
+            void context.close().catch(() => {});
+            setWebAudio?.(undefined);
+        };
 
         // Intentionally ignore the sample rate dependency, as it makes things really messy
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
+    }, [playbackType, webAudio]);
 
     useEffect(() => {
         if (!audioContext?.context) return undefined;
@@ -355,19 +362,21 @@ const AudioPlayersContent = ({
         };
     }, [serverId]);
 
-    if (isRadioActive && playbackType === PlayerType.LOCAL) {
+    if (playbackType === PlayerType.LOCAL) {
         return <MpvPlayer />;
     }
 
-    if (isRadioActive && playbackType === PlayerType.WEB) {
-        return <RadioWebPlayer />;
+    if (playbackType === PlayerType.WEB) {
+        if (isRadioActive) {
+            return <RadioWebPlayer />;
+        }
+
+        return <WebPlayer />;
     }
 
-    return (
-        <>
-            {playbackType === PlayerType.WEB && <WebPlayer />}
-            {playbackType === PlayerType.LOCAL && <MpvPlayer />}
-            {playbackType === PlayerType.JUKEBOX && <JukeboxPlayer />}
-        </>
-    );
+    if (playbackType === PlayerType.JUKEBOX) {
+        return <JukeboxPlayer />;
+    }
+
+    return null;
 };

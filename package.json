@@ -31,6 +31,7 @@
         "i18next": "i18next -c src/i18n/i18next-parser.config.js",
         "postinstall": "electron-builder install-app-deps",
         "lint": "pnpm run typecheck && pnpm run lint-code && pnpm run lint-styles",
+        "lint:commits": "commitlint",
         "lint:fix": "pnpm run lint-code:fix && pnpm run lint-styles:fix",
         "lint-code": "eslint --max-warnings=0 --cache .",
         "lint-code:fix": "eslint --cache --fix .",
@@ -148,6 +149,8 @@
         "zustand": "^5.0.14"
     },
     "devDependencies": {
+        "@commitlint/cli": "^21.2.2",
+        "@commitlint/config-conventional": "^21.2.2",
         "@electron-toolkit/eslint-config-prettier": "^3.0.0",
         "@electron-toolkit/eslint-config-ts": "^3.1.0",
         "@electron-toolkit/tsconfig": "^2.0.0",

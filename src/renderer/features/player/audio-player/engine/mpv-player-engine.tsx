@@ -69,10 +69,14 @@ export const MpvPlayerEngine = (props: MpvPlayerEngineProps) => {
             setReloadTrigger((prev) => prev + 1);
         };
 
+        const handleMpvReconnect = () => {
+            handleMpvReload();
+        };
+
         eventEmitter.on('MPV_RELOAD', handleMpvReload);
         // The main process notifies us after the OS resumes from sleep, since the
         // stream mpv had open is likely on a now-dead connection.
-        mpvPlayerListener?.rendererMpvReconnect(handleMpvReload);
+        mpvPlayerListener?.rendererMpvReconnect(handleMpvReconnect);
 
         return () => {
             eventEmitter.off('MPV_RELOAD', handleMpvReload);
@@ -147,7 +151,9 @@ export const MpvPlayerEngine = (props: MpvPlayerEngineProps) => {
                     : undefined;
 
                 if (currentSongUrl && nextSongUrl && !hasPopulatedQueueRef.current && mpvPlayer) {
-                    mpvPlayer.setQueue(currentSongUrl, nextSongUrl, true);
+                    const shouldPause =
+                        usePlayerStore.getState().player.status !== PlayerStatus.PLAYING;
+                    mpvPlayer.setQueue(currentSongUrl, nextSongUrl, shouldPause);
                     hasPopulatedQueueRef.current = true;
                 }
             }

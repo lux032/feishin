@@ -117,7 +117,7 @@
         "channel_one": "Kanal",
         "channel_other": "Kanaler",
         "filter_one": "Filter",
-        "filter_other": "Filter",
+        "filter_other": "Filtre",
         "add": "Legg til",
         "edit": "Rediger",
         "resetToDefault": "Nullstill",
@@ -182,13 +182,13 @@
     "entity": {
         "smartPlaylist": "Smart $t(entity.playlist, {\"count\": 1})",
         "album_one": "Album",
-        "album_other": "Album",
+        "album_other": "Albumer",
         "albumArtist_one": "Albumartist",
         "albumArtist_other": "Albumartister",
         "albumArtistCount_one": "{{count}} albumartist",
         "albumArtistCount_other": "{{count}} albumartister",
         "albumWithCount_one": "{{count}} album",
-        "albumWithCount_other": "{{count}} album",
+        "albumWithCount_other": "{{count}} albumer",
         "favorite_one": "Favoritt",
         "favorite_other": "Favoritter",
         "folder_one": "Mappe",
@@ -249,7 +249,7 @@
         "noNetworkDescription": "Kunne ikke koble til tjeneren",
         "invalidJson": "Ugyldig JSON",
         "saveQueueFailed": "Kunne ikke lagre kø",
-        "multipleServerSaveQueueError": "Spillekøen har en eller flere sanger som ikke finnes på gjeldene tjener. Dette er ikke støttet",
+        "multipleServerSaveQueueError": "Spillekøen inneholder en eller flere sanger som ikke finnes serveren. Dette er ikke støttet",
         "serverLockSingleServer": "Kun én tjener er tillatt når tjener er låst",
         "settingsSyncError": "Avvik ble funnet mellom innstillinger i avspilleren og hovedprosessen. ta en omstart av applikasjonen for å aktivere endringene",
         "playbackPausedDueToError": "Avspilling ble paused på grunn av en feil"
@@ -300,7 +300,9 @@
         "matchAnd": "Og",
         "matchOr": "Eller",
         "sortName": "Sorter navn",
-        "explicitStatus": "$t(common.explicitStatus)"
+        "explicitStatus": "$t(common.explicitStatus)",
+        "date": "Dato",
+        "year": "År"
     },
     "form": {
         "createPlaylist": {
@@ -339,7 +341,9 @@
             "title": "Legg til i $t(entity.playlist, {\"count\": 1})",
             "input_skipDuplicates": "Hopp over duplikater",
             "input_playlists": "$t(entity.playlist, {\"count\": 2})",
-            "searchOrCreate": "Søk $t(entity.playlist, {\"count\": 2}) eller skriv for å opprette en"
+            "searchOrCreate": "Søk $t(entity.playlist, {\"count\": 2}) eller skriv for å opprette en",
+            "create": "Opprett $t(entity.playlist, {\"count\": 1}) {{playlist}}",
+            "noneAdded": "Ingen spor ble lagt til $t(entity.playlist, {\"count\": 1}) '{{playlist}}'"
         },
         "deletePlaylist": {
             "title": "Slett $t(entity.playlist, {\"count\": 1})",
@@ -359,7 +363,9 @@
             "success": "Del lenke som er kopiert til utklippstavlen (eller klikk her for å åpne)",
             "expireInvalid": "Utløpstid må være et fremtidig tidspunkt",
             "copyToClipboard": "Kopier til kopitavle: Ctrl+C, enter",
-            "successMustClick": "Opprettet deling. trykk her for å åpne"
+            "successMustClick": "Opprettet deling. trykk her for å åpne",
+            "setExpiration_description": "La feltet stå tomt for å bruke serverens standardutløp",
+            "setExpiration_serverDefault": "Serverens standardinnstilling"
         },
         "updateServer": {
             "success": "Vellykket oppdatering av serveren",
@@ -402,10 +408,25 @@
             "input_played": "Avspillingsfilter",
             "input_played_optionAll": "Alle sanger",
             "input_played_optionUnplayed": "Bare uavspilte sanger",
-            "input_played_optionPlayed": "Bare avspilte sanger"
+            "input_played_optionPlayed": "Bare avspilte sanger",
+            "input_kind_albums": "Album",
+            "input_kind_songs": "Sanger",
+            "input_kind": "Tilfeldige valg",
+            "input_limit_albums": "Hvor mange album?",
+            "input_limit_songs": "Hvor mange sanger?"
         },
         "privateMode": {
             "title": "Privat modus"
+        },
+        "queueChangeConfirmation": {
+            "title": "Forkast gjeldende kø?",
+            "description": "Dette vil fjerne alle elementene fra gjeldende kø."
+        },
+        "createPrefilledPlaylist": {
+            "title": "Opprett $t(entity.playlist, {\"count\": 1}) fra de valgte sangene"
+        },
+        "editRadioStation": {
+            "success": "Radiostasjonen ble oppdatert"
         }
     },
     "page": {
@@ -704,13 +725,22 @@
         "startsWith": "Starter med",
         "inTheRangeDate": "Er innenfor området (date)",
         "is": "Er",
-        "isNot": "Er ikke"
+        "isNot": "Er ikke",
+        "isMissing": "Mangler",
+        "isPresent": "Finnes"
     },
     "datetime": {
         "minuteShort": "M",
         "secondShort": "S",
         "hourShort": "H",
-        "dayShort": "D"
+        "dayShort": "D",
+        "secondLong": "Sekund",
+        "minuteLong": "Minutt",
+        "hourLong": "Time",
+        "dayLong": "Dag",
+        "weekLong": "Uke",
+        "monthLong": "Måned",
+        "yearLong": "År"
     },
     "visualizer": {
         "options": {

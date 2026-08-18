@@ -400,7 +400,9 @@ const normalizeAlbum = (
 
 const normalizeAlbumArtist = (
     item: z.infer<typeof ndType._response.albumArtist> & {
-        similarArtists?: z.infer<typeof ssType._response.artistInfo>['artistInfo']['similarArtist'];
+        similarArtists?: NonNullable<
+            z.infer<typeof ssType._response.artistInfo2>['artistInfo2']
+        >['similarArtist'];
     },
     server?: null | ServerListItem,
 ): AlbumArtist => {
@@ -456,8 +458,8 @@ const normalizeAlbumArtist = (
         playCount: item.playCount || 0,
         similarArtists:
             item.similarArtists?.map((artist) => ({
-                id: artist.id,
-                imageId: artist.id,
+                id: String(artist.id),
+                imageId: String(artist.id),
                 imageUrl: null,
                 name: artist.name,
                 userFavorite: Boolean(artist.starred) || false,
