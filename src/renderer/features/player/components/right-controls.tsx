@@ -410,10 +410,6 @@ const LyricsButton = () => {
     const { setStore } = useFullScreenPlayerStoreActions();
     const { expanded: isFullScreenPlayerExpanded } = useFullScreenPlayerStore();
 
-    const expandFullScreenPlayer = () => {
-        setFullScreenPlayerStore({ expanded: !isFullScreenPlayerExpanded });
-    };
-
     return (
         <ActionIcon
             icon="microphone"
@@ -423,8 +419,12 @@ const LyricsButton = () => {
             }}
             onClick={(e) => {
                 e.stopPropagation();
-                if (!isFullScreenPlayerExpanded) setStore({ activeTab: 'lyrics' });
-                expandFullScreenPlayer();
+                if (!isFullScreenPlayerExpanded) {
+                    setStore({ activeTab: 'lyrics' });
+                    setFullScreenPlayerStore({ expanded: true });
+                } else {
+                    setStore({ activeTab: activeTab === 'lyrics' ? '' : 'lyrics' });
+                }
             }}
             role="button"
             size="sm"

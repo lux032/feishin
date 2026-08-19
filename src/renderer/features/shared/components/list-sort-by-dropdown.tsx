@@ -188,6 +188,11 @@ export const CLIENT_SIDE_SONG_FILTERS = [
     },
     {
         defaultOrder: SortOrder.ASC,
+        name: i18n.t('filter.random'),
+        value: SongListSort.RANDOM,
+    },
+    {
+        defaultOrder: SortOrder.ASC,
         name: i18n.t('filter.sortName'),
         value: SongListSort.SORT_NAME,
     },
