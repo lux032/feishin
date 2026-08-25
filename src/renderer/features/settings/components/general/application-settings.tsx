@@ -687,12 +687,12 @@ export const ApplicationSettings = memo(() => {
             control: (
                 <NumberInput
                     max={120}
-                    min={1}
+                    min={0}
                     onBlur={(e) => {
                         const rawValue = e.currentTarget.value;
-                        const newVal = rawValue
-                            ? Math.min(Math.max(Number(rawValue), 1), 120)
-                            : undefined;
+
+                        const newVal = Math.min(Math.max(Number(rawValue), 0), 120);
+
                         setSettings({
                             general: {
                                 ...settings,
