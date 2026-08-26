@@ -199,6 +199,7 @@ const normalizeSong = (
             ? new Date(Number(item.$.lastViewedAt) * 1000).toISOString()
             : null,
         lyrics: null,
+        mbzAlbumId: null,
         mbzRecordingId: null,
         mbzTrackId: null,
         name: item.$.title,
