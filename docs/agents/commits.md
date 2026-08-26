@@ -2,6 +2,8 @@
 
 Conventional Commits for history that can feed release notes and scoped changelogs. Enforced by commitlint (`commitlint.config.mjs`) and the Test workflow.
 
+Automatic Weblate translation commits (subject `Translated using Weblate`) are skipped via the config's `ignores` list, since they do not follow the conventional format.
+
 ## Format
 
 ```
