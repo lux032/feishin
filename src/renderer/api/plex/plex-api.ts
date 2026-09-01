@@ -909,6 +909,26 @@ export const pxApiClient = (args: {
             return response;
         },
 
+        // Sonic "instant mix": Plex's audio-analysis nearest-neighbour endpoint. Returns
+        // tracks ordered by sonic distance to the seed (closest first). Requires Plex Pass
+        // sonic analysis; servers without it return a non-200, which the caller degrades to
+        // an empty mix. The payload reuses the album-tracks Track shape - the extra per-track
+        // `distance` attribute is simply ignored by the schema.
+        getNearestTracks: async (
+            ratingKey: string,
+            params?: { limit?: number },
+        ): ApiResponse<PlexAlbumTracksResponse> => {
+            const response = await request<PlexAlbumTracksResponse>({
+                method: 'GET',
+                params: {
+                    limit: params?.limit,
+                },
+                path: `library/metadata/${ratingKey}/nearest`,
+            });
+
+            return response;
+        },
+
         getPlaylistList: async (): ApiResponse<PlexPlaylistListResponse> => {
             const response = await request<PlexPlaylistListResponse>({
                 method: 'GET',
