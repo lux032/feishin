@@ -1304,8 +1304,27 @@ export const PlexController: InternalControllerEndpoint = {
         };
     },
 
-    getSimilarSongs: async () => {
-        return [];
+    getSimilarSongs: async (args) => {
+        const { apiClientProps, query } = args;
+        const serverUrl = getPlexServerUrl(apiClientProps.server);
+        const token = getPlexToken(apiClientProps.server);
+
+        const apiClient = pxApiClient(apiClientProps);
+        const res = await apiClient.getNearestTracks(query.songId, {
+            limit: query.count,
+        });
+
+        // Plex's sonic analysis is a Plex Pass feature; servers without it return a
+        // non-200. Degrade to an empty mix rather than throwing, matching the prior stub.
+        if (res.status !== 200) {
+            return [];
+        }
+
+        const tracks = res.body?.MediaContainer?.Track ?? [];
+
+        return tracks
+            .filter((track) => track.$.ratingKey !== query.songId)
+            .map((track) => pxNormalize.song(track, apiClientProps.server, serverUrl, token));
     },
 
     getSongDetail: async (args) => {
