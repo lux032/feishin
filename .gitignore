@@ -8,3 +8,4 @@ out
 release
 .idea
 .scratch
+tsconfig.*.tsbuildinfo
