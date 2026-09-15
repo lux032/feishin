@@ -1,5 +1,6 @@
 import i18n from '/@/i18n/i18n';
 import { pxApiClient } from '/@/renderer/api/plex/plex-api';
+import { logger } from '/@/renderer/utils/logger';
 import { getServerUrl } from '/@/renderer/utils/normalize-server-url';
 import {
     isPlexFavorite,
@@ -1326,6 +1327,18 @@ export const PlexController: InternalControllerEndpoint = {
         // Plex's sonic analysis is a Plex Pass feature; servers without it return a
         // non-200. Degrade to an empty mix rather than throwing, matching the prior stub.
         if (res.status !== 200) {
+            if (res.status === 404) {
+                logger.debug('Plex sonic analysis unavailable for song', {
+                    songId: query.songId,
+                    status: res.status,
+                });
+            } else {
+                logger.warn('Failed to fetch Plex sonic mix for song', {
+                    songId: query.songId,
+                    status: res.status,
+                });
+            }
+
             return [];
         }
 

@@ -35,6 +35,17 @@ after each upstream merge to decide what to keep, remove, or update.
 - **Merge rule:** on conflict, keep the `ServerType.PLEX` branch; take upstream
   changes to other branches.
 
+### `src/renderer/api/plex/plex-api.ts`
+- Adds `getNearestTracks`, which calls Plex's audio-analysis nearest-neighbour
+  endpoint at `library/metadata/{ratingKey}/nearest`.
+- **Merge rule:** this file does not exist upstream; keep the Plex endpoint.
+
+### `src/renderer/api/plex/plex-controller.ts`
+- `getSimilarSongs` uses `/nearest` to provide Plex sonic mixes instead of
+  returning an empty list.
+- **Merge rule:** this file does not exist upstream; keep the Plex implementation.
+  Non-200 responses must degrade to `[]` and must not throw.
+
 ### `src/renderer/api/subsonic/subsonic-controller.ts` / `navidrome-controller.ts`
 - Minor additions needed for Plex compatibility (shared Subsonic-dialect
   helpers).
