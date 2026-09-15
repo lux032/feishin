@@ -30,6 +30,7 @@ export function useSongUrl(
                     bitrate: transcode.bitrate,
                     format: transcode.format,
                     id: song!.id,
+                    maxSampleRate: transcode.maxSampleRate,
                     transcode: transcode.enabled ?? false,
                 },
             }),
@@ -39,6 +40,7 @@ export function useSongUrl(
             song?.id,
             shouldReusePrior ? 'reuse-prior' : transcode.bitrate,
             shouldReusePrior ? 'reuse-prior' : transcode.format,
+            shouldReusePrior ? 'reuse-prior' : transcode.maxSampleRate,
             shouldReusePrior ? 'reuse-prior' : transcode.enabled,
         ] as const,
         staleTime: 60 * 1000,
@@ -76,6 +78,8 @@ export const getSongUrl = async (
     song: QueueSong,
     transcode: Partial<TranscodingConfig>,
     skipAutoTranscode?: boolean,
+    forRenderer?: boolean,
+    startTime?: number,
 ) => {
     // Plex: use direct part URL for lossless playback
     if (song._serverType === ServerType.PLEX && song.streamUrl) {
@@ -86,9 +90,14 @@ export const getSongUrl = async (
         apiClientProps: { serverId: song._serverId },
         query: {
             bitrate: transcode.bitrate,
+            container: song.container,
             format: transcode.format,
+            forRenderer,
             id: song.id,
+            maxSampleRate: transcode.maxSampleRate,
+            sampleRate: song.sampleRate,
             skipAutoTranscode,
+            startTime,
             transcode: transcode.enabled ?? false,
         },
     });

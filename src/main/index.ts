@@ -373,9 +373,7 @@ let currentSidebarCollapsed = false;
 let currentShuffleEnabled = false;
 
 app.on('before-quit', () => {
-    if (isMacOS()) {
-        forceQuit = true;
-    }
+    forceQuit = true;
     log.info('App quitting', { reason: exitFromTray ? 'tray' : 'before-quit' });
 });
 let playbackMenuAccelerators: MenuPlaybackState['accelerators'] = {};
@@ -454,7 +452,10 @@ const hideMainWindowToTray = () => {
 };
 
 export const showMainWindow = () => {
-    if (!mainWindow || mainWindow.isDestroyed()) return;
+    if (!mainWindow || mainWindow.isDestroyed()) {
+        void createWindow(false);
+        return;
+    }
 
     if (mainWindow.isMinimized()) {
         mainWindow.restore();
@@ -822,16 +823,6 @@ async function createWindow(first = true): Promise<void> {
         mainWindow = null;
     });
 
-    if (isMacOS()) {
-        mainWindow.on('show', () => {
-            rebuildMainMenu();
-        });
-
-        mainWindow.on('hide', () => {
-            rebuildMainMenu();
-        });
-    }
-
     mainWindow.on('close', (event) => {
         if (mainWindow) {
             const bounds = mainWindow.getNormalBounds();
@@ -868,7 +859,7 @@ async function createWindow(first = true): Promise<void> {
         app.setAppUserModelId('org.jeffvli.feishin');
     }
 
-    menuBuilder = new MenuBuilder(mainWindow);
+    menuBuilder = new MenuBuilder(mainWindow, showMainWindow);
     rebuildMainMenu();
 
     // Open URLs in the user's browser

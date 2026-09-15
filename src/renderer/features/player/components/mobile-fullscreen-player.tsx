@@ -43,6 +43,7 @@ import {
 } from '/@/renderer/store';
 import { hasFeature } from '/@/shared/api/utils';
 import { ActionIcon } from '/@/shared/components/action-icon/action-icon';
+import { Stack } from '/@/shared/components/stack/stack';
 import { Text } from '/@/shared/components/text/text';
 import { LibraryItem, ServerType } from '/@/shared/types/domain-types';
 import { ServerFeature } from '/@/shared/types/features-types';
@@ -219,11 +220,10 @@ const overlayVariants: Variants = {
 interface BackgroundImageOverlayProps {
     dynamicBackground: boolean | undefined;
     dynamicImageBlur: number | undefined;
-    dynamicIsImage: boolean | undefined;
 }
 
 const BackgroundImageOverlay = memo(
-    ({ dynamicBackground, dynamicImageBlur, dynamicIsImage }: BackgroundImageOverlayProps) => {
+    ({ dynamicBackground, dynamicImageBlur }: BackgroundImageOverlayProps) => {
         const currentSong = usePlayerSong();
         const { nextSong } = usePlayerData();
 
@@ -257,7 +257,7 @@ const BackgroundImageOverlay = memo(
             previousSongRef.current = currentSong?._uniqueId;
         }, [currentSong?._uniqueId, nextSong?._uniqueId]);
 
-        if (!dynamicBackground || !dynamicIsImage) {
+        if (!dynamicBackground) {
             return null;
         }
 
@@ -340,9 +340,17 @@ const MobilePlayerContainer = memo(
         opacity,
     }: MobilePlayerContainerProps) => {
         const currentSong = usePlayerSong();
+        const isRadioActive = useIsRadioActive();
+        const { currentStationArt: currentRadioStationArt } = useRadioPlayer();
+
+        const imageId = isRadioActive ? currentRadioStationArt?.imageId : currentSong?.imageId;
+        const currentImageUrl = isRadioActive
+            ? currentRadioStationArt?.imageUrl
+            : currentSong?.imageUrl;
+
         const imageUrl = useItemImageUrl({
-            id: currentSong?.imageId || undefined,
-            imageUrl: currentSong?.imageUrl,
+            id: imageId || undefined,
+            imageUrl: currentImageUrl,
             itemType: LibraryItem.SONG,
             type: 'itemCard',
         });
@@ -388,7 +396,6 @@ const MobilePlayerContainer = memo(
                 <BackgroundImageOverlay
                     dynamicBackground={dynamicBackground}
                     dynamicImageBlur={dynamicImageBlur}
-                    dynamicIsImage={dynamicIsImage}
                 />
                 {children}
             </motion.div>
@@ -424,11 +431,10 @@ export const MobileFullscreenPlayer = () => {
     const currentSong = usePlayerSong();
     const { currentSong: currentSongData } = usePlayerData();
     const isRadioActive = useIsRadioActive();
-    const { isPlaying: isRadioPlaying, metadata: radioMetadata, stationName } = useRadioPlayer();
+    const { metadata: radioMetadata, stationName } = useRadioPlayer();
     const server = useCurrentServer();
 
-    const isPlayingRadio = isRadioActive && isRadioPlaying;
-    const effectiveDynamicBackground = dynamicBackground && !isPlayingRadio;
+    const effectiveDynamicBackground = dynamicBackground;
 
     const setFavorite = useSetFavorite();
     const showRatingsSetting = useShowRatings();
@@ -517,8 +523,8 @@ export const MobileFullscreenPlayer = () => {
                     currentSong={currentSong}
                     onToggleFavorite={handleToggleFavorite}
                     onUpdateRating={handleUpdateRating}
-                    radioStationName={isPlayingRadio ? (stationName ?? undefined) : undefined}
-                    radioTitle={isPlayingRadio ? (radioMetadata?.title ?? undefined) : undefined}
+                    radioStationName={isRadioActive ? (stationName ?? undefined) : undefined}
+                    radioTitle={isRadioActive ? (radioMetadata?.title ?? undefined) : undefined}
                     showFavorite={showFavorite}
                     showRating={showRating}
                 />
@@ -558,9 +564,9 @@ export const MobileFullscreenPlayer = () => {
                                 variant={isPageHovered ? 'default' : 'subtle'}
                             />
                         </div>
-                        <div className={styles.queueContent}>
+                        <Stack gap={0} h="100%" w="100%">
                             <PlayQueue listKey={ItemListKey.FULL_SCREEN} searchTerm={undefined} />
-                        </div>
+                        </Stack>
                     </motion.div>
                 )}
             </AnimatePresence>

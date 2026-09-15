@@ -20,6 +20,7 @@ export enum ServerFeature {
     SIMILAR_SONGS_MUSIC_FOLDER = 'similarSongsMusicFolder',
     STAR_RATING = 'starRating',
     TAGS = 'tags',
+    TOP_SONGS_BY_ARTIST_ID = 'topSongsByArtistId',
     TRACK_ALBUM_ARTIST_SEARCH = 'trackAlbumArtistSearch',
     TRACK_YES_NO_RATING_FILTER = 'trackYesNoRatingFilter',
 }

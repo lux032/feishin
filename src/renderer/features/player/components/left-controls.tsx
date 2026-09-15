@@ -151,6 +151,7 @@ export const LeftControls = () => {
                                             itemType={LibraryItem.RADIO_STATION}
                                             serverId={currentStationArt?.serverId}
                                             src={currentStationArt?.imageUrl ?? ''}
+                                            thumbHash={currentStationArt?.thumbHash ?? null}
                                             type="table"
                                         />
                                     ) : isRadioMode ? (
@@ -164,6 +165,7 @@ export const LeftControls = () => {
                                         </Center>
                                     ) : (
                                         <ItemImage
+                                            blurHash={currentSong?.blurHash}
                                             className={clsx(
                                                 styles.playerbarImage,
                                                 PlaybackSelectors.playerCoverArt,
@@ -175,24 +177,20 @@ export const LeftControls = () => {
                                             id={currentSong?.imageId}
                                             itemType={LibraryItem.SONG}
                                             serverId={currentSong?._serverId}
+                                            thumbHash={currentSong?.thumbHash}
                                             type="table"
                                         />
                                     )}
                                 </Tooltip>
                                 {!sidebarCollapsed && sidebarImageEnabled && (
                                     <ActionIcon
+                                        className={styles.toggleButton}
                                         icon="arrowUpS"
                                         iconProps={{ size: 'xl' }}
                                         onClick={handleToggleSidebarImage}
                                         opacity={0.8}
                                         radius="md"
                                         size="xs"
-                                        style={{
-                                            cursor: 'default',
-                                            position: 'absolute',
-                                            right: 2,
-                                            top: 2,
-                                        }}
                                         tooltip={{
                                             label: t('common.expand'),
                                             openDelay: 0,
