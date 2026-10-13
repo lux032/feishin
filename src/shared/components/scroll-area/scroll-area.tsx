@@ -29,6 +29,7 @@ export const ScrollArea = forwardRef((props: ScrollAreaProps, ref: Ref<HTMLDivEl
     } = props;
 
     const containerRef = useRef(null);
+    const viewportRef = useRef<HTMLDivElement>(null);
     const [scroller, setScroller] = useState<HTMLElement | null | Window>(null);
 
     const [initialize, osInstance] = useOverlayScrollbars({
@@ -51,7 +52,14 @@ export const ScrollArea = forwardRef((props: ScrollAreaProps, ref: Ref<HTMLDivEl
         let autoScrollCleanup: (() => void) | null = null;
 
         if (scroller && root) {
-            initialize(root);
+            // Keep React-owned children in a stable viewport during Suspense updates.
+            initialize({
+                elements: {
+                    content: viewportRef.current,
+                    viewport: viewportRef.current,
+                },
+                target: root,
+            });
 
             if (allowDragScroll) {
                 const viewport = osInstance()?.elements().viewport || (scroller as HTMLElement);
@@ -88,7 +96,7 @@ export const ScrollArea = forwardRef((props: ScrollAreaProps, ref: Ref<HTMLDivEl
             }}
             {...htmlProps}
         >
-            {children}
+            <div ref={viewportRef}>{children}</div>
         </div>
     );
 });

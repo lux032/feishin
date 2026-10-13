@@ -80,6 +80,18 @@ after each upstream merge to decide what to keep, remove, or update.
 - **Merge rule:** keep the Plex-specific block; take upstream changes to other
   blocks.
 
+### `src/shared/components/scroll-area/scroll-area.tsx`
+- Fixes a shared upstream DOM-ownership bug: OverlayScrollbars must use an
+  explicit React-owned viewport/content element instead of moving React's
+  direct children into a generated viewport. Otherwise a cold Suspense
+  fallback replacement can throw `NotFoundError` in album/song filter sidebars.
+- Query behavior, server dispatch, and loading fallbacks are unchanged.
+- **Merge rule:** keep the explicit viewport/content refs and child wrapper
+  until upstream provides an equivalent DOM-ownership fix. Do not revert to
+  `initialize(root)`. Check cold Suspense replacement after merging.
+- Regression check: `scripts/check-scroll-area-suspense.cjs` tests the actual
+  wrapper with React, OverlayScrollbars, and a temporary jsdom installation.
+
 ### Build / CI files
 - `.github/workflows/publish-*.yml`, `electron-builder*.yml` — updated to
   publish under `lux032` GitHub account.
