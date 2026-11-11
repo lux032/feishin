@@ -181,8 +181,7 @@ export const applyFavoriteOptimisticUpdates = (
                         queryKey,
                         updater: (
                             current:
-                                | undefined
-                                | { pageParams: string[]; pages: AlbumListResponse[] },
+                                undefined | { pageParams: string[]; pages: AlbumListResponse[] },
                         ) => {
                             if (!current) return current;
                             const updatedPages = updateItemsInPages<Album, AlbumListResponse>(
@@ -606,8 +605,7 @@ export const applyFavoriteOptimisticUpdates = (
                         queryKey,
                         updater: (
                             current:
-                                | undefined
-                                | { pageParams: string[]; pages: SongListResponse[] },
+                                undefined | { pageParams: string[]; pages: SongListResponse[] },
                         ) => {
                             if (!current) return current;
                             const updatedPages = updateItemsInPages<Song, SongListResponse>(
